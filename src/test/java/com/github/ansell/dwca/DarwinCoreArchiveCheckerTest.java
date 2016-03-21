@@ -126,8 +126,14 @@ public class DarwinCoreArchiveCheckerTest {
 	 * .
 	 */
 	@Test
-	public final void testParseMetadataXml() throws Exception {
-		DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXml);
+	public final void testParseMetadataXmlCoreOnly() throws Exception {
+		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXml);
+		assertNotNull(testDocument);
+		assertNotNull(testDocument.getCore());
+		assertEquals(0, testDocument.getExtensions().size());
+		assertNotNull(testDocument.getCore().getFiles());
+		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
+		assertEquals("./specimens.csv", testDocument.getCore().getFiles().getLocations().get(0));
 	}
 
 }
