@@ -143,14 +143,15 @@ public class DarwinCoreArchiveChecker {
 	 * 
 	 * @param metadataPath
 	 *            The path to the metadata.xml file to parse.
+	 * @return
 	 * @throws IOException
 	 *             If there is an input-output exception.
 	 * @throws SAXException
 	 *             If there is an exception parsing the XML document.
 	 */
-	public static void parseMetadataXml(Path metadataPath) throws IOException, SAXException {
+	public static Object parseMetadataXml(Path metadataPath) throws IOException, SAXException {
 		try (Reader input = Files.newBufferedReader(metadataPath);) {
-			new DarwinCoreMetadataSaxParser().parse(input);
+			return DarwinCoreMetadataSaxParser.parseFromReader(input);
 		}
 	}
 

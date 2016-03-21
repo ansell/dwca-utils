@@ -85,28 +85,38 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	private DarwinCoreFile currentFile;
 
-	private DarwinCoreCoreOrExtension currentCoreOrExtension;
-	
-	private DarwinCoreCoreOrExtension core;
-	
-	private List<DarwinCoreCoreOrExtension> extensions;
+	private DarwinCoreArchiveDocument dwcaDocument;
 
-	public DarwinCoreMetadataSaxParser() throws SAXException {
+	private DarwinCoreCoreOrExtension currentCoreOrExtension;
+
+	private DarwinCoreMetadataSaxParser() throws SAXException {
 		this(XMLReaderFactory.createXMLReader());
 	}
 
-	public DarwinCoreMetadataSaxParser(XMLReader xmlReader) {
+	private DarwinCoreMetadataSaxParser(XMLReader xmlReader) {
 		this.xmlReader = xmlReader;
 	}
 
-	public void parse(Reader reader) throws IOException, SAXException {
-		parse(new InputSource(reader));
+	public static DarwinCoreArchiveDocument parseFromReader(Reader reader) throws IOException, SAXException {
+		return new DarwinCoreMetadataSaxParser().parse(reader);
 	}
 
-	public void parse(InputSource inputSource) throws IOException, SAXException {
+	public static DarwinCoreArchiveDocument parseFromReader(Reader reader, XMLReader xmlReaderToUse)
+			throws IOException, SAXException {
+		return new DarwinCoreMetadataSaxParser(xmlReaderToUse).parse(reader);
+	}
+
+	private DarwinCoreArchiveDocument parse(Reader reader) throws IOException, SAXException {
+		return parse(new InputSource(reader));
+	}
+
+	private DarwinCoreArchiveDocument parse(InputSource inputSource) throws IOException, SAXException {
 		reset();
 		xmlReader.setContentHandler(this);
 		xmlReader.parse(inputSource);
+		DarwinCoreArchiveDocument result = this.dwcaDocument;
+		reset();
+		return result;
 	}
 
 	private void reset() {
@@ -120,8 +130,7 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 		foundLocationInFile = false;
 		endArchiveFound = false;
 		currentFile = null;
-		core = null;
-		extensions = new ArrayList<>();
+		dwcaDocument = null;
 	}
 
 	@Override
@@ -157,6 +166,7 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 				throw new SAXException("Only a single archive element is allowed.");
 			}
 			startArchiveFound = true;
+			dwcaDocument = new DarwinCoreArchiveDocument();
 		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && CORE.equals(localName)) {
 			if (!startArchiveFound) {
 				throw new SAXException("Did not find an archive element before the core element.");
@@ -171,7 +181,7 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 				throw new SAXException("Found core element nested in location element.");
 			}
 			currentCoreOrExtension = DarwinCoreCoreOrExtension.newCore(attributes);
-			core = currentCoreOrExtension;
+			dwcaDocument.setCore(currentCoreOrExtension);
 			inCore = true;
 			foundCore = true;
 		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && EXTENSION.equals(localName)) {
@@ -188,7 +198,7 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 				throw new SAXException("Found extension element nested in location element.");
 			}
 			currentCoreOrExtension = DarwinCoreCoreOrExtension.newExtension(attributes);
-			extensions.add(currentCoreOrExtension);
+			dwcaDocument.addExtension(currentCoreOrExtension);
 			inExtension = true;
 		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && FILES.equals(localName)) {
 			if (!startArchiveFound) {
@@ -197,8 +207,12 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 			if (!(inCore || inExtension)) {
 				throw new SAXException("Found files element outside of core or extension elements.");
 			}
-			currentFile = null;
+			if (inLocation) {
+				throw new SAXException("Found files element inside of location element.");
+			}
+			currentFile = new DarwinCoreFile();
 			inFiles = true;
+			foundLocationInFile = false;
 		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && LOCATION.equals(localName)) {
 			if (!startArchiveFound) {
 				throw new SAXException("Did not find an archive element before the location element.");
@@ -234,14 +248,15 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 				throw new SAXException("Found end tag for extension without an opening extension tag.");
 			}
 			inExtension = false;
- 		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && FILES.equals(localName)) {
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && FILES.equals(localName)) {
 			if (!inFiles) {
 				throw new SAXException("Found end tag for files without an opening files tag.");
 			}
-			if(currentFile.getLocations().isEmpty()) {
-				throw new SAXException("Did not find locations for file.");
+			if (currentFile.getLocations().isEmpty()) {
+				throw new SAXException("Did not find locations for file in "
+						+ currentCoreOrExtension.getType().toString().toLowerCase());
 			}
-			if(inCore || inExtension) {
+			if (inCore || inExtension) {
 				currentCoreOrExtension.setFiles(currentFile);
 			}
 			inFiles = false;
