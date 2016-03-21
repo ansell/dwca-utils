@@ -73,7 +73,7 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	@Override
 	public void endDocument() throws SAXException {
-		System.out.println("SAX: startDocument");
+		System.out.println("SAX: endDocument");
 	}
 
 	@Override
