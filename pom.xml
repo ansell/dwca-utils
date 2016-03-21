@@ -46,6 +46,10 @@
 			<artifactId>jdefaultdict</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.github.ansell.csv.sum</groupId>
+			<artifactId>csvsum</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 		</dependency>
@@ -65,6 +69,10 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-vfs2</artifactId>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
@@ -73,6 +81,11 @@
 				<groupId>com.github.ansell.jdefaultdict</groupId>
 				<artifactId>jdefaultdict</artifactId>
 				<version>0.1</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ansell.csv.sum</groupId>
+				<artifactId>csvsum</artifactId>
+				<version>0.0.6</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -132,6 +145,11 @@
 				<groupId>org.jooq</groupId>
 				<artifactId>jool</artifactId>
 				<version>0.9.10</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-vfs2</artifactId>
+				<version>2.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

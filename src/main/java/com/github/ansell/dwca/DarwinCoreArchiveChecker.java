@@ -27,8 +27,14 @@ package com.github.ansell.dwca;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemManager;
+import org.apache.commons.vfs2.VFS;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -75,6 +81,46 @@ public class DarwinCoreArchiveChecker {
 			throw new FileNotFoundException("Could not find input Darwin Core Archive file: " + inputPath.toString());
 		}
 
+		if (!inputPath.getFileName().endsWith(".zip")) {
+			throw new RuntimeException("Only working on validating .zip files right now: " + inputPath);
+		}
+
+		checkZip(inputPath);
+	}
+
+	private static void checkZip(Path inputPath) throws IOException {
+		Path tempDir = Files.createTempDirectory("dwca-check-");
+
+		Path metadataPath = tempDir.resolve("metadata.xml");
+
+		final FileSystemManager fsManager = VFS.getManager();
+		final FileObject zipFile = fsManager.resolveFile("zip:" + inputPath.toAbsolutePath().toString());
+
+		final FileObject[] children = zipFile.getChildren();
+		if (children.length == 0) {
+			throw new RuntimeException("No files in zip file: " + inputPath);
+		}
+
+		for (FileObject nextFile : children) {
+			try (InputStream in = nextFile.getContent().getInputStream();) {
+				Path nextTempFile = tempDir.resolve(nextFile.getName().toString());
+				if (nextFile.getName().toString().equalsIgnoreCase("metadata.xml")) {
+					if (metadataPath != null) {
+						throw new RuntimeException("Duplicate metadata.xml files found: original=" + metadataPath
+								+ " duplicate=" + nextFile.getName().toString());
+					}
+					metadataPath = nextTempFile;
+				}
+
+				Files.copy(in, nextTempFile);
+			}
+		}
+
+		parseMetadataXml(metadataPath);
+	}
+
+	private static void parseMetadataXml(Path metadataPath) {
+		throw new UnsupportedOperationException("TODO: Implement parseMetadataXml!");
 	}
 
 }
