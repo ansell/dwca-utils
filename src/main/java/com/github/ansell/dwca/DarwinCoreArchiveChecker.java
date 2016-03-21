@@ -48,6 +48,8 @@ import joptsimple.OptionSpec;
  */
 public class DarwinCoreArchiveChecker {
 
+	public static final String METADATA_XML = "metadata.xml";
+
 	/**
 	 * Private constructor for static only class
 	 */
@@ -85,13 +87,13 @@ public class DarwinCoreArchiveChecker {
 			throw new RuntimeException("Only working on validating .zip files right now: " + inputPath);
 		}
 
-		checkZip(inputPath);
+		Path tempDir = Files.createTempDirectory("dwca-check-");
+		Path metadataPath = checkZip(inputPath, tempDir);
+		parseMetadataXml(metadataPath);
 	}
 
-	private static void checkZip(Path inputPath) throws IOException {
-		Path tempDir = Files.createTempDirectory("dwca-check-");
-
-		Path metadataPath = tempDir.resolve("metadata.xml");
+	public static Path checkZip(Path inputPath, Path tempDir) throws IOException {
+		Path metadataPath = tempDir.resolve(METADATA_XML);
 
 		final FileSystemManager fsManager = VFS.getManager();
 		final FileObject zipFile = fsManager.resolveFile("zip:" + inputPath.toAbsolutePath().toString());
@@ -104,7 +106,7 @@ public class DarwinCoreArchiveChecker {
 		for (FileObject nextFile : children) {
 			try (InputStream in = nextFile.getContent().getInputStream();) {
 				Path nextTempFile = tempDir.resolve(nextFile.getName().toString());
-				if (nextFile.getName().toString().equalsIgnoreCase("metadata.xml")) {
+				if (nextFile.getName().toString().equalsIgnoreCase(METADATA_XML)) {
 					if (metadataPath != null) {
 						throw new RuntimeException("Duplicate metadata.xml files found: original=" + metadataPath
 								+ " duplicate=" + nextFile.getName().toString());
@@ -116,10 +118,10 @@ public class DarwinCoreArchiveChecker {
 			}
 		}
 
-		parseMetadataXml(metadataPath);
+		return metadataPath;
 	}
 
-	private static void parseMetadataXml(Path metadataPath) {
+	public static void parseMetadataXml(Path metadataPath) throws IOException {
 		throw new UnsupportedOperationException("TODO: Implement parseMetadataXml!");
 	}
 
