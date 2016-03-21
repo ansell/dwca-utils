@@ -30,7 +30,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -44,8 +43,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  */
-@NotThreadSafe
-public class DarwinCoreMetadataSaxParser extends DefaultHandler {
+public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	private static final String ARCHIVE = "archive";
 
