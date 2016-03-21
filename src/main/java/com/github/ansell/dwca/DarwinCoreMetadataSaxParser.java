@@ -47,8 +47,6 @@ import org.xml.sax.helpers.XMLReaderFactory;
 @NotThreadSafe
 public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
-	private static final String DWC = "http://rs.tdwg.org/dwc/text/";
-
 	private static final String ARCHIVE = "archive";
 
 	private static final String CORE = "core";
@@ -154,12 +152,12 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 		System.out.println("SAX: startElement: " + uri + " " + localName + " " + qName);
 		buffer.setLength(0);
 
-		if (DWC.equals(uri) && ARCHIVE.equals(localName)) {
+		if (DarwinCoreArchiveVocab.DWC.equals(uri) && ARCHIVE.equals(localName)) {
 			if (startArchiveFound) {
 				throw new SAXException("Only a single archive element is allowed.");
 			}
 			startArchiveFound = true;
-		} else if (DWC.equals(uri) && CORE.equals(localName)) {
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && CORE.equals(localName)) {
 			if (!startArchiveFound) {
 				throw new SAXException("Did not find an archive element before the core element.");
 			}
@@ -172,11 +170,11 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 			if (inLocation) {
 				throw new SAXException("Found core element nested in location element.");
 			}
-			currentCoreOrExtension = DarwinCoreCoreOrExtension.newCore();
+			currentCoreOrExtension = DarwinCoreCoreOrExtension.newCore(attributes);
 			core = currentCoreOrExtension;
 			inCore = true;
 			foundCore = true;
-		} else if (DWC.equals(uri) && EXTENSION.equals(localName)) {
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && EXTENSION.equals(localName)) {
 			if (!startArchiveFound) {
 				throw new SAXException("Did not find an archive element before the extension element.");
 			}
@@ -189,10 +187,10 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 			if (inLocation) {
 				throw new SAXException("Found extension element nested in location element.");
 			}
-			currentCoreOrExtension = DarwinCoreCoreOrExtension.newExtension();
+			currentCoreOrExtension = DarwinCoreCoreOrExtension.newExtension(attributes);
 			extensions.add(currentCoreOrExtension);
 			inExtension = true;
-		} else if (DWC.equals(uri) && FILES.equals(localName)) {
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && FILES.equals(localName)) {
 			if (!startArchiveFound) {
 				throw new SAXException("Did not find an archive element before the files element.");
 			}
@@ -201,7 +199,7 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 			}
 			currentFile = null;
 			inFiles = true;
-		} else if (DWC.equals(uri) && LOCATION.equals(localName)) {
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && LOCATION.equals(localName)) {
 			if (!startArchiveFound) {
 				throw new SAXException("Did not find an archive element before the location element.");
 			}
@@ -221,22 +219,22 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 		System.out.println("SAX: endElement: " + uri + " " + localName + " " + qName);
 		System.out.println(buffer.toString());
 
-		if (DWC.equals(uri) && ARCHIVE.equals(localName)) {
+		if (DarwinCoreArchiveVocab.DWC.equals(uri) && ARCHIVE.equals(localName)) {
 			if (!startArchiveFound) {
 				throw new SAXException("Found closing archive tag without a starting archive tag.");
 			}
 			endArchiveFound = true;
-		} else if (DWC.equals(uri) && CORE.equals(localName)) {
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && CORE.equals(localName)) {
 			if (!(foundCore && inCore)) {
 				throw new SAXException("Found end tag for core without an opening core tag.");
 			}
 			inCore = false;
-		} else if (DWC.equals(uri) && EXTENSION.equals(localName)) {
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && EXTENSION.equals(localName)) {
 			if (!inExtension) {
 				throw new SAXException("Found end tag for extension without an opening extension tag.");
 			}
 			inExtension = false;
- 		} else if (DWC.equals(uri) && FILES.equals(localName)) {
+ 		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && FILES.equals(localName)) {
 			if (!inFiles) {
 				throw new SAXException("Found end tag for files without an opening files tag.");
 			}
@@ -249,7 +247,7 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 			inFiles = false;
 			foundLocationInFile = false;
 			currentFile = null;
-		} else if (DWC.equals(uri) && LOCATION.equals(localName)) {
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && LOCATION.equals(localName)) {
 			if (!(foundLocationInFile && inLocation)) {
 				throw new SAXException("Found end tag for location without an opening location tag.");
 			}
