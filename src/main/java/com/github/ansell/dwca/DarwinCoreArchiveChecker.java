@@ -143,13 +143,19 @@ public class DarwinCoreArchiveChecker {
 	 * 
 	 * @param metadataPath
 	 *            The path to the metadata.xml file to parse.
-	 * @return
+	 * @return An instance of {@link DarwinCoreArchiveDocument} representing the
+	 *         parsed document.
 	 * @throws IOException
 	 *             If there is an input-output exception.
 	 * @throws SAXException
 	 *             If there is an exception parsing the XML document.
+	 * @throws IllegalStateException
+	 *             If there is an exception interpreting the context of parts of
+	 *             the document that violate the state assumptions in the
+	 *             specification.
 	 */
-	public static Object parseMetadataXml(Path metadataPath) throws IOException, SAXException {
+	public static DarwinCoreArchiveDocument parseMetadataXml(Path metadataPath)
+			throws IOException, SAXException, IllegalStateException {
 		try (Reader input = Files.newBufferedReader(metadataPath);) {
 			return DarwinCoreMetadataSaxParser.parseFromReader(input);
 		}
