@@ -29,12 +29,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
+import org.xml.sax.SAXException;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -90,7 +92,7 @@ public class DarwinCoreArchiveChecker {
 
 		Path tempDir = Files.createTempDirectory("dwca-check-");
 		Path metadataPath = checkZip(inputPath, tempDir);
-		//parseMetadataXml(metadataPath);
+		// parseMetadataXml(metadataPath);
 	}
 
 	/**
@@ -143,9 +145,13 @@ public class DarwinCoreArchiveChecker {
 	 *            The path to the metadata.xml file to parse.
 	 * @throws IOException
 	 *             If there is an input-output exception.
+	 * @throws SAXException
+	 *             If there is an exception parsing the XML document.
 	 */
-	public static void parseMetadataXml(Path metadataPath) throws IOException {
-		throw new UnsupportedOperationException("TODO: Implement parseMetadataXml!");
+	public static void parseMetadataXml(Path metadataPath) throws IOException, SAXException {
+		try (Reader input = Files.newBufferedReader(metadataPath);) {
+			new DarwinCoreMetadataSaxParser().parse(input);
+		}
 	}
 
 }

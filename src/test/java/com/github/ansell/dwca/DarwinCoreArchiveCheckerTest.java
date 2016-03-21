@@ -125,7 +125,6 @@ public class DarwinCoreArchiveCheckerTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#parseMetadataXml(java.nio.file.Path)}
 	 * .
 	 */
-	@Ignore("TODO: Implement parseMetadataXml")
 	@Test
 	public final void testParseMetadataXml() throws Exception {
 		DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXml);

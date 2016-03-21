@@ -28,6 +28,7 @@ package com.github.ansell.dwca;
 import java.io.IOException;
 import java.io.Reader;
 
+import org.apache.http.annotation.NotThreadSafe;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -37,13 +38,16 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
- * SAX based parser for Darwin Core Metadata XML files
+ * A non-threadsafe SAX based parser for Darwin Core Metadata XML files
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  */
+@NotThreadSafe
 public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	private final XMLReader xmlReader;
+
+	private final StringBuilder buffer = new StringBuilder(1024);
 
 	public DarwinCoreMetadataSaxParser() throws SAXException {
 		this(XMLReaderFactory.createXMLReader());
@@ -64,42 +68,56 @@ public class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	@Override
 	public void startDocument() throws SAXException {
+		System.out.println("SAX: startDocument");
 	}
 
 	@Override
 	public void endDocument() throws SAXException {
+		System.out.println("SAX: startDocument");
 	}
 
 	@Override
 	public void startPrefixMapping(String prefix, String uri) throws SAXException {
+		System.out.println("SAX: startPrefixMapping: " + prefix + " " + uri);
 	}
 
 	@Override
 	public void endPrefixMapping(String prefix) throws SAXException {
+		System.out.println("SAX: endPrefixMapping: " + prefix);
 	}
 
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+		System.out.println("SAX: startElement: " + uri + " " + localName + " " + qName);
+		buffer.setLength(0);
 	}
 
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
+		System.out.println("SAX: endElement: " + uri + " " + localName + " " + qName);
+		System.out.println(buffer.toString());
+		buffer.setLength(0);
 	}
 
 	@Override
 	public void characters(char[] ch, int start, int length) throws SAXException {
+		buffer.append(ch, start, length);
 	}
 
 	@Override
 	public void warning(SAXParseException e) throws SAXException {
+		System.out.println("SAX: warning: " + e.getMessage());
 	}
 
 	@Override
 	public void error(SAXParseException e) throws SAXException {
+		System.out.println("SAX: error: " + e.getMessage());
 	}
 
 	@Override
 	public void fatalError(SAXParseException e) throws SAXException {
+		System.out.println("SAX: fatalError: " + e.getMessage());
+		throw e;
 	}
 
 }
