@@ -38,12 +38,14 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 /**
+ * Tests for {@link DarwinCoreArchiveChecker}.
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  */
@@ -113,7 +115,9 @@ public class DarwinCoreArchiveCheckerTest {
 	 */
 	@Test
 	public final void testCheckZip() throws Exception {
-		DarwinCoreArchiveChecker.checkZip(testFile, testTempDir);
+		Path metadataPath = DarwinCoreArchiveChecker.checkZip(testFile, testTempDir);
+		assertNotNull(metadataPath);
+		assertTrue(Files.exists(metadataPath));
 	}
 
 	/**
@@ -121,6 +125,7 @@ public class DarwinCoreArchiveCheckerTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#parseMetadataXml(java.nio.file.Path)}
 	 * .
 	 */
+	@Ignore("TODO: Implement parseMetadataXml")
 	@Test
 	public final void testParseMetadataXml() throws Exception {
 		DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXml);

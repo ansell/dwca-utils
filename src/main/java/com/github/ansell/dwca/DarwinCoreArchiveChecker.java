@@ -42,7 +42,8 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 /**
- * 
+ * Checks the contents of
+ * <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Archives</a>.
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  */
@@ -89,9 +90,22 @@ public class DarwinCoreArchiveChecker {
 
 		Path tempDir = Files.createTempDirectory("dwca-check-");
 		Path metadataPath = checkZip(inputPath, tempDir);
-		parseMetadataXml(metadataPath);
+		//parseMetadataXml(metadataPath);
 	}
 
+	/**
+	 * Checks that the zip file given in inputPath is valid, while extracting it
+	 * to tempDir.
+	 * 
+	 * @param inputPath
+	 *            The Darwin Core Archive zip file.
+	 * @param tempDir
+	 *            The temporary directory to extract the zip file to.
+	 * @return The path to the extracted metadata.xml file, if it existed,
+	 *         otherwise null.
+	 * @throws IOException
+	 *             If there is an input-output exception.
+	 */
 	public static Path checkZip(Path inputPath, Path tempDir) throws IOException {
 		Path metadataPath = null;
 
@@ -122,6 +136,14 @@ public class DarwinCoreArchiveChecker {
 		return metadataPath;
 	}
 
+	/**
+	 * Parses the metadata.xml file.
+	 * 
+	 * @param metadataPath
+	 *            The path to the metadata.xml file to parse.
+	 * @throws IOException
+	 *             If there is an input-output exception.
+	 */
 	public static void parseMetadataXml(Path metadataPath) throws IOException {
 		throw new UnsupportedOperationException("TODO: Implement parseMetadataXml!");
 	}
