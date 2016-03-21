@@ -83,7 +83,7 @@ public class DarwinCoreArchiveChecker {
 			throw new FileNotFoundException("Could not find input Darwin Core Archive file: " + inputPath.toString());
 		}
 
-		if (!inputPath.getFileName().endsWith(".zip")) {
+		if (!inputPath.getFileName().toString().contains(".zip")) {
 			throw new RuntimeException("Only working on validating .zip files right now: " + inputPath);
 		}
 
@@ -93,7 +93,7 @@ public class DarwinCoreArchiveChecker {
 	}
 
 	public static Path checkZip(Path inputPath, Path tempDir) throws IOException {
-		Path metadataPath = tempDir.resolve(METADATA_XML);
+		Path metadataPath = null;
 
 		final FileSystemManager fsManager = VFS.getManager();
 		final FileObject zipFile = fsManager.resolveFile("zip:" + inputPath.toAbsolutePath().toString());
@@ -105,11 +105,12 @@ public class DarwinCoreArchiveChecker {
 
 		for (FileObject nextFile : children) {
 			try (InputStream in = nextFile.getContent().getInputStream();) {
-				Path nextTempFile = tempDir.resolve(nextFile.getName().toString());
-				if (nextFile.getName().toString().equalsIgnoreCase(METADATA_XML)) {
+				String baseName = nextFile.getName().getBaseName();
+				Path nextTempFile = tempDir.resolve(baseName);
+				if (baseName.equalsIgnoreCase(METADATA_XML)) {
 					if (metadataPath != null) {
 						throw new RuntimeException("Duplicate metadata.xml files found: original=" + metadataPath
-								+ " duplicate=" + nextFile.getName().toString());
+								+ " duplicate=" + baseName);
 					}
 					metadataPath = nextTempFile;
 				}
