@@ -42,6 +42,14 @@ public final class DarwinCoreArchiveVocab {
 	public static final String ENCODING = "encoding";
 	public static final String IGNORE_HEADER_LINES = "ignoreHeaderLines";
 	public static final String DATE_FORMAT = "dateFormat";
+	public static final String ARCHIVE = "archive";
+	public static final String CORE = "core";
+	public static final String FILES = "files";
+	public static final String LOCATION = "location";
+	public static final String FIELD = "field";
+	public static final String EXTENSION = "extension";
+	public static final String ID = "id";
+	public static final String COREID = "coreId";
 
 	/**
 	 * Private constructor for static-only class.
