@@ -90,6 +90,14 @@ public class DarwinCoreArchiveDocument {
 		if (!this.getExtensions().isEmpty() && this.getCore().getIdOrCoreId() == null) {
 			throw new IllegalStateException("Core must have id set if there are extensions present.");
 		}
+
+		for (DarwinCoreField field : core.getFields()) {
+			if (field.getIndex() == null && field.getDefault() == null) {
+				throw new IllegalStateException(
+						"Fields that do not have indexes must have default values set: " + field.getTerm());
+			}
+		}
+
 		for (DarwinCoreCoreOrExtension extension : getExtensions()) {
 			if (extension.getIdOrCoreId() == null) {
 				throw new IllegalStateException("Extensions must have coreId set.");
@@ -100,6 +108,13 @@ public class DarwinCoreArchiveDocument {
 			if (extension.getFiles() == null) {
 				throw new IllegalStateException("Extension must have files set.");
 			}
+			for (DarwinCoreField field : extension.getFields()) {
+				if (field.getIndex() == null && field.getDefault() == null) {
+					throw new IllegalStateException(
+							"Fields that do not have indexes must have default values set: " + field.getTerm());
+				}
+			}
+
 		}
 	}
 
