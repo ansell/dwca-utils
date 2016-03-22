@@ -25,9 +25,6 @@
  */
 package com.github.ansell.dwca;
 
-import java.nio.charset.Charset;
-import java.time.format.DateTimeFormatter;
-
 import org.xml.sax.Attributes;
 
 /**
@@ -39,6 +36,38 @@ import org.xml.sax.Attributes;
  *      Guide</a>
  */
 public class DarwinCoreField {
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("DarwinCoreField [");
+		if (index != null) {
+			builder.append("index=");
+			builder.append(index);
+			builder.append(", ");
+		}
+		if (term != null) {
+			builder.append("term=");
+			builder.append(term);
+			builder.append(", ");
+		}
+		if (defaultValue != null) {
+			builder.append("defaultValue=");
+			builder.append(defaultValue);
+			builder.append(", ");
+		}
+		if (vocabulary != null) {
+			builder.append("vocabulary=");
+			builder.append(vocabulary);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
 
 	private Integer index;
 	private String term;
@@ -108,8 +137,7 @@ public class DarwinCoreField {
 				} else if (DarwinCoreArchiveVocab.VOCABULARY.equals(localName)) {
 					result.setVocabulary(attributes.getValue(i));
 				} else {
-					System.out.println("Found unrecognised Darwin Core attribute for field "
-							+ " : " + localName);
+					System.out.println("Found unrecognised Darwin Core attribute for field " + " : " + localName);
 				}
 			}
 		}

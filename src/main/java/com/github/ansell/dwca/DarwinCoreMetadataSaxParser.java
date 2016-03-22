@@ -27,8 +27,6 @@ package com.github.ansell.dwca;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;

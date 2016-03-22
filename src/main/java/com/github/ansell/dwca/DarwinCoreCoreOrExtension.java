@@ -44,6 +44,72 @@ import org.xml.sax.Attributes;
  */
 public class DarwinCoreCoreOrExtension {
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		final int maxLen = 10;
+		StringBuilder builder = new StringBuilder();
+		builder.append("DarwinCoreCoreOrExtension [");
+		if (idOrCoreId != null) {
+			builder.append("idOrCoreId=");
+			builder.append(idOrCoreId);
+			builder.append(", ");
+		}
+		if (rowType != null) {
+			builder.append("rowType=");
+			builder.append(rowType);
+			builder.append(", ");
+		}
+		if (fieldsTerminatedBy != null) {
+			builder.append("fieldsTerminatedBy=");
+			builder.append(fieldsTerminatedBy);
+			builder.append(", ");
+		}
+		if (linesTerminatedBy != null) {
+			builder.append("linesTerminatedBy=");
+			builder.append(linesTerminatedBy);
+			builder.append(", ");
+		}
+		if (fieldsEnclosedBy != null) {
+			builder.append("fieldsEnclosedBy=");
+			builder.append(fieldsEnclosedBy);
+			builder.append(", ");
+		}
+		if (encoding != null) {
+			builder.append("encoding=");
+			builder.append(encoding);
+			builder.append(", ");
+		}
+		builder.append("ignoreHeaderLines=");
+		builder.append(ignoreHeaderLines);
+		builder.append(", ");
+		if (dateFormat != null) {
+			builder.append("dateFormat=");
+			builder.append(dateFormat);
+			builder.append(", ");
+		}
+		if (type != null) {
+			builder.append("type=");
+			builder.append(type);
+			builder.append(", ");
+		}
+		if (files != null) {
+			builder.append("files=");
+			builder.append(files);
+			builder.append(", ");
+		}
+		if (fields != null) {
+			builder.append("fields=");
+			builder.append(fields.subList(0, Math.min(fields.size(), maxLen)));
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
 	public enum CoreOrExtension {
 		CORE,
 

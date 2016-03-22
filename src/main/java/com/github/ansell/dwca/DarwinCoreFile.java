@@ -36,6 +36,19 @@ import java.util.List;
  */
 public class DarwinCoreFile {
 
+	@Override
+	public String toString() {
+		final int maxLen = 10;
+		StringBuilder builder = new StringBuilder();
+		builder.append("DarwinCoreFile [");
+		if (locations != null) {
+			builder.append("locations=");
+			builder.append(locations.subList(0, Math.min(locations.size(), maxLen)));
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
 	private final List<String> locations = new ArrayList<>();
 
 	public List<String> getLocations() {

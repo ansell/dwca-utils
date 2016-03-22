@@ -92,7 +92,8 @@ public class DarwinCoreArchiveChecker {
 
 		Path tempDir = Files.createTempDirectory("dwca-check-");
 		Path metadataPath = checkZip(inputPath, tempDir);
-		// parseMetadataXml(metadataPath);
+		DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(metadataPath);
+		System.out.println(archiveDocument.toString());
 	}
 
 	/**

@@ -38,6 +38,18 @@ import java.util.List;
  */
 public class DarwinCoreArchiveDocument {
 
+	@Override
+	public String toString() {
+		final int maxLen = 10;
+		StringBuilder builder = new StringBuilder();
+		builder.append("DarwinCoreArchiveDocument [core=");
+		builder.append(core);
+		builder.append(", extensions=");
+		builder.append(extensions != null ? extensions.subList(0, Math.min(extensions.size(), maxLen)) : null);
+		builder.append("]");
+		return builder.toString();
+	}
+
 	private DarwinCoreCoreOrExtension core;
 
 	private final List<DarwinCoreCoreOrExtension> extensions = new ArrayList<>();
