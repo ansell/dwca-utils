@@ -134,6 +134,9 @@ public class DarwinCoreArchiveCheckerTest {
 		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
 		assertEquals("./specimens.csv", testDocument.getCore().getFiles().getLocations().get(0));
 		assertEquals(4, testDocument.getCore().getFields().size());
+		for (DarwinCoreField field : testDocument.getCore().getFields()) {
+			assertTrue(field.getTerm().trim().length() > 0);
+		}
 	}
 
 }

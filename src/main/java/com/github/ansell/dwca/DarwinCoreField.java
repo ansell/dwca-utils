@@ -125,20 +125,17 @@ public class DarwinCoreField {
 		DarwinCoreField result = new DarwinCoreField();
 		for (int i = 0; i < attributes.getLength(); i++) {
 			String namespace = attributes.getURI(i);
-			// Only process attributes from the DWC namespace
-			if (DarwinCoreArchiveVocab.DWC.equals(namespace)) {
-				String localName = attributes.getLocalName(i);
-				if (DarwinCoreArchiveVocab.INDEX.equals(localName)) {
-					result.setIndex(Integer.parseInt(attributes.getValue(i)));
-				} else if (DarwinCoreArchiveVocab.TERM.equals(localName)) {
-					result.setTerm(attributes.getValue(i));
-				} else if (DarwinCoreArchiveVocab.DEFAULT.equals(localName)) {
-					result.setDefault(attributes.getValue(i));
-				} else if (DarwinCoreArchiveVocab.VOCABULARY.equals(localName)) {
-					result.setVocabulary(attributes.getValue(i));
-				} else {
-					System.out.println("Found unrecognised Darwin Core attribute for field " + " : " + localName);
-				}
+			String localName = attributes.getLocalName(i);
+			if (DarwinCoreArchiveVocab.INDEX.equals(localName)) {
+				result.setIndex(Integer.parseInt(attributes.getValue(i)));
+			} else if (DarwinCoreArchiveVocab.TERM.equals(localName)) {
+				result.setTerm(attributes.getValue(i));
+			} else if (DarwinCoreArchiveVocab.DEFAULT.equals(localName)) {
+				result.setDefault(attributes.getValue(i));
+			} else if (DarwinCoreArchiveVocab.VOCABULARY.equals(localName)) {
+				result.setVocabulary(attributes.getValue(i));
+			} else {
+				System.out.println("Found unrecognised Darwin Core attribute for field " + " : " + localName);
 			}
 		}
 		return result;

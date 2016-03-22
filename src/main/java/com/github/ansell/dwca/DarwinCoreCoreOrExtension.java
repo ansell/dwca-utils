@@ -149,30 +149,27 @@ public class DarwinCoreCoreOrExtension {
 		this.type = type;
 		for (int i = 0; i < attributes.getLength(); i++) {
 			String namespace = attributes.getURI(i);
-			// Only process attributes from the DWC namespace
-			if (DarwinCoreArchiveVocab.DWC.equals(namespace)) {
-				String localName = attributes.getLocalName(i);
-				if (DarwinCoreArchiveVocab.ROW_TYPE.equals(localName)) {
-					this.rowType = attributes.getValue(i);
-				} else if (DarwinCoreArchiveVocab.FIELDS_TERMINATED_BY.equals(localName)) {
-					this.fieldsTerminatedBy = attributes.getValue(i);
-				} else if (DarwinCoreArchiveVocab.LINES_TERMINATED_BY.equals(localName)) {
-					this.linesTerminatedBy = attributes.getValue(i);
-				} else if (DarwinCoreArchiveVocab.FIELDS_ENCLOSED_BY.equals(localName)) {
-					this.fieldsEnclosedBy = attributes.getValue(i);
-				} else if (DarwinCoreArchiveVocab.ENCODING.equals(localName)) {
-					this.encoding = Charset.forName(attributes.getValue(i));
-				} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
-					this.ignoreHeaderLines = Integer.parseInt(attributes.getValue(i));
-				} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
-					// Need to change capital D and Y from spec into lower-case
-					// d and y for DateTimeFormatter
-					String nextValue = attributes.getValue(i).replaceAll("D", "d").replaceAll("Y", "y");
-					this.dateFormat = DateTimeFormatter.ofPattern(nextValue);
-				} else {
-					System.out.println("Found unrecognised Darwin Core attribute for "
-							+ this.type.toString().toLowerCase() + " : " + localName);
-				}
+			String localName = attributes.getLocalName(i);
+			if (DarwinCoreArchiveVocab.ROW_TYPE.equals(localName)) {
+				this.rowType = attributes.getValue(i);
+			} else if (DarwinCoreArchiveVocab.FIELDS_TERMINATED_BY.equals(localName)) {
+				this.fieldsTerminatedBy = attributes.getValue(i);
+			} else if (DarwinCoreArchiveVocab.LINES_TERMINATED_BY.equals(localName)) {
+				this.linesTerminatedBy = attributes.getValue(i);
+			} else if (DarwinCoreArchiveVocab.FIELDS_ENCLOSED_BY.equals(localName)) {
+				this.fieldsEnclosedBy = attributes.getValue(i);
+			} else if (DarwinCoreArchiveVocab.ENCODING.equals(localName)) {
+				this.encoding = Charset.forName(attributes.getValue(i));
+			} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
+				this.ignoreHeaderLines = Integer.parseInt(attributes.getValue(i));
+			} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
+				// Need to change capital D and Y from spec into lower-case
+				// d and y for DateTimeFormatter
+				String nextValue = attributes.getValue(i).replaceAll("D", "d").replaceAll("Y", "y");
+				this.dateFormat = DateTimeFormatter.ofPattern(nextValue);
+			} else {
+				System.out.println("Found unrecognised Darwin Core attribute for "
+						+ this.type.toString().toLowerCase() + " : " + localName);
 			}
 		}
 	}
