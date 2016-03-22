@@ -134,7 +134,84 @@ public class DarwinCoreArchiveDocumentTest {
 	 */
 	@Ignore("TODO: Implement me!")
 	@Test
-	public final void testCheckConstraints() {
+	public final void testCheckConstraintsFieldsEmpty() {
+		fail("Not yet implemented"); // TODO
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
+	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsFilesEmpty() {
+		fail("Not yet implemented"); // TODO
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
+	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsExtensionsWithoutCoreHavingID() {
+		fail("Not yet implemented"); // TODO
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
+	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsCoreFieldIndexAndDefaultNull() {
+		fail("Not yet implemented"); // TODO
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
+	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsExtensionIDNull() {
+		fail("Not yet implemented"); // TODO
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
+	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsExtensionFieldsEmpty() {
+		fail("Not yet implemented"); // TODO
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
+	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsFieldsExtensionFilesMissing() {
+		fail("Not yet implemented"); // TODO
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
+	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsExtensionFieldIndexAndDefaultNull() {
 		fail("Not yet implemented"); // TODO
 	}
 
