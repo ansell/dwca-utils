@@ -244,8 +244,10 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 			}
 			inLocation = true;
 			foundLocationInFile = true;
-		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && DarwinCoreArchiveVocab.COREID.equalsIgnoreCase(localName)) {
-			// Note, spec says coreId, but XML Schema document says coreid, so we accept both here
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && (DarwinCoreArchiveVocab.ID.equalsIgnoreCase(localName)
+				|| DarwinCoreArchiveVocab.COREID.equalsIgnoreCase(localName))) {
+			// Note, spec says coreId, but XML Schema document says coreid, so
+			// we accept both here
 			if (!startArchiveFound) {
 				throw new SAXException("Did not find an archive element before the field element.");
 			}
