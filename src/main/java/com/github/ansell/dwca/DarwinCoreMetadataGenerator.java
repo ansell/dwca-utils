@@ -153,9 +153,11 @@ public class DarwinCoreMetadataGenerator {
 		extensionFile.addLocation(input.value(options).getName());
 		extension.setFiles(extensionFile);
 
-		for (String nextHeader : headers) {
+		for (int i = 0; i < headers.size(); i++) {
+			String nextHeader = headers.get(i);
 			DarwinCoreField nextField = new DarwinCoreField();
 			nextField.setTerm(nextHeader);
+			nextField.setIndex(i);
 			// Check if the field maps to DWC
 			// If it is DWC, add it to core
 			if (localNameMap.containsKey(nextHeader)) {
