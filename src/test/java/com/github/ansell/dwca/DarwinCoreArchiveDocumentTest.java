@@ -89,6 +89,19 @@ public class DarwinCoreArchiveDocumentTest {
 	 * .
 	 */
 	@Test
+	public final void testSetCoreMultiple() {
+		testDocument.setCore(DarwinCoreCoreOrExtension.newCore());
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage("Multiple core elements found for darwin core archive document");
+		testDocument.setCore(DarwinCoreCoreOrExtension.newCore());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#setCore(com.github.ansell.dwca.DarwinCoreCoreOrExtension)}
+	 * .
+	 */
+	@Test
 	public final void testSetCoreWithExtension() {
 		thrown.expect(IllegalStateException.class);
 		thrown.expectMessage("The core must be typed as core");
