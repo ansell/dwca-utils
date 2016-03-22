@@ -133,7 +133,7 @@ public class DarwinCoreMetadataGenerator {
 		Map<String, List<IRI>> localNameMap = dwcIRIs.stream().collect(Collectors.groupingBy(i -> i.getLocalName()));
 		//System.out.println(dwcIRIs);
 
-		System.out.println(localNameMap.keySet());
+		//System.out.println(localNameMap.keySet());
 		
 		for (String nextHeader : headers) {
 			DarwinCoreField nextField = new DarwinCoreField();
@@ -149,5 +149,7 @@ public class DarwinCoreMetadataGenerator {
 				extension.addField(nextField);
 			}
 		}
+		
+		System.out.println(result);
 	}
 }

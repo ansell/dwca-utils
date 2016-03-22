@@ -44,9 +44,11 @@ public class DarwinCoreArchiveDocument {
 	public String toString() {
 		final int maxLen = 10;
 		StringBuilder builder = new StringBuilder();
-		builder.append("DarwinCoreArchiveDocument [core=");
+		builder.append("DarwinCoreArchiveDocument [\n");
+		builder.append("core=");
 		builder.append(core);
-		builder.append(", extensions=");
+		builder.append(", \n");
+		builder.append("extensions=");
 		builder.append(extensions != null ? extensions.subList(0, Math.min(extensions.size(), maxLen)) : null);
 		builder.append("]");
 		return builder.toString();
