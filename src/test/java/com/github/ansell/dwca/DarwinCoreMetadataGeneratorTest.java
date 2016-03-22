@@ -27,18 +27,12 @@ package com.github.ansell.dwca;
 
 import static org.junit.Assert.*;
 
-import java.io.OutputStream;
-import java.io.Writer;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -90,6 +84,11 @@ public class DarwinCoreMetadataGeneratorTest {
 	public final void testMain() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
 				testMetadataXml.toAbsolutePath().toString());
+		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
+			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
+			assertNotNull(archiveDocument);
+		}
 	}
 
 }

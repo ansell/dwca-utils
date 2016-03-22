@@ -161,7 +161,9 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 	public void endDocument() throws SAXException {
 		System.out.println("SAX: endDocument");
 		if (!(startArchiveFound && endArchiveFound)) {
-			throw new SAXException("Did not find a full archive element");
+			throw new SAXException(
+					"Did not find a full archive element: startArchiveFound=" + startArchiveFound + " endArchiveFound="
+							+ endArchiveFound + " foundCore=" + foundCore + " dwcaDocument=" + dwcaDocument);
 		}
 	}
 
