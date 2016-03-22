@@ -145,8 +145,12 @@ public class DarwinCoreCoreOrExtension {
 
 	private final List<DarwinCoreField> fields = new ArrayList<>();
 
-	private DarwinCoreCoreOrExtension(CoreOrExtension type, Attributes attributes) {
+	private DarwinCoreCoreOrExtension(CoreOrExtension type) {
 		this.type = type;
+	}
+	
+	private DarwinCoreCoreOrExtension(CoreOrExtension type, Attributes attributes) {
+		this(type);
 		for (int i = 0; i < attributes.getLength(); i++) {
 			String namespace = attributes.getURI(i);
 			String localName = attributes.getLocalName(i);
@@ -172,6 +176,14 @@ public class DarwinCoreCoreOrExtension {
 						+ this.type.toString().toLowerCase() + " : " + localName);
 			}
 		}
+	}
+
+	public static DarwinCoreCoreOrExtension newCore() {
+		return new DarwinCoreCoreOrExtension(CoreOrExtension.CORE);
+	}
+
+	public static DarwinCoreCoreOrExtension newExtension() {
+		return new DarwinCoreCoreOrExtension(CoreOrExtension.EXTENSION);
 	}
 
 	public static DarwinCoreCoreOrExtension newCore(Attributes attributes) {
