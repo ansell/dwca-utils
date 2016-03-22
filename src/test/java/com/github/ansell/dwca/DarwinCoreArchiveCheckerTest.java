@@ -130,6 +130,7 @@ public class DarwinCoreArchiveCheckerTest {
 		assertNotNull(testDocument);
 		assertNotNull(testDocument.getCore());
 		assertTrue(testDocument.getCore().getRowType().trim().length() > 0);
+		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
 		assertEquals(0, testDocument.getExtensions().size());
 		assertNotNull(testDocument.getCore().getFiles());
 		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
