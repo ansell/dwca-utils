@@ -164,8 +164,8 @@ public class DarwinCoreArchiveCheckerTest {
 				testDocument.getCore().getRowType());
 		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
 		assertEquals(StandardCharsets.UTF_8, testDocument.getCore().getEncoding());
-		assertEquals("\\n", testDocument.getCore().getLinesTerminatedBy());
-		assertEquals("\\t", testDocument.getCore().getFieldsTerminatedBy());
+		assertEquals("\n", testDocument.getCore().getLinesTerminatedBy());
+		assertEquals("\t", testDocument.getCore().getFieldsTerminatedBy());
 		assertEquals(2, testDocument.getExtensions().size());
 		assertNotNull(testDocument.getCore().getFiles());
 		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
