@@ -124,7 +124,7 @@ public class DarwinCoreArchiveDocument {
 			}
 			for (DarwinCoreField field : extension.getFields()) {
 				if (field.getTerm() == null) {
-					throw new IllegalStateException("All fields must have term set");
+					throw new IllegalStateException("All extension fields must have term set");
 				}
 				if (field.getIndex() == null && field.getDefault() == null) {
 					throw new IllegalStateException(

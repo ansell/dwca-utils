@@ -255,8 +255,7 @@ public class DarwinCoreArchiveDocumentTest {
 		testExtension.setIdOrCoreId("test extension id");
 		testDocument.addExtension(testExtension);
 		thrown.expect(IllegalStateException.class);
-		thrown.expectMessage(anyOf(containsString("Extension must have fields"),
-				containsString("No fields present")));
+		thrown.expectMessage(anyOf(containsString("Extension must have fields"), containsString("No fields present")));
 		testDocument.checkConstraints();
 	}
 
@@ -291,10 +290,53 @@ public class DarwinCoreArchiveDocumentTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
 	 * .
 	 */
-	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsExtensionFieldTermMissing() {
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		testCore.setIdOrCoreId("test core id");
+		DarwinCoreField testField = new DarwinCoreField();
+		testField.setTerm("test");
+		testField.setDefault("test default");
+		testCore.addField(testField);
+		testCore.setFiles(new DarwinCoreFile());
+		testDocument.setCore(testCore);
+		DarwinCoreCoreOrExtension testExtension = DarwinCoreCoreOrExtension.newExtension();
+		testExtension.setIdOrCoreId("test extension id");
+		DarwinCoreField testFieldExtension = new DarwinCoreField();
+		testExtension.addField(testFieldExtension);
+		testExtension.setFiles(new DarwinCoreFile());
+		testDocument.addExtension(testExtension);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage(anyOf(containsString("All extension fields must have term set"),
+				containsString("Term was required for field, but was not set")));
+		testDocument.checkConstraints();
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
 	@Test
 	public final void testCheckConstraintsExtensionFieldIndexAndDefaultNull() {
-		fail("Not yet implemented"); // TODO
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		testCore.setIdOrCoreId("test core id");
+		DarwinCoreField testField = new DarwinCoreField();
+		testField.setTerm("test");
+		testField.setDefault("test default");
+		testCore.addField(testField);
+		testCore.setFiles(new DarwinCoreFile());
+		testDocument.setCore(testCore);
+		DarwinCoreCoreOrExtension testExtension = DarwinCoreCoreOrExtension.newExtension();
+		testExtension.setIdOrCoreId("test extension id");
+		DarwinCoreField testFieldExtension = new DarwinCoreField();
+		testFieldExtension.setTerm("test extension");
+		testExtension.addField(testFieldExtension);
+		testExtension.setFiles(new DarwinCoreFile());
+		testDocument.addExtension(testExtension);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage("Fields that do not have indexes must have default values set:");
+		testDocument.checkConstraints();
 	}
 
 }
