@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
+
 /**
  * Represents an entire Darwin Core Archive document as parsed into memory.
  * 
@@ -55,12 +57,18 @@ public class DarwinCoreArchiveDocument {
 	private final List<DarwinCoreCoreOrExtension> extensions = new ArrayList<>();
 
 	public DarwinCoreCoreOrExtension getCore() {
+		if (core == null) {
+			throw new IllegalStateException("Could not find core in this document");
+		}
 		return core;
 	}
 
 	public void setCore(DarwinCoreCoreOrExtension core) {
 		if (this.core != null) {
 			throw new IllegalStateException("Multiple core elements found for darwin core archive document");
+		}
+		if (core.getType() != CoreOrExtension.CORE) {
+			throw new IllegalStateException("The core must be typed as core");
 		}
 		this.core = core;
 	}
@@ -70,6 +78,9 @@ public class DarwinCoreArchiveDocument {
 	}
 
 	public void addExtension(DarwinCoreCoreOrExtension extension) {
+		if (extension.getType() != CoreOrExtension.EXTENSION) {
+			throw new IllegalStateException("All extensions must be typed as extension.");
+		}
 		this.extensions.add(extension);
 	}
 
