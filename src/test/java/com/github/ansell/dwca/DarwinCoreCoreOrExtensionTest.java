@@ -269,8 +269,8 @@ public class DarwinCoreCoreOrExtensionTest {
 	 */
 	@Test
 	public final void testGetDateFormat() {
-		assertEquals(DateTimeFormatter.ISO_LOCAL_DATE, core.getDateFormat());
-		assertEquals(DateTimeFormatter.ISO_LOCAL_DATE, extension.getDateFormat());
+		assertEquals("yyyy-MM-dd", core.getDateFormat());
+		assertEquals("yyyy-MM-dd", extension.getDateFormat());
 	}
 
 	/**
