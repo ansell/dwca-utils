@@ -25,6 +25,7 @@
  */
 package com.github.ansell.dwca;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -32,9 +33,11 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +111,7 @@ public class DarwinCoreMetadataGenerator {
 		}
 
 		final Path outputPath = output.value(options).toPath();
-		if (!Files.exists(inputPath)) {
+		if (Files.exists(outputPath)) {
 			throw new IllegalStateException("Output file already exists, not overwriting it: " + outputPath.toString());
 		}
 
@@ -164,6 +167,9 @@ public class DarwinCoreMetadataGenerator {
 				extension.addField(nextField);
 			}
 		}
-		result.toXML(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
+		try (Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8,
+				StandardOpenOption.CREATE_NEW);) {
+			result.toXML(writer);
+		}
 	}
 }

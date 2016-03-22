@@ -38,6 +38,8 @@ import javax.xml.stream.XMLStreamWriter;
 
 import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
 
+import javanet.staxutils.IndentingXMLStreamWriter;
+
 /**
  * Represents an entire Darwin Core Archive document as parsed into memory.
  * 
@@ -69,7 +71,7 @@ public class DarwinCoreArchiveDocument {
 	 */
 	public void toXML(Writer out) throws XMLStreamException, IOException {
 		XMLOutputFactory factory = XMLOutputFactory.newFactory();
-		XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+		XMLStreamWriter writer = new IndentingXMLStreamWriter(factory.createXMLStreamWriter(out));
 		writer.setDefaultNamespace(DarwinCoreArchiveVocab.DWC);
 		writer.writeStartDocument();
 		writer.writeStartElement(DarwinCoreArchiveVocab.ARCHIVE);
@@ -78,7 +80,7 @@ public class DarwinCoreArchiveDocument {
 		writer.writeAttribute("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation",
 				"http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd");
 		core.toXML(writer);
-		for(DarwinCoreCoreOrExtension extension : extensions) {
+		for (DarwinCoreCoreOrExtension extension : extensions) {
 			extension.toXML(writer);
 		}
 		// end archive
