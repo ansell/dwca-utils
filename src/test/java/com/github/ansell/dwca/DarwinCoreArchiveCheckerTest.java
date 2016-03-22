@@ -62,6 +62,8 @@ public class DarwinCoreArchiveCheckerTest {
 
 	private Path testMetadataXml;
 
+	private Path testMetadataXmlWithExtension;
+
 	@Before
 	public void setUp() throws Exception {
 		testTempDir = tempDir.newFolder("dwca-check-temp").toPath();
@@ -74,7 +76,7 @@ public class DarwinCoreArchiveCheckerTest {
 			zipOut.closeEntry();
 			ZipEntry specimensCsv = new ZipEntry("specimens.csv");
 			zipOut.putNextEntry(specimensCsv);
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"), zipOut);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), zipOut);
 			zipOut.flush();
 			zipOut.closeEntry();
 			zipOut.flush();
@@ -84,6 +86,11 @@ public class DarwinCoreArchiveCheckerTest {
 				.resolve(DarwinCoreArchiveChecker.METADATA_XML);
 		try (Writer out = Files.newBufferedWriter(testMetadataXml)) {
 			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"), out);
+		}
+		testMetadataXmlWithExtension = tempDir.newFolder("dwca-check-unittest-with-extensions").toPath()
+				.resolve(DarwinCoreArchiveChecker.METADATA_XML);
+		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithExtension)) {
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out);
 		}
 	}
 
@@ -142,4 +149,31 @@ public class DarwinCoreArchiveCheckerTest {
 		}
 	}
 
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#parseMetadataXml(java.nio.file.Path)}
+	 * .
+	 */
+	@Test
+	public final void testParseMetadataXmlWithExtensions() throws Exception {
+		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker
+				.parseMetadataXml(testMetadataXmlWithExtension);
+		assertNotNull(testDocument);
+		assertNotNull(testDocument.getCore());
+		assertEquals("http://rs.tdwg.org/dwc/terms/Taxon",
+				testDocument.getCore().getRowType());
+		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
+		assertEquals(StandardCharsets.UTF_8, testDocument.getCore().getEncoding());
+		assertEquals("\n", testDocument.getCore().getLinesTerminatedBy());
+		assertEquals("\t", testDocument.getCore().getFieldsTerminatedBy());
+		assertEquals(2, testDocument.getExtensions().size());
+		assertNotNull(testDocument.getCore().getFiles());
+		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
+		assertEquals("whales.txt", testDocument.getCore().getFiles().getLocations().get(0));
+		assertEquals(6, testDocument.getCore().getFields().size());
+		for (DarwinCoreField field : testDocument.getCore().getFields()) {
+			assertTrue(field.getTerm().trim().length() > 0);
+		}
+		
+	}
 }
