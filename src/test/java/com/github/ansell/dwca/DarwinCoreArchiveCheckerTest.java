@@ -129,6 +129,7 @@ public class DarwinCoreArchiveCheckerTest {
 		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXml);
 		assertNotNull(testDocument);
 		assertNotNull(testDocument.getCore());
+		assertTrue(testDocument.getCore().getRowType().trim().length() > 0);
 		assertEquals(0, testDocument.getExtensions().size());
 		assertNotNull(testDocument.getCore().getFiles());
 		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
