@@ -79,20 +79,58 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 		this.xmlReader = xmlReader;
 	}
 
-	public static DarwinCoreArchiveDocument parseFromReader(Reader reader) throws IOException, SAXException {
-		return new DarwinCoreMetadataSaxParser().parse(reader);
+	/**
+	 * Parse a Darwin Core Archive metadata XML document using the default
+	 * {@link XMLReader} implementation provided by
+	 * {@link XMLReaderFactory#createXMLReader()}.
+	 * 
+	 * @param reader
+	 *            The document to parse.
+	 * @return An instance of {@link DarwinCoreArchiveDocument} containing the
+	 *         parsed details.
+	 * @throws IOException
+	 *             If there is an input-output exception.
+	 * @throws SAXException
+	 *             If there is an exception parsing the XML document.
+	 * @throws IllegalStateException
+	 *             If there is an exception interpreting the context of parts of
+	 *             the document that violate the state assumptions in the
+	 *             specification.
+	 */
+	public static DarwinCoreArchiveDocument parse(Reader reader) throws IOException, SAXException {
+		return new DarwinCoreMetadataSaxParser().parseInternal(reader);
 	}
 
-	public static DarwinCoreArchiveDocument parseFromReader(Reader reader, XMLReader xmlReaderToUse)
-			throws IOException, SAXException {
-		return new DarwinCoreMetadataSaxParser(xmlReaderToUse).parse(reader);
+	/**
+	 * Parse a Darwin Core Archive metadata XML document using a specific
+	 * {@link XMLReader} implementation.
+	 * 
+	 * @param reader
+	 *            The document to parse.
+	 * @param xmlReaderToUse
+	 *            Specify a particular implementation of {@link XMLReader} to
+	 *            use to parse this document.
+	 * @return An instance of {@link DarwinCoreArchiveDocument} containing the
+	 *         parsed details.
+	 * @throws IOException
+	 *             If there is an input-output exception.
+	 * @throws SAXException
+	 *             If there is an exception parsing the XML document.
+	 * @throws IllegalStateException
+	 *             If there is an exception interpreting the context of parts of
+	 *             the document that violate the state assumptions in the
+	 *             specification.
+	 */
+	public static DarwinCoreArchiveDocument parse(Reader reader, XMLReader xmlReaderToUse)
+			throws IOException, SAXException, IllegalStateException {
+		return new DarwinCoreMetadataSaxParser(xmlReaderToUse).parseInternal(reader);
 	}
 
-	private DarwinCoreArchiveDocument parse(Reader reader) throws IOException, SAXException {
-		return parse(new InputSource(reader));
+	private DarwinCoreArchiveDocument parseInternal(Reader reader) throws IOException, SAXException {
+		return parseInternal(new InputSource(reader));
 	}
 
-	private DarwinCoreArchiveDocument parse(InputSource inputSource) throws IOException, SAXException {
+	private DarwinCoreArchiveDocument parseInternal(InputSource inputSource) throws IOException, SAXException {
 		reset();
 		xmlReader.setContentHandler(this);
 		xmlReader.parse(inputSource);

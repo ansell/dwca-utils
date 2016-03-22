@@ -157,7 +157,7 @@ public class DarwinCoreArchiveChecker {
 	public static DarwinCoreArchiveDocument parseMetadataXml(Path metadataPath)
 			throws IOException, SAXException, IllegalStateException {
 		try (Reader input = Files.newBufferedReader(metadataPath);) {
-			return DarwinCoreMetadataSaxParser.parseFromReader(input);
+			return DarwinCoreMetadataSaxParser.parse(input);
 		}
 	}
 
