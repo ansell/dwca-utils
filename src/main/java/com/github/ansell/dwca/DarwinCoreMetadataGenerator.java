@@ -174,5 +174,9 @@ public class DarwinCoreMetadataGenerator {
 				StandardOpenOption.CREATE_NEW);) {
 			result.toXML(writer);
 		}
+		
+		// Parse the result to make sure that it is valid
+		DarwinCoreArchiveDocument archiveDocument = DarwinCoreArchiveChecker.parseMetadataXml(outputPath);
+		archiveDocument.checkConstraints();
 	}
 }
