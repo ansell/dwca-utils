@@ -50,6 +50,10 @@ public final class DarwinCoreArchiveVocab {
 	public static final String EXTENSION = "extension";
 	public static final String ID = "id";
 	public static final String COREID = "coreId";
+	public static final String INDEX = "index";
+	public static final String TERM = "term";
+	public static final String DEFAULT = "default";
+	public static final String VOCABULARY = "vocabulary";
 
 	/**
 	 * Private constructor for static-only class.

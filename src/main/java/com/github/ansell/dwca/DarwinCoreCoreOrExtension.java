@@ -28,6 +28,8 @@ package com.github.ansell.dwca;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.xml.sax.Attributes;
@@ -74,6 +76,8 @@ public class DarwinCoreCoreOrExtension {
 	private final CoreOrExtension type;
 
 	private DarwinCoreFile files;
+
+	private final List<DarwinCoreField> fields = new ArrayList<>();
 
 	private DarwinCoreCoreOrExtension(CoreOrExtension type, Attributes attributes) {
 		this.type = type;
@@ -192,5 +196,13 @@ public class DarwinCoreCoreOrExtension {
 			throw new IllegalStateException("Only a single files is allowed for each core or extension.");
 		}
 		this.files = files;
+	}
+
+	public List<DarwinCoreField> getFields() {
+		return Collections.unmodifiableList(this.fields);
+	}
+
+	public void addField(DarwinCoreField nextField) {
+		this.fields.add(nextField);
 	}
 }

@@ -96,8 +96,8 @@ public class DarwinCoreArchiveChecker {
 	}
 
 	/**
-	 * Checks that the zip file given in inputPath is valid, while extracting it
-	 * to tempDir.
+	 * Checks that the zip file given in inputPath contains a valid structure
+	 * for a Darwin Core Archive zip file, while extracting it to tempDir.
 	 * 
 	 * @param inputPath
 	 *            The Darwin Core Archive zip file.

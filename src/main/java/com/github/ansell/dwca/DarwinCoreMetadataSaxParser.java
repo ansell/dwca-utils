@@ -245,6 +245,20 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 			}
 			inLocation = true;
 			foundLocationInFile = true;
+		} else if (DarwinCoreArchiveVocab.DWC.equals(uri) && DarwinCoreArchiveVocab.FIELD.equals(localName)) {
+			if (!startArchiveFound) {
+				throw new SAXException("Did not find an archive element before the field element.");
+			}
+			if (!(inCore || inExtension)) {
+				throw new SAXException("Found field element outside of core or extension elements.");
+			}
+			if (inFiles) {
+				throw new SAXException("Found field element inside of files elements.");
+			}
+			if (inLocation) {
+				throw new SAXException("Found field element inside of location elements.");
+			}
+			currentCoreOrExtension.addField(DarwinCoreField.fromAttributes(attributes));
 		}
 	}
 
