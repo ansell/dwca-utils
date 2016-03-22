@@ -32,10 +32,21 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
+import org.openrdf.model.IRI;
+import org.openrdf.model.Model;
+import org.openrdf.model.Resource;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.Rio;
 import org.xml.sax.SAXException;
 
 import com.github.ansell.csv.util.CSVUtil;
@@ -97,12 +108,33 @@ public class DarwinCoreMetadataGenerator {
 			throw new IllegalStateException("Output file already exists, not overwriting it: " + outputPath.toString());
 		}
 
-		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
-
+		List<String> headers = new ArrayList<>();
 		try (Reader inputStreamReader = Files.newBufferedReader(inputPath);) {
-			CSVUtil.streamCSV(inputStreamReader, h -> {
-			} , (h, l) -> l, l -> {
+			CSVUtil.streamCSV(inputStreamReader, h -> headers.addAll(h), (h, l) -> l, l -> {
 			});
+		}
+
+		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
+		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
+		result.setCore(core);
+		DarwinCoreCoreOrExtension extension = DarwinCoreCoreOrExtension.newExtension();
+		result.addExtension(extension);
+
+		Model dwc = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream("/dwcterms.rdf"),
+				"http://rs.tdwg.org/dwc/terms/", RDFFormat.RDFXML);
+		Predicate<Resource> iriPredicate = r -> {
+			return r instanceof IRI;
+		};
+		Function<Resource, IRI> iriMap = r -> (IRI) r;
+		Predicate<IRI> darwinCoreIRI = iri -> iri.getNamespace().equals("http://rs.tdwg.org/dwc/terms/");
+		Set<IRI> dwcIRIs = dwc.subjects().stream().filter(iriPredicate).map(iriMap).filter(darwinCoreIRI)
+				.collect(Collectors.toSet());
+		System.out.println(dwcIRIs);
+
+		for (String nextHeader : headers) {
+			// Check if the field maps to DWC
+			// If it is DWC, add it to core
+			// Else add it to an extension
 		}
 	}
 }
