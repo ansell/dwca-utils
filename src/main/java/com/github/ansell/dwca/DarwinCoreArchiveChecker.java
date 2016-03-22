@@ -64,7 +64,7 @@ public class DarwinCoreArchiveChecker {
 
 		final OptionSpec<Void> help = parser.accepts("help").forHelp();
 		final OptionSpec<File> input = parser.accepts("input").withRequiredArg().ofType(File.class).required()
-				.describedAs("The input Darwin Core Archive file to be checked.");
+				.describedAs("The input Darwin Core Archive file or metadata file to be checked.");
 
 		OptionSet options = null;
 
@@ -83,15 +83,17 @@ public class DarwinCoreArchiveChecker {
 
 		final Path inputPath = input.value(options).toPath();
 		if (!Files.exists(inputPath)) {
-			throw new FileNotFoundException("Could not find input Darwin Core Archive file: " + inputPath.toString());
+			throw new FileNotFoundException("Could not find input Darwin Core Archive file or metadata file: " + inputPath.toString());
 		}
 
-		if (!inputPath.getFileName().toString().contains(".zip")) {
-			throw new RuntimeException("Only working on validating .zip files right now: " + inputPath);
+		Path metadataPath;
+		if (inputPath.getFileName().toString().contains(".zip")) {
+			Path tempDir = Files.createTempDirectory("dwca-check-");
+			metadataPath = checkZip(inputPath, tempDir);
+		} else {
+			metadataPath = inputPath;
 		}
 
-		Path tempDir = Files.createTempDirectory("dwca-check-");
-		Path metadataPath = checkZip(inputPath, tempDir);
 		DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(metadataPath);
 		System.out.println(archiveDocument.toString());
 	}

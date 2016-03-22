@@ -116,6 +116,26 @@ public class DarwinCoreArchiveCheckerTest {
 
 	/**
 	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainBasicMetadata() throws Exception {
+		DarwinCoreArchiveChecker.main("--input", testMetadataXml.toAbsolutePath().toString());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainBasicMetadataWithExtension() throws Exception {
+		DarwinCoreArchiveChecker.main("--input", testMetadataXmlWithExtension.toAbsolutePath().toString());
+	}
+
+	/**
+	 * Test method for
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#checkZip(java.nio.file.Path, java.nio.file.Path)}
 	 * .
 	 */
@@ -160,8 +180,7 @@ public class DarwinCoreArchiveCheckerTest {
 				.parseMetadataXml(testMetadataXmlWithExtension);
 		assertNotNull(testDocument);
 		assertNotNull(testDocument.getCore());
-		assertEquals("http://rs.tdwg.org/dwc/terms/Taxon",
-				testDocument.getCore().getRowType());
+		assertEquals("http://rs.tdwg.org/dwc/terms/Taxon", testDocument.getCore().getRowType());
 		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
 		assertEquals(StandardCharsets.UTF_8, testDocument.getCore().getEncoding());
 		assertEquals("\n", testDocument.getCore().getLinesTerminatedBy());
@@ -174,6 +193,6 @@ public class DarwinCoreArchiveCheckerTest {
 		for (DarwinCoreField field : testDocument.getCore().getFields()) {
 			assertTrue(field.getTerm().trim().length() > 0);
 		}
-		
+
 	}
 }
