@@ -25,6 +25,7 @@
  */
 package com.github.ansell.dwca;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import org.junit.After;
@@ -132,10 +133,12 @@ public class DarwinCoreArchiveDocumentTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
 	 * .
 	 */
-	@Ignore("TODO: Implement me!")
 	@Test
 	public final void testCheckConstraintsFieldsEmpty() {
-		fail("Not yet implemented"); // TODO
+		testDocument.setCore(DarwinCoreCoreOrExtension.newCore());
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage(anyOf(containsString("Core must have fields"), containsString("No fields present")));
+		testDocument.checkConstraints();
 	}
 
 	/**
@@ -143,21 +146,15 @@ public class DarwinCoreArchiveDocumentTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
 	 * .
 	 */
-	@Ignore("TODO: Implement me!")
 	@Test
 	public final void testCheckConstraintsFilesEmpty() {
-		fail("Not yet implemented"); // TODO
-	}
-
-	/**
-	 * Test method for
-	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
-	 * .
-	 */
-	@Ignore("TODO: Implement me!")
-	@Test
-	public final void testCheckConstraintsExtensionsWithoutCoreHavingID() {
-		fail("Not yet implemented"); // TODO
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		testCore.addField(new DarwinCoreField());
+		testDocument.setCore(testCore);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage(anyOf(containsString("Core must have files set"),
+				containsString("Did not find value for files that was required")));
+		testDocument.checkConstraints();
 	}
 
 	/**
@@ -169,6 +166,23 @@ public class DarwinCoreArchiveDocumentTest {
 	@Test
 	public final void testCheckConstraintsCoreFieldIndexAndDefaultNull() {
 		fail("Not yet implemented"); // TODO
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
+	@Test
+	public final void testCheckConstraintsExtensionsWithoutCoreHavingID() {
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		testCore.addField(new DarwinCoreField());
+		testCore.setFiles(new DarwinCoreFile());
+		testDocument.setCore(testCore);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage(anyOf(containsString("Core must have files set"),
+				containsString("Did not find value for files that was required")));
+		testDocument.checkConstraints();
 	}
 
 	/**
