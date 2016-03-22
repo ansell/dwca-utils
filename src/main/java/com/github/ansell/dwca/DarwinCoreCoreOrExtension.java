@@ -66,12 +66,12 @@ public class DarwinCoreCoreOrExtension {
 		}
 		if (fieldsTerminatedBy != null) {
 			builder.append("fieldsTerminatedBy=");
-			builder.append(fieldsTerminatedBy);
+			builder.append(fieldsTerminatedBy.replace("\t", "\\t").replace("\b", "\\b"));
 			builder.append(", ");
 		}
 		if (linesTerminatedBy != null) {
 			builder.append("linesTerminatedBy=");
-			builder.append(linesTerminatedBy);
+			builder.append(linesTerminatedBy.replace("\r", "\\r").replace("\n", "\\n"));
 			builder.append(", ");
 		}
 		if (fieldsEnclosedBy != null) {
