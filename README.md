@@ -13,6 +13,7 @@ Download the Git repository.
 Set the relevant programs to be executable.
 
     chmod a+x ./dwcacheck
+    chmod a+x ./csv2dwca
 
 # Darwin Core Archive Checker
 
@@ -21,6 +22,14 @@ Set the relevant programs to be executable.
 Run dwcacheck with --help to get usage details:
 
     ./dwcacheck --help
+
+# Darwin Core Metadata Generator
+
+## Usage
+
+Run csv2dwca with --help to get usage details:
+
+    ./csv2dwca --help
 
 # Maven
 
@@ -31,6 +40,10 @@ Run dwcacheck with --help to get usage details:
     </dependency>
 
 # Changelog
+
+## 2016-03-22
+* Add stub for Darwin Core Metadata Generator to take CSV files and generate stub metadata.xml files
+* Implement loading and some validation of metadata.xml documents
 
 ## 2016-03-21
 * Initial commit
