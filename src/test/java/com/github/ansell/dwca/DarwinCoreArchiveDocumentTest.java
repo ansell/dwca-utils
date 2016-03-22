@@ -162,10 +162,34 @@ public class DarwinCoreArchiveDocumentTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
 	 * .
 	 */
-	@Ignore("TODO: Implement me!")
+	@Test
+	public final void testCheckConstraintsFieldTermNotSet() {
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		testCore.addField(new DarwinCoreField());
+		testCore.setFiles(new DarwinCoreFile());
+		testDocument.setCore(testCore);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage(anyOf(containsString("All fields must have term set"),
+				containsString("Term was required for field, but was not set")));
+		testDocument.checkConstraints();
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
+	 * .
+	 */
 	@Test
 	public final void testCheckConstraintsCoreFieldIndexAndDefaultNull() {
-		fail("Not yet implemented"); // TODO
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		DarwinCoreField testField = new DarwinCoreField();
+		testField.setTerm("test");
+		testCore.addField(testField);
+		testCore.setFiles(new DarwinCoreFile());
+		testDocument.setCore(testCore);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage("Fields that do not have indexes must have default values set:");
+		testDocument.checkConstraints();
 	}
 
 	/**
@@ -176,12 +200,16 @@ public class DarwinCoreArchiveDocumentTest {
 	@Test
 	public final void testCheckConstraintsExtensionsWithoutCoreHavingID() {
 		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
-		testCore.addField(new DarwinCoreField());
+		DarwinCoreField testField = new DarwinCoreField();
+		testField.setTerm("test");
+		testField.setDefault("test default");
+		testCore.addField(testField);
 		testCore.setFiles(new DarwinCoreFile());
 		testDocument.setCore(testCore);
+		DarwinCoreCoreOrExtension testExtension = DarwinCoreCoreOrExtension.newExtension();
+		testDocument.addExtension(testExtension);
 		thrown.expect(IllegalStateException.class);
-		thrown.expectMessage(anyOf(containsString("Core must have files set"),
-				containsString("Did not find value for files that was required")));
+		thrown.expectMessage("Core must have id set if there are extensions present");
 		testDocument.checkConstraints();
 	}
 
@@ -190,10 +218,22 @@ public class DarwinCoreArchiveDocumentTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
 	 * .
 	 */
-	@Ignore("TODO: Implement me!")
 	@Test
 	public final void testCheckConstraintsExtensionIDNull() {
-		fail("Not yet implemented"); // TODO
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		testCore.setIdOrCoreId("test core id");
+		DarwinCoreField testField = new DarwinCoreField();
+		testField.setTerm("test");
+		testField.setDefault("test default");
+		testCore.addField(testField);
+		testCore.setFiles(new DarwinCoreFile());
+		testDocument.setCore(testCore);
+		DarwinCoreCoreOrExtension testExtension = DarwinCoreCoreOrExtension.newExtension();
+		testDocument.addExtension(testExtension);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage(anyOf(containsString("Extensions must have coreId set"),
+				containsString("Extensions must have coreId value set")));
+		testDocument.checkConstraints();
 	}
 
 	/**
