@@ -41,6 +41,10 @@ Run csv2dwca with --help to get usage details:
 
 # Changelog
 
+## 2016-03-23
+* Release 0.0.1
+* Complete the Metadata Generator 
+
 ## 2016-03-22
 * Add stub for Darwin Core Metadata Generator to take CSV files and generate stub metadata.xml files
 * Implement loading and some validation of metadata.xml documents
