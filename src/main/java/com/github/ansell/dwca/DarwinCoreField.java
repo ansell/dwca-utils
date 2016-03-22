@@ -93,7 +93,7 @@ public class DarwinCoreField {
 	}
 
 	public void setTerm(String term) {
-		if (this.term != null) {
+		if (this.term != null && !this.term.equals(term)) {
 			throw new IllegalStateException("Cannot specify multiple terms for a field.");
 		}
 		this.term = term;
@@ -104,7 +104,7 @@ public class DarwinCoreField {
 	}
 
 	public void setDefault(String defaultValue) {
-		if (this.defaultValue != null) {
+		if (this.defaultValue != null && !this.defaultValue.equals(defaultValue)) {
 			throw new IllegalStateException("Cannot specify multiple default values for a field.");
 		}
 		this.defaultValue = defaultValue;
@@ -115,7 +115,7 @@ public class DarwinCoreField {
 	}
 
 	public void setVocabulary(String vocabularyUri) {
-		if (this.vocabulary != null) {
+		if (this.vocabulary != null && !this.vocabulary.equals(vocabularyUri)) {
 			throw new IllegalStateException("Cannot specify multiple vocabularies for a field.");
 		}
 		this.vocabulary = vocabularyUri;
