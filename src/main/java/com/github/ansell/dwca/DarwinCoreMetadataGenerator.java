@@ -169,6 +169,7 @@ public class DarwinCoreMetadataGenerator {
 				extension.addField(nextField);
 			}
 		}
+		
 		try (Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8,
 				StandardOpenOption.CREATE_NEW);) {
 			result.toXML(writer);

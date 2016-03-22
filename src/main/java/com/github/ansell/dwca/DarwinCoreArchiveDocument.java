@@ -68,8 +68,18 @@ public class DarwinCoreArchiveDocument {
 	 * 
 	 * @param out
 	 *            The Writer to write the document to.
+	 * @throws XMLStreamException
+	 *             If there is an XML related problem while writing the
+	 *             document.
+	 * @throws IOException
+	 *             If there is an IO problem while writing the document.
+	 * @throws IllegalStateException
+	 *             If there is a semantic constraint violation while writing the
+	 *             document.
 	 */
-	public void toXML(Writer out) throws XMLStreamException, IOException {
+	public void toXML(Writer out) throws XMLStreamException, IOException, IllegalStateException {
+		checkConstraints();
+
 		XMLOutputFactory factory = XMLOutputFactory.newFactory();
 		XMLStreamWriter writer = new IndentingXMLStreamWriter(factory.createXMLStreamWriter(out));
 		writer.setDefaultNamespace(DarwinCoreArchiveVocab.DWC);
