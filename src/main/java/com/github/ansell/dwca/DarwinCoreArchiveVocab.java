@@ -54,6 +54,7 @@ public final class DarwinCoreArchiveVocab {
 	public static final String TERM = "term";
 	public static final String DEFAULT = "default";
 	public static final String VOCABULARY = "vocabulary";
+	public static final String SIMPLE_DARWIN_RECORD = "http://rs.tdwg.org/dwc/xsd/simpledarwincore/SimpleDarwinRecord";
 
 	/**
 	 * Private constructor for static-only class.

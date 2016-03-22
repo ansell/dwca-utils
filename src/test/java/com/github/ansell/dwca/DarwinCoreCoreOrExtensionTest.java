@@ -280,10 +280,10 @@ public class DarwinCoreCoreOrExtensionTest {
 	 */
 	@Test
 	public final void testSetDateFormat() {
-		core.setDateFormat(DateTimeFormatter.RFC_1123_DATE_TIME);
-		assertEquals(DateTimeFormatter.RFC_1123_DATE_TIME, core.getDateFormat());
-		extension.setDateFormat(DateTimeFormatter.RFC_1123_DATE_TIME);
-		assertEquals(DateTimeFormatter.RFC_1123_DATE_TIME, extension.getDateFormat());
+		core.setDateFormat("dd-MM-yyyy");
+		assertEquals("dd-MM-yyyy", core.getDateFormat());
+		extension.setDateFormat("dd-MM-yyyy");
+		assertEquals("dd-MM-yyyy", extension.getDateFormat());
 	}
 
 	/**

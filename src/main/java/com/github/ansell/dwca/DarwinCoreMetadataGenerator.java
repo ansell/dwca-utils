@@ -29,7 +29,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -117,8 +120,12 @@ public class DarwinCoreMetadataGenerator {
 
 		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
+		core.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
+		core.setIdOrCoreId("0");
 		result.setCore(core);
 		DarwinCoreCoreOrExtension extension = DarwinCoreCoreOrExtension.newExtension();
+		extension.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
+		extension.setIdOrCoreId("0");
 		result.addExtension(extension);
 
 		Model dwc = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream("/dwcterms.rdf"),
@@ -131,10 +138,18 @@ public class DarwinCoreMetadataGenerator {
 		Set<IRI> dwcIRIs = dwc.subjects().stream().filter(iriPredicate).map(iriMap).filter(darwinCoreIRI)
 				.collect(Collectors.toSet());
 		Map<String, List<IRI>> localNameMap = dwcIRIs.stream().collect(Collectors.groupingBy(i -> i.getLocalName()));
-		//System.out.println(dwcIRIs);
+		// System.out.println(dwcIRIs);
 
-		//System.out.println(localNameMap.keySet());
-		
+		// System.out.println(localNameMap.keySet());
+
+		DarwinCoreFile coreFile = new DarwinCoreFile();
+		coreFile.addLocation(input.value(options).getName());
+		core.setFiles(coreFile);
+
+		DarwinCoreFile extensionFile = new DarwinCoreFile();
+		extensionFile.addLocation(input.value(options).getName());
+		extension.setFiles(extensionFile);
+
 		for (String nextHeader : headers) {
 			DarwinCoreField nextField = new DarwinCoreField();
 			nextField.setTerm(nextHeader);
@@ -149,7 +164,6 @@ public class DarwinCoreMetadataGenerator {
 				extension.addField(nextField);
 			}
 		}
-		
-		System.out.println(result);
+		result.toXML(new OutputStreamWriter(System.out, StandardCharsets.UTF_8));
 	}
 }

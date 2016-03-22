@@ -25,12 +25,17 @@
  */
 package com.github.ansell.dwca;
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.xml.sax.Attributes;
 
@@ -43,6 +48,20 @@ import org.xml.sax.Attributes;
  *      Guide</a>
  */
 public class DarwinCoreCoreOrExtension {
+
+	public static final DateTimeFormatter DEFAULT_DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
+
+	public static final String DEFAULT_DATE_FORMAT_PATTERN = "yyyy-MM-dd";
+
+	public static final int DEFAULT_IGNORE_HEADER_LINES = 0;
+
+	public static final Charset DEFAULT_ENCODING = StandardCharsets.UTF_8;
+
+	public static final String DEFAULT_FIELDS_ENCLOSED_BY = "\"";
+
+	public static final String DEFAULT_LINES_TERMINATED_BY = "\n";
+
+	public static final String DEFAULT_FIELDS_TERMINATED_BY = ",";
 
 	/*
 	 * (non-Javadoc)
@@ -71,7 +90,7 @@ public class DarwinCoreCoreOrExtension {
 		}
 		if (linesTerminatedBy != null) {
 			builder.append("linesTerminatedBy=");
-			builder.append(linesTerminatedBy.replace("\r", "\\r").replace("\n", "\\n"));
+			builder.append(linesTerminatedBy.replace("\r", "\\r").replace(DEFAULT_LINES_TERMINATED_BY, "\\n"));
 			builder.append(", ");
 		}
 		if (fieldsEnclosedBy != null) {
@@ -87,9 +106,9 @@ public class DarwinCoreCoreOrExtension {
 		builder.append("ignoreHeaderLines=");
 		builder.append(ignoreHeaderLines);
 		builder.append(", ");
-		if (dateFormat != null) {
-			builder.append("dateFormat=");
-			builder.append(dateFormat);
+		if (dateFormatPattern != null) {
+			builder.append("dateFormatPattern=");
+			builder.append(dateFormatPattern);
 			builder.append(", ");
 		}
 		if (type != null) {
@@ -127,17 +146,19 @@ public class DarwinCoreCoreOrExtension {
 	 */
 	private String rowType;
 
-	private String fieldsTerminatedBy = ",";
+	private String fieldsTerminatedBy = DEFAULT_FIELDS_TERMINATED_BY;
 
-	private String linesTerminatedBy = "\n";
+	private String linesTerminatedBy = DEFAULT_LINES_TERMINATED_BY;
 
-	private String fieldsEnclosedBy = "\"";
+	private String fieldsEnclosedBy = DEFAULT_FIELDS_ENCLOSED_BY;
 
-	private Charset encoding = StandardCharsets.UTF_8;
+	private Charset encoding = DEFAULT_ENCODING;
 
-	private int ignoreHeaderLines = 0;
+	private int ignoreHeaderLines = DEFAULT_IGNORE_HEADER_LINES;
 
-	private DateTimeFormatter dateFormat = DateTimeFormatter.ISO_LOCAL_DATE;
+	private DateTimeFormatter dateFormatter = DEFAULT_DATE_FORMAT;
+
+	private String dateFormatPattern = DEFAULT_DATE_FORMAT_PATTERN;
 
 	private final CoreOrExtension type;
 
@@ -166,11 +187,11 @@ public class DarwinCoreCoreOrExtension {
 				this.setEncoding(Charset.forName(attributes.getValue(i)));
 			} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
 				this.setIgnoreHeaderLines(Integer.parseInt(attributes.getValue(i)));
-			} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
+			} else if (DarwinCoreArchiveVocab.DATE_FORMAT.equals(localName)) {
 				// Need to change capital D and Y from spec into lower-case
 				// d and y for DateTimeFormatter
 				String nextValue = attributes.getValue(i).replaceAll("D", "d").replaceAll("Y", "y");
-				this.setDateFormat(DateTimeFormatter.ofPattern(nextValue));
+				this.setDateFormat(nextValue);
 			} else {
 				System.out.println("Found unrecognised Darwin Core attribute for " + this.type.toString().toLowerCase()
 						+ " : " + localName);
@@ -235,7 +256,7 @@ public class DarwinCoreCoreOrExtension {
 	}
 
 	public void setLinesTerminatedBy(String linesTerminatedBy) {
-		this.linesTerminatedBy = linesTerminatedBy.replace("\\n", "\n").replace("\\r", "\r");
+		this.linesTerminatedBy = linesTerminatedBy.replace("\\n", DEFAULT_LINES_TERMINATED_BY).replace("\\r", "\r");
 	}
 
 	public String getFieldsEnclosedBy() {
@@ -262,12 +283,17 @@ public class DarwinCoreCoreOrExtension {
 		this.ignoreHeaderLines = ignoreHeaderLines;
 	}
 
-	public DateTimeFormatter getDateFormat() {
-		return dateFormat;
+	public DateTimeFormatter getDateFormatter() {
+		return dateFormatter;
 	}
 
-	public void setDateFormat(DateTimeFormatter dateFormat) {
-		this.dateFormat = dateFormat;
+	public String getDateFormat() {
+		return this.dateFormatPattern;
+	}
+
+	public void setDateFormat(String nextDateFormatPattern) {
+		this.dateFormatPattern = nextDateFormatPattern;
+		this.dateFormatter = DateTimeFormatter.ofPattern(nextDateFormatPattern);
 	}
 
 	public CoreOrExtension getType() {
@@ -297,5 +323,72 @@ public class DarwinCoreCoreOrExtension {
 
 	public void addField(DarwinCoreField nextField) {
 		this.fields.add(nextField);
+	}
+
+	public void toXML(XMLStreamWriter writer) throws XMLStreamException, IOException {
+		if (this.type == CoreOrExtension.CORE) {
+			writer.writeStartElement(DarwinCoreArchiveVocab.CORE);
+		} else if (this.type == CoreOrExtension.EXTENSION) {
+			writer.writeStartElement(DarwinCoreArchiveVocab.EXTENSION);
+		}
+		writer.writeAttribute(DarwinCoreArchiveVocab.ROW_TYPE, this.getRowType());
+		if (this.getFieldsTerminatedBy() != DEFAULT_FIELDS_TERMINATED_BY) {
+			writer.writeAttribute(DarwinCoreArchiveVocab.FIELDS_TERMINATED_BY, this.getFieldsTerminatedBy());
+		}
+		if (this.getFieldsTerminatedBy() != DEFAULT_LINES_TERMINATED_BY) {
+			writer.writeAttribute(DarwinCoreArchiveVocab.LINES_TERMINATED_BY,
+					this.getLinesTerminatedBy().replace("\r", "\\r").replace("\n", "\\n"));
+		}
+		if (this.getFieldsTerminatedBy() != DEFAULT_FIELDS_ENCLOSED_BY) {
+			writer.writeAttribute(DarwinCoreArchiveVocab.FIELDS_ENCLOSED_BY, this.getFieldsEnclosedBy());
+		}
+		if (this.getEncoding() != DEFAULT_ENCODING) {
+			writer.writeAttribute(DarwinCoreArchiveVocab.ENCODING, this.getEncoding().displayName(Locale.ENGLISH));
+		}
+		if (this.getIgnoreHeaderLines() != DEFAULT_IGNORE_HEADER_LINES) {
+			writer.writeAttribute(DarwinCoreArchiveVocab.IGNORE_HEADER_LINES,
+					Integer.toString(this.getIgnoreHeaderLines()));
+		}
+		if (this.getDateFormat() != DEFAULT_DATE_FORMAT_PATTERN) {
+			writer.writeAttribute(DarwinCoreArchiveVocab.DATE_FORMAT,
+					this.getDateFormat().replace("d", "D").replace("y", "Y"));
+		}
+		writer.writeStartElement(DarwinCoreArchiveVocab.FILES);
+		for (String nextLocation : this.getFiles().getLocations()) {
+			writer.writeStartElement(DarwinCoreArchiveVocab.LOCATION);
+			writer.writeCharacters(nextLocation);
+			// end location
+			writer.writeEndElement();
+		}
+		// end files
+		writer.writeEndElement();
+		String coreId = this.getIdOrCoreId();
+		if (coreId != null) {
+			if (this.type == CoreOrExtension.CORE) {
+				writer.writeStartElement(DarwinCoreArchiveVocab.ID);
+			} else if (this.type == CoreOrExtension.EXTENSION) {
+				writer.writeStartElement(DarwinCoreArchiveVocab.COREID);
+			}
+			writer.writeAttribute(DarwinCoreArchiveVocab.INDEX, coreId);
+			// end id
+			writer.writeEndElement();
+		}
+		for (DarwinCoreField nextField : this.getFields()) {
+			writer.writeStartElement(DarwinCoreArchiveVocab.FIELD);
+			if (nextField.getIndex() != null) {
+				writer.writeAttribute(DarwinCoreArchiveVocab.INDEX, nextField.getIndex().toString());
+			}
+			writer.writeAttribute(DarwinCoreArchiveVocab.TERM, nextField.getTerm());
+			if (nextField.getDefault() != null) {
+				writer.writeAttribute(DarwinCoreArchiveVocab.DEFAULT, nextField.getDefault());
+			}
+			if (nextField.getVocabulary() != null) {
+				writer.writeAttribute(DarwinCoreArchiveVocab.VOCABULARY, nextField.getVocabulary());
+			}
+			// end field
+			writer.writeEndElement();
+		}
+		// end core
+		writer.writeEndElement();
 	}
 }

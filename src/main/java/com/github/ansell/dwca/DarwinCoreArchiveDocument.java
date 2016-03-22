@@ -25,9 +25,16 @@
  */
 package com.github.ansell.dwca;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
 
@@ -52,6 +59,31 @@ public class DarwinCoreArchiveDocument {
 		builder.append(extensions != null ? extensions.subList(0, Math.min(extensions.size(), maxLen)) : null);
 		builder.append("]");
 		return builder.toString();
+	}
+
+	/**
+	 * Writes out this archive document to XML.
+	 * 
+	 * @param out
+	 *            The Writer to write the document to.
+	 */
+	public void toXML(Writer out) throws XMLStreamException, IOException {
+		XMLOutputFactory factory = XMLOutputFactory.newFactory();
+		XMLStreamWriter writer = factory.createXMLStreamWriter(out);
+		writer.setDefaultNamespace(DarwinCoreArchiveVocab.DWC);
+		writer.writeStartDocument();
+		writer.writeStartElement(DarwinCoreArchiveVocab.ARCHIVE);
+		writer.writeNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+		writer.writeNamespace("xs", "http://www.w3.org/2001/XMLSchema");
+		writer.writeAttribute("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation",
+				"http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd");
+		core.toXML(writer);
+		for(DarwinCoreCoreOrExtension extension : extensions) {
+			extension.toXML(writer);
+		}
+		// end archive
+		writer.writeEndElement();
+		writer.writeEndDocument();
 	}
 
 	private DarwinCoreCoreOrExtension core;
