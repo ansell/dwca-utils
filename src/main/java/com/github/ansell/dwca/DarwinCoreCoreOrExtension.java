@@ -155,22 +155,22 @@ public class DarwinCoreCoreOrExtension {
 			String namespace = attributes.getURI(i);
 			String localName = attributes.getLocalName(i);
 			if (DarwinCoreArchiveVocab.ROW_TYPE.equals(localName)) {
-				this.rowType = attributes.getValue(i);
+				this.setRowType(attributes.getValue(i));
 			} else if (DarwinCoreArchiveVocab.FIELDS_TERMINATED_BY.equals(localName)) {
-				this.fieldsTerminatedBy = attributes.getValue(i);
+				this.setFieldsTerminatedBy(attributes.getValue(i));
 			} else if (DarwinCoreArchiveVocab.LINES_TERMINATED_BY.equals(localName)) {
-				this.linesTerminatedBy = attributes.getValue(i);
+				this.setLinesTerminatedBy(attributes.getValue(i));
 			} else if (DarwinCoreArchiveVocab.FIELDS_ENCLOSED_BY.equals(localName)) {
-				this.fieldsEnclosedBy = attributes.getValue(i);
+				this.setFieldsEnclosedBy(attributes.getValue(i));
 			} else if (DarwinCoreArchiveVocab.ENCODING.equals(localName)) {
-				this.encoding = Charset.forName(attributes.getValue(i));
+				this.setEncoding(Charset.forName(attributes.getValue(i)));
 			} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
-				this.ignoreHeaderLines = Integer.parseInt(attributes.getValue(i));
+				this.setIgnoreHeaderLines(Integer.parseInt(attributes.getValue(i)));
 			} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
 				// Need to change capital D and Y from spec into lower-case
 				// d and y for DateTimeFormatter
 				String nextValue = attributes.getValue(i).replaceAll("D", "d").replaceAll("Y", "y");
-				this.dateFormat = DateTimeFormatter.ofPattern(nextValue);
+				this.setDateFormat(DateTimeFormatter.ofPattern(nextValue));
 			} else {
 				System.out.println("Found unrecognised Darwin Core attribute for " + this.type.toString().toLowerCase()
 						+ " : " + localName);
@@ -227,7 +227,7 @@ public class DarwinCoreCoreOrExtension {
 	}
 
 	public void setFieldsTerminatedBy(String fieldsTerminatedBy) {
-		this.fieldsTerminatedBy = fieldsTerminatedBy;
+		this.fieldsTerminatedBy = fieldsTerminatedBy.replace("\\t", "\t").replace("\\b", "\b");
 	}
 
 	public String getLinesTerminatedBy() {
@@ -235,7 +235,7 @@ public class DarwinCoreCoreOrExtension {
 	}
 
 	public void setLinesTerminatedBy(String linesTerminatedBy) {
-		this.linesTerminatedBy = linesTerminatedBy;
+		this.linesTerminatedBy = linesTerminatedBy.replace("\\n", "\n").replace("\\r", "\r");
 	}
 
 	public String getFieldsEnclosedBy() {

@@ -162,9 +162,9 @@ public class DarwinCoreCoreOrExtensionTest {
 	 */
 	@Test
 	public final void testSetFieldsTerminatedBy() {
-		core.setFieldsTerminatedBy("\t");
+		core.setFieldsTerminatedBy("\\t");
 		assertEquals("\t", core.getFieldsTerminatedBy());
-		extension.setFieldsTerminatedBy("\b");
+		extension.setFieldsTerminatedBy("\\b");
 		assertEquals("\b", extension.getFieldsTerminatedBy());
 	}
 
@@ -186,9 +186,9 @@ public class DarwinCoreCoreOrExtensionTest {
 	 */
 	@Test
 	public final void testSetLinesTerminatedBy() {
-		core.setLinesTerminatedBy("\r\n");
+		core.setLinesTerminatedBy("\\r\\n");
 		assertEquals("\r\n", core.getLinesTerminatedBy());
-		extension.setLinesTerminatedBy("\r\n");
+		extension.setLinesTerminatedBy("\\r\\n");
 		assertEquals("\r\n", extension.getLinesTerminatedBy());
 	}
 
