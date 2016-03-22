@@ -173,6 +173,10 @@
 							<mainClass>com.github.ansell.dwca.DarwinCoreArchiveChecker</mainClass>
 							<id>dwcacheck</id>
 						</program>
+						<program>
+							<mainClass>com.github.ansell.dwca.DarwinCoreMetadataGenerator</mainClass>
+							<id>csv2dwca</id>
+						</program>
 					</programs>
 				</configuration>
 			</plugin>
