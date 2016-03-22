@@ -335,11 +335,11 @@ public class DarwinCoreCoreOrExtension {
 		if (this.getFieldsTerminatedBy() != DEFAULT_FIELDS_TERMINATED_BY) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.FIELDS_TERMINATED_BY, this.getFieldsTerminatedBy());
 		}
-		if (this.getFieldsTerminatedBy() != DEFAULT_LINES_TERMINATED_BY) {
+		if (this.getLinesTerminatedBy() != DEFAULT_LINES_TERMINATED_BY) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.LINES_TERMINATED_BY,
 					this.getLinesTerminatedBy().replace("\r", "\\r").replace("\n", "\\n"));
 		}
-		if (this.getFieldsTerminatedBy() != DEFAULT_FIELDS_ENCLOSED_BY) {
+		if (this.getFieldsEnclosedBy() != DEFAULT_FIELDS_ENCLOSED_BY) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.FIELDS_ENCLOSED_BY, this.getFieldsEnclosedBy());
 		}
 		if (this.getEncoding() != DEFAULT_ENCODING) {
