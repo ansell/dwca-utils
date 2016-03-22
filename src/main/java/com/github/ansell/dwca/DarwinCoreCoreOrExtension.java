@@ -183,7 +183,7 @@ public class DarwinCoreCoreOrExtension {
 	}
 
 	public String getIdOrCoreId() {
-		if(this.type == CoreOrExtension.EXTENSION) {
+		if(this.idOrCoreId == null && this.type == CoreOrExtension.EXTENSION) {
 			throw new IllegalStateException("Extensions must have coreId value set.");
 		}
 		return idOrCoreId;

@@ -73,4 +73,34 @@ public class DarwinCoreArchiveDocument {
 		this.extensions.add(extension);
 	}
 
+	/**
+	 * Checks that semantic constraints are enforced and throws an exception if
+	 * they are found not to be enforced.
+	 * 
+	 * @throws IllegalStateException
+	 *             If semantic constraints are not enforced.
+	 */
+	public void checkConstraints() throws IllegalStateException {
+		if (core.getFields().isEmpty()) {
+			throw new IllegalStateException("Core must have fields.");
+		}
+		if (core.getFiles() == null) {
+			throw new IllegalStateException("Core must have files set.");
+		}
+		if (!this.getExtensions().isEmpty() && this.getCore().getIdOrCoreId() == null) {
+			throw new IllegalStateException("Core must have id set if there are extensions present.");
+		}
+		for (DarwinCoreCoreOrExtension extension : getExtensions()) {
+			if (extension.getIdOrCoreId() == null) {
+				throw new IllegalStateException("Extensions must have coreId set.");
+			}
+			if (extension.getFields().isEmpty()) {
+				throw new IllegalStateException("Extension must have fields.");
+			}
+			if (extension.getFiles() == null) {
+				throw new IllegalStateException("Extension must have files set.");
+			}
+		}
+	}
+
 }

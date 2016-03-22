@@ -133,6 +133,7 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 		xmlReader.setContentHandler(this);
 		xmlReader.parse(inputSource);
 		DarwinCoreArchiveDocument result = this.dwcaDocument;
+		result.checkConstraints();
 		reset();
 		return result;
 	}
