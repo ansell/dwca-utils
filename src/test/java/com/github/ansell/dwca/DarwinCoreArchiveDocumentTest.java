@@ -241,10 +241,23 @@ public class DarwinCoreArchiveDocumentTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
 	 * .
 	 */
-	@Ignore("TODO: Implement me!")
 	@Test
 	public final void testCheckConstraintsExtensionFieldsEmpty() {
-		fail("Not yet implemented"); // TODO
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		testCore.setIdOrCoreId("test core id");
+		DarwinCoreField testField = new DarwinCoreField();
+		testField.setTerm("test");
+		testField.setDefault("test default");
+		testCore.addField(testField);
+		testCore.setFiles(new DarwinCoreFile());
+		testDocument.setCore(testCore);
+		DarwinCoreCoreOrExtension testExtension = DarwinCoreCoreOrExtension.newExtension();
+		testExtension.setIdOrCoreId("test extension id");
+		testDocument.addExtension(testExtension);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage(anyOf(containsString("Extension must have fields"),
+				containsString("No fields present")));
+		testDocument.checkConstraints();
 	}
 
 	/**
@@ -252,10 +265,25 @@ public class DarwinCoreArchiveDocumentTest {
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveDocument#checkConstraints()}
 	 * .
 	 */
-	@Ignore("TODO: Implement me!")
 	@Test
 	public final void testCheckConstraintsFieldsExtensionFilesMissing() {
-		fail("Not yet implemented"); // TODO
+		DarwinCoreCoreOrExtension testCore = DarwinCoreCoreOrExtension.newCore();
+		testCore.setIdOrCoreId("test core id");
+		DarwinCoreField testField = new DarwinCoreField();
+		testField.setTerm("test");
+		testField.setDefault("test default");
+		testCore.addField(testField);
+		testCore.setFiles(new DarwinCoreFile());
+		testDocument.setCore(testCore);
+		DarwinCoreCoreOrExtension testExtension = DarwinCoreCoreOrExtension.newExtension();
+		testExtension.setIdOrCoreId("test extension id");
+		DarwinCoreField testFieldExtension = new DarwinCoreField();
+		testExtension.addField(testFieldExtension);
+		testDocument.addExtension(testExtension);
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage(anyOf(containsString("Extension must have files set"),
+				containsString("Did not find value for files that was required")));
+		testDocument.checkConstraints();
 	}
 
 	/**
