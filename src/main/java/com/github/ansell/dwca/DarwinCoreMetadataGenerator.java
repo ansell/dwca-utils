@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -129,12 +130,24 @@ public class DarwinCoreMetadataGenerator {
 		Predicate<IRI> darwinCoreIRI = iri -> iri.getNamespace().equals("http://rs.tdwg.org/dwc/terms/");
 		Set<IRI> dwcIRIs = dwc.subjects().stream().filter(iriPredicate).map(iriMap).filter(darwinCoreIRI)
 				.collect(Collectors.toSet());
-		System.out.println(dwcIRIs);
+		Map<String, List<IRI>> localNameMap = dwcIRIs.stream().collect(Collectors.groupingBy(i -> i.getLocalName()));
+		//System.out.println(dwcIRIs);
 
+		System.out.println(localNameMap.keySet());
+		
 		for (String nextHeader : headers) {
+			DarwinCoreField nextField = new DarwinCoreField();
+			nextField.setTerm(nextHeader);
 			// Check if the field maps to DWC
 			// If it is DWC, add it to core
+			if (localNameMap.containsKey(nextHeader)) {
+				nextField.setVocabulary("http://rs.tdwg.org/dwc/terms/");
+				core.addField(nextField);
+			}
 			// Else add it to an extension
+			else {
+				extension.addField(nextField);
+			}
 		}
 	}
 }
