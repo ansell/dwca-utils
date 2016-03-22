@@ -183,18 +183,30 @@ public class DarwinCoreCoreOrExtension {
 	}
 
 	public String getIdOrCoreId() {
+		if(this.type == CoreOrExtension.EXTENSION) {
+			throw new IllegalStateException("Extensions must have coreId value set.");
+		}
 		return idOrCoreId;
 	}
 
 	public void setIdOrCoreId(String idOrCoreId) {
+		if(this.idOrCoreId != null && !this.idOrCoreId.equals(idOrCoreId)) {
+			throw new IllegalStateException("Multiple values found for id/coreId");
+		}
 		this.idOrCoreId = idOrCoreId;
 	}
 
 	public String getRowType() {
+		if(this.rowType == null) {
+			throw new IllegalStateException("Did not find value for row type that was required");
+		}
 		return rowType;
 	}
 
 	public void setRowType(String rowType) {
+		if(this.rowType != null && !this.rowType.equals(rowType)) {
+			throw new IllegalStateException("Multiple values found for row type");
+		}
 		this.rowType = rowType;
 	}
 
@@ -251,6 +263,9 @@ public class DarwinCoreCoreOrExtension {
 	}
 
 	public DarwinCoreFile getFiles() {
+		if(this.files == null) {
+			throw new IllegalStateException("Did not find value for files that was required");
+		}
 		return files;
 	}
 
