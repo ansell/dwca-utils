@@ -154,12 +154,12 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	@Override
 	public void startDocument() throws SAXException {
-		System.out.println("SAX: startDocument");
+		// System.out.println("SAX: startDocument");
 	}
 
 	@Override
 	public void endDocument() throws SAXException {
-		System.out.println("SAX: endDocument");
+		// System.out.println("SAX: endDocument");
 		if (!(startArchiveFound && endArchiveFound)) {
 			throw new SAXException(
 					"Did not find a full archive element: startArchiveFound=" + startArchiveFound + " endArchiveFound="
@@ -169,17 +169,18 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	@Override
 	public void startPrefixMapping(String prefix, String uri) throws SAXException {
-		System.out.println("SAX: startPrefixMapping: " + prefix + " " + uri);
+		// System.out.println("SAX: startPrefixMapping: " + prefix + " " + uri);
 	}
 
 	@Override
 	public void endPrefixMapping(String prefix) throws SAXException {
-		System.out.println("SAX: endPrefixMapping: " + prefix);
+		// System.out.println("SAX: endPrefixMapping: " + prefix);
 	}
 
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-		System.out.println("SAX: startElement: " + uri + " " + localName + " " + qName);
+		// System.out.println("SAX: startElement: " + uri + " " + localName + "
+		// " + qName);
 		buffer.setLength(0);
 
 		if (DarwinCoreArchiveVocab.DWC.equals(uri) && DarwinCoreArchiveVocab.ARCHIVE.equals(localName)) {
@@ -282,8 +283,9 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
-		System.out.println("SAX: endElement: " + uri + " " + localName + " " + qName);
-		System.out.println(buffer.toString());
+		// System.out.println("SAX: endElement: " + uri + " " + localName + " "
+		// + qName);
+		// System.out.println(buffer.toString());
 
 		if (DarwinCoreArchiveVocab.DWC.equals(uri) && DarwinCoreArchiveVocab.ARCHIVE.equals(localName)) {
 			if (!startArchiveFound) {
@@ -332,17 +334,17 @@ public final class DarwinCoreMetadataSaxParser extends DefaultHandler {
 
 	@Override
 	public void warning(SAXParseException e) throws SAXException {
-		System.out.println("SAX: warning: " + e.getMessage());
+		// System.out.println("SAX: warning: " + e.getMessage());
 	}
 
 	@Override
 	public void error(SAXParseException e) throws SAXException {
-		System.out.println("SAX: error: " + e.getMessage());
+		// System.out.println("SAX: error: " + e.getMessage());
 	}
 
 	@Override
 	public void fatalError(SAXParseException e) throws SAXException {
-		System.out.println("SAX: fatalError: " + e.getMessage());
+		// System.out.println("SAX: fatalError: " + e.getMessage());
 		throw e;
 	}
 
