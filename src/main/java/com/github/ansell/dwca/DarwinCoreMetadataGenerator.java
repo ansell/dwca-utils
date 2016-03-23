@@ -156,25 +156,26 @@ public class DarwinCoreMetadataGenerator {
 		for (int i = 0; i < headers.size(); i++) {
 			String nextHeader = headers.get(i);
 			DarwinCoreField nextField = new DarwinCoreField();
-			nextField.setTerm(nextHeader);
 			nextField.setIndex(i);
 			// Check if the field maps to DWC
 			// If it is DWC, add it to core
 			if (localNameMap.containsKey(nextHeader)) {
 				nextField.setVocabulary("http://rs.tdwg.org/dwc/terms/");
+				nextField.setTerm("http://rs.tdwg.org/dwc/terms/" + nextHeader);
 				core.addField(nextField);
 			}
 			// Else add it to an extension
 			else {
+				nextField.setTerm(nextHeader);
 				extension.addField(nextField);
 			}
 		}
-		
+
 		try (Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8,
 				StandardOpenOption.CREATE_NEW);) {
 			result.toXML(writer);
 		}
-		
+
 		// Parse the result to make sure that it is valid
 		DarwinCoreArchiveDocument archiveDocument = DarwinCoreArchiveChecker.parseMetadataXml(outputPath);
 		archiveDocument.checkConstraints();
