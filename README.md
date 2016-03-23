@@ -36,7 +36,7 @@ Run csv2dwca with --help to get usage details:
     <dependency>
         <groupId>com.github.ansell.dwca</groupId>
         <artifactId>dwca-utils</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.0.1</version>
     </dependency>
 
 # Changelog
