@@ -41,6 +41,9 @@ Run csv2dwca with --help to get usage details:
 
 # Changelog
 
+## 2016-03-24
+* Add --extension to allow arbitrary number of extension files for the Metadata Generator in addition to a single Core file using --input
+
 ## 2016-03-23
 * Release 0.0.1
 * Complete the Metadata Generator 
