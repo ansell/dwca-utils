@@ -86,6 +86,8 @@ public class DarwinCoreMetadataGenerator {
 		final OptionSpec<Void> help = parser.accepts("help").forHelp();
 		final OptionSpec<File> input = parser.accepts("input").withRequiredArg().ofType(File.class).required()
 				.describedAs("The input CSV file to be parsed.");
+		final OptionSpec<File> extensionOption = parser.accepts("extension").withRequiredArg().ofType(File.class)
+				.describedAs("Extension CSV files to be included. May be used multiple times if needed.");
 		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).required()
 				.describedAs("The output metadata.xml file to be generated.");
 
@@ -115,20 +117,13 @@ public class DarwinCoreMetadataGenerator {
 			throw new IllegalStateException("Output file already exists, not overwriting it: " + outputPath.toString());
 		}
 
-		List<String> headers = new ArrayList<>();
-		try (Reader inputStreamReader = Files.newBufferedReader(inputPath);) {
-			CSVUtil.streamCSV(inputStreamReader, h -> headers.addAll(h), (h, l) -> l, l -> {
-			});
+		List<Path> extensionPaths = new ArrayList<>();
+		for (File nextExtensionFile : extensionOption.values(options)) {
+			Path nextExtensionPath = nextExtensionFile.toPath();
+			if (Files.exists(nextExtensionPath)) {
+				extensionPaths.add(nextExtensionPath);
+			}
 		}
-
-		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
-		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
-		core.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
-		core.setIdOrCoreId("0");
-		result.setCore(core);
-		DarwinCoreCoreOrExtension extension = DarwinCoreCoreOrExtension.newExtension();
-		extension.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
-		extension.setIdOrCoreId("0");
 
 		Model dwc = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream("/dwcterms.rdf"),
 				"http://rs.tdwg.org/dwc/terms/", RDFFormat.RDFXML);
@@ -139,42 +134,34 @@ public class DarwinCoreMetadataGenerator {
 		Predicate<IRI> darwinCoreIRI = iri -> iri.getNamespace().equals("http://rs.tdwg.org/dwc/terms/");
 		Set<IRI> dwcIRIs = dwc.subjects().stream().filter(iriPredicate).map(iriMap).filter(darwinCoreIRI)
 				.collect(Collectors.toSet());
-		Map<String, List<IRI>> localNameMap = dwcIRIs.stream().collect(Collectors.groupingBy(i -> i.getLocalName()));
-		// System.out.println(dwcIRIs);
+		Map<String, List<IRI>> dwcNameMap = dwcIRIs.stream().collect(Collectors.groupingBy(i -> i.getLocalName()));
 
-		// System.out.println(localNameMap.keySet());
-
+		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
+		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
+		core.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
+		core.setIdOrCoreId("0");
+		result.setCore(core);
 		DarwinCoreFile coreFile = new DarwinCoreFile();
-		coreFile.addLocation(input.value(options).getName());
-		core.setFiles(coreFile);
+		coreFile.addLocation(inputPath.getFileName().toString());
+		result.getCore().setFiles(coreFile);
 
-		DarwinCoreFile extensionFile = new DarwinCoreFile();
-		extensionFile.addLocation(input.value(options).getName());
-		extension.setFiles(extensionFile);
+		populateFields(inputPath, dwcNameMap, result, core);
 
-		boolean needExtension = false;
+		for (Path nextExtensionPath : extensionPaths) {
+			DarwinCoreCoreOrExtension nextExtension = DarwinCoreCoreOrExtension.newExtension();
+			nextExtension.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
+			// TODO: Choose this from a predefined list such as "catalogNumber"
+			// Could also csvsum to get likely primary keys based on uniqueness
+			nextExtension.setIdOrCoreId("0");
+			DarwinCoreFile nextExtensionFile = new DarwinCoreFile();
+			nextExtensionFile.addLocation(nextExtensionPath.getFileName().toString());
+			nextExtension.setFiles(nextExtensionFile);
 
-		for (int i = 0; i < headers.size(); i++) {
-			String nextHeader = headers.get(i);
-			DarwinCoreField nextField = new DarwinCoreField();
-			nextField.setIndex(i);
-			// Check if the field maps to DWC
-			// If it is DWC, add it to core
-			if (localNameMap.containsKey(nextHeader)) {
-				nextField.setVocabulary("http://rs.tdwg.org/dwc/terms/");
-				nextField.setTerm("http://rs.tdwg.org/dwc/terms/" + nextHeader);
-				core.addField(nextField);
+			populateFields(nextExtensionPath, dwcNameMap, result, nextExtension);
+			// We completely ignore empty files
+			if (!nextExtension.getFields().isEmpty()) {
+				result.addExtension(nextExtension);
 			}
-			// Else add it to an extension
-			else {
-				nextField.setTerm(nextHeader);
-				extension.addField(nextField);
-				needExtension = true;
-			}
-		}
-
-		if (needExtension) {
-			result.addExtension(extension);
 		}
 
 		try (Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8,
@@ -185,5 +172,40 @@ public class DarwinCoreMetadataGenerator {
 		// Parse the result to make sure that it is valid
 		DarwinCoreArchiveDocument archiveDocument = DarwinCoreArchiveChecker.parseMetadataXml(outputPath);
 		archiveDocument.checkConstraints();
+	}
+
+	/**
+	 * Populate field names for a core or extension from the given file
+	 * 
+	 * @param inputPath
+	 * @param dwcNameMap
+	 * @param result
+	 * @param coreOrExtension
+	 * @throws IOException
+	 */
+	public static void populateFields(final Path inputPath, Map<String, List<IRI>> dwcNameMap,
+			DarwinCoreArchiveDocument result, DarwinCoreCoreOrExtension coreOrExtension) throws IOException {
+		List<String> headers = new ArrayList<>();
+		try (Reader inputStreamReader = Files.newBufferedReader(inputPath);) {
+			CSVUtil.streamCSV(inputStreamReader, h -> headers.addAll(h), (h, l) -> l, l -> {
+			});
+		}
+
+		for (int i = 0; i < headers.size(); i++) {
+			String nextHeader = headers.get(i);
+			DarwinCoreField nextField = new DarwinCoreField();
+			// Check if the field maps to DWC
+			// If it is DWC, give it that vocabulary
+			nextField.setIndex(i);
+			if (dwcNameMap.containsKey(nextHeader)) {
+				nextField.setVocabulary("http://rs.tdwg.org/dwc/terms/");
+				nextField.setTerm("http://rs.tdwg.org/dwc/terms/" + nextHeader);
+			}
+			// Else add it without vocabulary
+			else {
+				nextField.setTerm(nextHeader);
+			}
+			coreOrExtension.addField(nextField);
+		}
 	}
 }

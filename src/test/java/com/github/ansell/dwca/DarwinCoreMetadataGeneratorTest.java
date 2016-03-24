@@ -57,12 +57,20 @@ public class DarwinCoreMetadataGeneratorTest {
 
 	private Path testMetadataXml;
 
+	private Path testExtension;
+
+	private Path testExtension2;
+
 	@Before
 	public void setUp() throws Exception {
 		testTempDir = tempDir.newFolder("dwca-generator-temp").toPath();
 		testFile = testTempDir.resolve("types.csv");
+		testExtension = testTempDir.resolve("distribution.csv");
+		testExtension2 = testTempDir.resolve("specimens.csv");
 		testMetadataXml = testTempDir.resolve("metadata.xml");
 		Files.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"), testFile);
+		Files.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"), testExtension);
+		Files.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), testExtension2);
 	}
 
 	/**
@@ -81,13 +89,49 @@ public class DarwinCoreMetadataGeneratorTest {
 	 * .
 	 */
 	@Test
-	public final void testMain() throws Exception {
+	public final void testMainSingle() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
 				testMetadataXml.toAbsolutePath().toString());
 		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
 			assertNotNull(archiveDocument);
+			assertEquals(0, archiveDocument.getExtensions().size());
+		}
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreMetadataGenerator#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainExtension() throws Exception {
+		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
+				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString());
+		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
+			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
+			assertNotNull(archiveDocument);
+			assertEquals(1, archiveDocument.getExtensions().size());
+		}
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreMetadataGenerator#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainMultipleExtensions() throws Exception {
+		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
+				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString(),
+				"--extension", testExtension2.toAbsolutePath().toString());
+		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
+			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
+			assertNotNull(archiveDocument);
+			assertEquals(2, archiveDocument.getExtensions().size());
 		}
 	}
 
