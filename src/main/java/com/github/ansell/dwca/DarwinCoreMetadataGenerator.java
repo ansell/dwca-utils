@@ -41,6 +41,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -52,11 +53,15 @@ import org.apache.commons.vfs2.VFS;
 import org.openrdf.model.IRI;
 import org.openrdf.model.Model;
 import org.openrdf.model.Resource;
+import org.openrdf.model.vocabulary.DCTERMS;
 import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.Rio;
+import org.openrdf.rio.UnsupportedRDFormatException;
 import org.xml.sax.SAXException;
 
 import com.github.ansell.csv.util.CSVUtil;
+import com.github.ansell.jdefaultdict.JDefaultDict;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -124,17 +129,18 @@ public class DarwinCoreMetadataGenerator {
 				extensionPaths.add(nextExtensionPath);
 			}
 		}
+		Map<String, Map<String, List<IRI>>> vocabMap = new JDefaultDict<>(
+				k -> new JDefaultDict<>(l -> new ArrayList<>()));
 
-		Model dwc = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream("/dwcterms.rdf"),
-				"http://rs.tdwg.org/dwc/terms/", RDFFormat.RDFXML);
-		Predicate<Resource> iriPredicate = r -> {
-			return r instanceof IRI;
-		};
-		Function<Resource, IRI> iriMap = r -> (IRI) r;
-		Predicate<IRI> darwinCoreIRI = iri -> iri.getNamespace().equals("http://rs.tdwg.org/dwc/terms/");
-		Set<IRI> dwcIRIs = dwc.subjects().stream().filter(iriPredicate).map(iriMap).filter(darwinCoreIRI)
-				.collect(Collectors.toSet());
-		Map<String, List<IRI>> dwcNameMap = dwcIRIs.stream().collect(Collectors.groupingBy(i -> i.getLocalName()));
+		// Darwin Core
+		String pathToDWCRDF = "/dwcterms.rdf";
+		String iriForDWCRDF = DarwinCoreArchiveVocab.DWC;
+		parseRDF(pathToDWCRDF, iriForDWCRDF, vocabMap);
+
+		// Dublin Core
+		String pathToDCTERMSRDF = "/dcterms.rdf";
+		String iriForDCTERMSRDF = DCTERMS.NAMESPACE;
+		parseRDF(pathToDCTERMSRDF, iriForDCTERMSRDF, vocabMap);
 
 		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
@@ -145,7 +151,7 @@ public class DarwinCoreMetadataGenerator {
 		coreFile.addLocation(inputPath.getFileName().toString());
 		result.getCore().setFiles(coreFile);
 
-		populateFields(inputPath, dwcNameMap, result, core);
+		populateFields(inputPath, vocabMap, result, core);
 
 		for (Path nextExtensionPath : extensionPaths) {
 			DarwinCoreCoreOrExtension nextExtension = DarwinCoreCoreOrExtension.newExtension();
@@ -157,7 +163,7 @@ public class DarwinCoreMetadataGenerator {
 			nextExtensionFile.addLocation(nextExtensionPath.getFileName().toString());
 			nextExtension.setFiles(nextExtensionFile);
 
-			populateFields(nextExtensionPath, dwcNameMap, result, nextExtension);
+			populateFields(nextExtensionPath, vocabMap, result, nextExtension);
 			// We completely ignore empty files
 			if (!nextExtension.getFields().isEmpty()) {
 				result.addExtension(nextExtension);
@@ -175,15 +181,39 @@ public class DarwinCoreMetadataGenerator {
 	}
 
 	/**
+	 * @param pathToDWCRDF
+	 * @param iriForDWCRDF
+	 * @param vocabMap
+	 * @return
+	 * @throws IOException
+	 * @throws RDFParseException
+	 * @throws UnsupportedRDFormatException
+	 */
+	public static void parseRDF(String pathToDWCRDF, String iriForDWCRDF, Map<String, Map<String, List<IRI>>> vocabMap)
+			throws IOException, RDFParseException, UnsupportedRDFormatException {
+		Model dwc = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream(pathToDWCRDF), iriForDWCRDF,
+				RDFFormat.RDFXML);
+		Predicate<Resource> iriPredicate = r -> {
+			return r instanceof IRI;
+		};
+		Function<Resource, IRI> iriMap = r -> (IRI) r;
+		Predicate<IRI> darwinCoreIRI = iri -> iri.getNamespace().equals(iriForDWCRDF);
+		Set<IRI> dwcIRIs = dwc.subjects().stream().filter(iriPredicate).map(iriMap).filter(darwinCoreIRI)
+				.collect(Collectors.toSet());
+		dwcIRIs.stream().forEach(i -> vocabMap.get(iriForDWCRDF).get(i.getLocalName()).add(i));
+	}
+
+	/**
 	 * Populate field names for a core or extension from the given file
 	 * 
 	 * @param inputPath
-	 * @param dwcNameMap
+	 * @param nameToIRIMap
+	 * @param vocabularyMap
 	 * @param result
 	 * @param coreOrExtension
 	 * @throws IOException
 	 */
-	public static void populateFields(final Path inputPath, Map<String, List<IRI>> dwcNameMap,
+	public static void populateFields(final Path inputPath, Map<String, Map<String, List<IRI>>> vocabMap,
 			DarwinCoreArchiveDocument result, DarwinCoreCoreOrExtension coreOrExtension) throws IOException {
 		List<String> headers = new ArrayList<>();
 		try (Reader inputStreamReader = Files.newBufferedReader(inputPath);) {
@@ -197,9 +227,25 @@ public class DarwinCoreMetadataGenerator {
 			// Check if the field maps to DWC
 			// If it is DWC, give it that vocabulary
 			nextField.setIndex(i);
-			if (dwcNameMap.containsKey(nextHeader)) {
-				nextField.setVocabulary("http://rs.tdwg.org/dwc/terms/");
-				nextField.setTerm("http://rs.tdwg.org/dwc/terms/" + nextHeader);
+			String vocabulary = null;
+			IRI fullIRI = null;
+			for (String nextVocabulary : vocabMap.keySet()) {
+				for (Entry<String, List<IRI>> nextLocalNameIRI : vocabMap.get(nextVocabulary).entrySet()) {
+					if (nextLocalNameIRI.getKey().equals(nextHeader)) {
+						vocabulary = nextVocabulary;
+						fullIRI = nextLocalNameIRI.getValue().iterator().next();
+						break;
+					}
+				}
+				if (vocabulary != null) {
+					break;
+				}
+			}
+			if (vocabulary != null) {
+				nextField.setVocabulary(vocabulary);
+			}
+			if (fullIRI != null) {
+				nextField.setTerm(fullIRI.toString());
 			}
 			// Else add it without vocabulary
 			else {
