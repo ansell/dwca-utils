@@ -129,7 +129,6 @@ public class DarwinCoreMetadataGenerator {
 		DarwinCoreCoreOrExtension extension = DarwinCoreCoreOrExtension.newExtension();
 		extension.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
 		extension.setIdOrCoreId("0");
-		result.addExtension(extension);
 
 		Model dwc = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream("/dwcterms.rdf"),
 				"http://rs.tdwg.org/dwc/terms/", RDFFormat.RDFXML);
@@ -153,6 +152,8 @@ public class DarwinCoreMetadataGenerator {
 		extensionFile.addLocation(input.value(options).getName());
 		extension.setFiles(extensionFile);
 
+		boolean needExtension = false;
+
 		for (int i = 0; i < headers.size(); i++) {
 			String nextHeader = headers.get(i);
 			DarwinCoreField nextField = new DarwinCoreField();
@@ -168,7 +169,12 @@ public class DarwinCoreMetadataGenerator {
 			else {
 				nextField.setTerm(nextHeader);
 				extension.addField(nextField);
+				needExtension = true;
 			}
+		}
+
+		if (needExtension) {
+			result.addExtension(extension);
 		}
 
 		try (Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8,
