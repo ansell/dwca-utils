@@ -134,7 +134,7 @@ public class DarwinCoreMetadataGenerator {
 
 		// Darwin Core
 		String pathToDWCRDF = "/dwcterms.rdf";
-		String iriForDWCRDF = DarwinCoreArchiveVocab.DWC;
+		String iriForDWCRDF = DarwinCoreArchiveVocab.DWC_TERMS;
 		parseRDF(pathToDWCRDF, iriForDWCRDF, vocabMap);
 
 		// Dublin Core
@@ -181,26 +181,26 @@ public class DarwinCoreMetadataGenerator {
 	}
 
 	/**
-	 * @param pathToDWCRDF
-	 * @param iriForDWCRDF
+	 * @param pathToVocab
+	 * @param iriForVocab
 	 * @param vocabMap
 	 * @return
 	 * @throws IOException
 	 * @throws RDFParseException
 	 * @throws UnsupportedRDFormatException
 	 */
-	public static void parseRDF(String pathToDWCRDF, String iriForDWCRDF, Map<String, Map<String, List<IRI>>> vocabMap)
+	public static void parseRDF(String pathToVocab, String iriForVocab, Map<String, Map<String, List<IRI>>> vocabMap)
 			throws IOException, RDFParseException, UnsupportedRDFormatException {
-		Model dwc = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream(pathToDWCRDF), iriForDWCRDF,
+		Model model = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream(pathToVocab), iriForVocab,
 				RDFFormat.RDFXML);
 		Predicate<Resource> iriPredicate = r -> {
 			return r instanceof IRI;
 		};
 		Function<Resource, IRI> iriMap = r -> (IRI) r;
-		Predicate<IRI> darwinCoreIRI = iri -> iri.getNamespace().equals(iriForDWCRDF);
-		Set<IRI> dwcIRIs = dwc.subjects().stream().filter(iriPredicate).map(iriMap).filter(darwinCoreIRI)
+		Predicate<IRI> iriInNamespace = iri -> iri.getNamespace().equals(iriForVocab);
+		Set<IRI> dwcIRIs = model.subjects().stream().filter(iriPredicate).map(iriMap).filter(iriInNamespace)
 				.collect(Collectors.toSet());
-		dwcIRIs.stream().forEach(i -> vocabMap.get(iriForDWCRDF).get(i.getLocalName()).add(i));
+		dwcIRIs.stream().forEach(i -> vocabMap.get(iriForVocab).get(i.getLocalName()).add(i));
 	}
 
 	/**
