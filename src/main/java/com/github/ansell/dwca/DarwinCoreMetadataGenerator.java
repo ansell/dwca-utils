@@ -146,6 +146,7 @@ public class DarwinCoreMetadataGenerator {
 		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
 		core.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
 		core.setIdOrCoreId("0");
+		core.setIgnoreHeaderLines(1);
 		result.setCore(core);
 		DarwinCoreFile coreFile = new DarwinCoreFile();
 		coreFile.addLocation(inputPath.getFileName().toString());
