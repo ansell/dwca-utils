@@ -162,6 +162,7 @@ public class DarwinCoreMetadataGenerator {
 			// TODO: Choose this from a predefined list such as "catalogNumber"
 			// Could also csvsum to get likely primary keys based on uniqueness
 			nextExtension.setIdOrCoreId("0");
+			nextExtension.setIgnoreHeaderLines(1);
 			DarwinCoreFile nextExtensionFile = new DarwinCoreFile();
 			nextExtensionFile.addLocation(nextExtensionPath.getFileName().toString());
 			nextExtension.setFiles(nextExtensionFile);
