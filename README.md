@@ -43,6 +43,7 @@ Run csv2dwca with --help to get usage details:
 
 ## 2016-03-29
 * Add --show-defaults to allow the printing of values that should be assumed from the spec, but are not always interpreted correctly by third-parties
+* Support meta.xml along with metadata.xml for detection of the metadata file in zip files. Strange this is not standardised in the spec.
 
 ## 2016-03-24
 * Add --extension to allow arbitrary number of extension files for the Metadata Generator in addition to a single Core file using --input
