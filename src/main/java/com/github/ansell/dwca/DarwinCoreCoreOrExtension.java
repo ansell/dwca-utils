@@ -325,31 +325,44 @@ public class DarwinCoreCoreOrExtension {
 		this.fields.add(nextField);
 	}
 
-	public void toXML(XMLStreamWriter writer) throws XMLStreamException, IOException {
+	/**
+	 * Write this object as a Darwin Core XML object.
+	 * 
+	 * @param writer
+	 *            The {@link XMLStreamWriter} to write the values to.
+	 * @param showDefaults
+	 *            True to show some default values, for increased
+	 *            interoperability with buggy implementations.
+	 * @throws XMLStreamException
+	 *             If there is an issue with the writing of the XML.
+	 * @throws IOException
+	 *             If there is a file writing issue.
+	 */
+	public void toXML(XMLStreamWriter writer, boolean showDefaults) throws XMLStreamException, IOException {
 		if (this.type == CoreOrExtension.CORE) {
 			writer.writeStartElement(DarwinCoreArchiveVocab.CORE);
 		} else if (this.type == CoreOrExtension.EXTENSION) {
 			writer.writeStartElement(DarwinCoreArchiveVocab.EXTENSION);
 		}
 		writer.writeAttribute(DarwinCoreArchiveVocab.ROW_TYPE, this.getRowType());
-		if (this.getFieldsTerminatedBy() != DEFAULT_FIELDS_TERMINATED_BY) {
+		if (showDefaults || this.getFieldsTerminatedBy() != DEFAULT_FIELDS_TERMINATED_BY) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.FIELDS_TERMINATED_BY, this.getFieldsTerminatedBy());
 		}
-		if (this.getLinesTerminatedBy() != DEFAULT_LINES_TERMINATED_BY) {
+		if (showDefaults || this.getLinesTerminatedBy() != DEFAULT_LINES_TERMINATED_BY) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.LINES_TERMINATED_BY,
 					this.getLinesTerminatedBy().replace("\r", "\\r").replace("\n", "\\n"));
 		}
-		if (this.getFieldsEnclosedBy() != DEFAULT_FIELDS_ENCLOSED_BY) {
+		if (showDefaults || this.getFieldsEnclosedBy() != DEFAULT_FIELDS_ENCLOSED_BY) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.FIELDS_ENCLOSED_BY, this.getFieldsEnclosedBy());
 		}
-		if (this.getEncoding() != DEFAULT_ENCODING) {
+		if (showDefaults || this.getEncoding() != DEFAULT_ENCODING) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.ENCODING, this.getEncoding().displayName(Locale.ENGLISH));
 		}
-		if (this.getIgnoreHeaderLines() != DEFAULT_IGNORE_HEADER_LINES) {
+		if (showDefaults || this.getIgnoreHeaderLines() != DEFAULT_IGNORE_HEADER_LINES) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.IGNORE_HEADER_LINES,
 					Integer.toString(this.getIgnoreHeaderLines()));
 		}
-		if (this.getDateFormat() != DEFAULT_DATE_FORMAT_PATTERN) {
+		if (showDefaults || this.getDateFormat() != DEFAULT_DATE_FORMAT_PATTERN) {
 			writer.writeAttribute(DarwinCoreArchiveVocab.DATE_FORMAT,
 					this.getDateFormat().replace("d", "D").replace("y", "Y"));
 		}

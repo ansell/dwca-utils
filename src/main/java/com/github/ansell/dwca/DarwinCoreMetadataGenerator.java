@@ -95,6 +95,9 @@ public class DarwinCoreMetadataGenerator {
 				.describedAs("Extension CSV files to be included. May be used multiple times if needed.");
 		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).required()
 				.describedAs("The output metadata.xml file to be generated.");
+		final OptionSpec<Boolean> showDefaults = parser.accepts("show-defaults").withOptionalArg().ofType(Boolean.class)
+				.defaultsTo(Boolean.FALSE).describedAs(
+						"Show default values that should be assumed from the spec but may cause bugs with some implementations.");
 
 		OptionSet options = null;
 
@@ -176,7 +179,7 @@ public class DarwinCoreMetadataGenerator {
 
 		try (Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8,
 				StandardOpenOption.CREATE_NEW);) {
-			result.toXML(writer);
+			result.toXML(writer, showDefaults.value(options));
 		}
 
 		// Parse the result to make sure that it is valid

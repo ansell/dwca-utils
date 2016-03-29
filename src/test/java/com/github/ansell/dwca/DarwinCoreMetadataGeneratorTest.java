@@ -135,4 +135,22 @@ public class DarwinCoreMetadataGeneratorTest {
 		}
 	}
 
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreMetadataGenerator#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainMultipleExtensionsShowDefaults() throws Exception {
+		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
+				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString(),
+				"--extension", testExtension2.toAbsolutePath().toString(), "--show-defaults", "true");
+		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
+			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
+			assertNotNull(archiveDocument);
+			assertEquals(2, archiveDocument.getExtensions().size());
+		}
+	}
+
 }

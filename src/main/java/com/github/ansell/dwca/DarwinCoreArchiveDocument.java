@@ -68,6 +68,9 @@ public class DarwinCoreArchiveDocument {
 	 * 
 	 * @param out
 	 *            The Writer to write the document to.
+	 * @param showDefaults
+	 *            True to show some default values, for increased
+	 *            interoperability with buggy implementations.
 	 * @throws XMLStreamException
 	 *             If there is an XML related problem while writing the
 	 *             document.
@@ -77,7 +80,7 @@ public class DarwinCoreArchiveDocument {
 	 *             If there is a semantic constraint violation while writing the
 	 *             document.
 	 */
-	public void toXML(Writer out) throws XMLStreamException, IOException, IllegalStateException {
+	public void toXML(Writer out, boolean showDefaults) throws XMLStreamException, IOException, IllegalStateException {
 		checkConstraints();
 
 		XMLOutputFactory factory = XMLOutputFactory.newFactory();
@@ -89,9 +92,9 @@ public class DarwinCoreArchiveDocument {
 		writer.writeNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 		writer.writeAttribute("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation",
 				"http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd");
-		core.toXML(writer);
+		core.toXML(writer, showDefaults);
 		for (DarwinCoreCoreOrExtension extension : extensions) {
-			extension.toXML(writer);
+			extension.toXML(writer, showDefaults);
 		}
 		// end archive
 		writer.writeEndElement();
