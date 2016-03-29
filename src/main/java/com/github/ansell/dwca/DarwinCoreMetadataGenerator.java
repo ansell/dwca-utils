@@ -138,12 +138,17 @@ public class DarwinCoreMetadataGenerator {
 		// Darwin Core
 		String pathToDWCRDF = "/dwcterms.rdf";
 		String iriForDWCRDF = DarwinCoreArchiveVocab.DWC_TERMS;
-		parseRDF(pathToDWCRDF, iriForDWCRDF, vocabMap);
+		parseRDF(pathToDWCRDF, iriForDWCRDF, vocabMap, RDFFormat.RDFXML);
 
 		// Dublin Core
 		String pathToDCTERMSRDF = "/dcterms.rdf";
 		String iriForDCTERMSRDF = DCTERMS.NAMESPACE;
-		parseRDF(pathToDCTERMSRDF, iriForDCTERMSRDF, vocabMap);
+		parseRDF(pathToDCTERMSRDF, iriForDCTERMSRDF, vocabMap, RDFFormat.RDFXML);
+
+		// Audubon Core
+		String pathToACRDF = "/acterms.ttl";
+		String iriForACRDF = DarwinCoreArchiveVocab.AC_TERMS;
+		parseRDF(pathToACRDF, iriForACRDF, vocabMap, RDFFormat.TURTLE);
 
 		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
@@ -196,10 +201,10 @@ public class DarwinCoreMetadataGenerator {
 	 * @throws RDFParseException
 	 * @throws UnsupportedRDFormatException
 	 */
-	public static void parseRDF(String pathToVocab, String iriForVocab, Map<String, Map<String, List<IRI>>> vocabMap)
-			throws IOException, RDFParseException, UnsupportedRDFormatException {
+	public static void parseRDF(String pathToVocab, String iriForVocab, Map<String, Map<String, List<IRI>>> vocabMap,
+			RDFFormat rdfFormat) throws IOException, RDFParseException, UnsupportedRDFormatException {
 		Model model = Rio.parse(DarwinCoreMetadataGenerator.class.getResourceAsStream(pathToVocab), iriForVocab,
-				RDFFormat.RDFXML);
+				rdfFormat);
 		Predicate<Resource> iriPredicate = r -> {
 			return r instanceof IRI;
 		};

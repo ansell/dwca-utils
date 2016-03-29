@@ -36,6 +36,7 @@ public final class DarwinCoreArchiveVocab {
 
 	public static final String DWC = "http://rs.tdwg.org/dwc/text/";
 	public static final String DWC_TERMS = "http://rs.tdwg.org/dwc/terms/";
+	public static final String AC_TERMS = "http://rs.tdwg.org/ac/terms/";
 	public static final String ROW_TYPE = "rowType";
 	public static final String FIELDS_TERMINATED_BY = "fieldsTerminatedBy";
 	public static final String LINES_TERMINATED_BY = "linesTerminatedBy";
