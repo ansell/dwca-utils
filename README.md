@@ -41,6 +41,9 @@ Run csv2dwca with --help to get usage details:
 
 # Changelog
 
+## 2016-03-29
+* Add --show-defaults to allow the printing of values that should be assumed from the spec, but are not always interpreted correctly by third-parties
+
 ## 2016-03-24
 * Add --extension to allow arbitrary number of extension files for the Metadata Generator in addition to a single Core file using --input
 
