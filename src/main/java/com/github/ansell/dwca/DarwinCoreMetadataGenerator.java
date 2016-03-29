@@ -171,7 +171,7 @@ public class DarwinCoreMetadataGenerator {
 
 		for (Path nextExtensionPath : extensionPaths) {
 			DarwinCoreCoreOrExtension nextExtension = DarwinCoreCoreOrExtension.newExtension();
-			nextExtension.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
+			nextExtension.setRowType(DarwinCoreArchiveVocab.MULTIMEDIA_RECORD);
 			// TODO: Choose this from a predefined list such as "catalogNumber"
 			// Could also csvsum to get likely primary keys based on uniqueness
 			nextExtension.setIdOrCoreId("0");
