@@ -150,6 +150,16 @@ public class DarwinCoreArchiveCheckerTest {
 	 * .
 	 */
 	@Test
+	public final void testMainDebug() throws Exception {
+		DarwinCoreArchiveChecker.main("--input", testFile.toAbsolutePath().toString(), "--debug", "true");
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
 	public final void testMainAlternate() throws Exception {
 		DarwinCoreArchiveChecker.main("--input", testFile2.toAbsolutePath().toString());
 	}

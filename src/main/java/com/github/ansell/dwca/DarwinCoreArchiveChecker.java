@@ -66,6 +66,8 @@ public class DarwinCoreArchiveChecker {
 		final OptionSpec<Void> help = parser.accepts("help").forHelp();
 		final OptionSpec<File> input = parser.accepts("input").withRequiredArg().ofType(File.class).required()
 				.describedAs("The input Darwin Core Archive file or metadata file to be checked.");
+		final OptionSpec<Boolean> debugOption = parser.accepts("debug").withRequiredArg().ofType(Boolean.class).defaultsTo(Boolean.FALSE)
+				.describedAs("Set to true to debug.");
 
 		OptionSet options = null;
 
@@ -82,6 +84,8 @@ public class DarwinCoreArchiveChecker {
 			return;
 		}
 
+		final boolean debug = debugOption.value(options);
+		
 		final Path inputPath = input.value(options).toPath();
 		if (!Files.exists(inputPath)) {
 			throw new FileNotFoundException(
@@ -101,7 +105,9 @@ public class DarwinCoreArchiveChecker {
 		}
 
 		DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(metadataPath);
-		System.out.println(archiveDocument.toString());
+		if(debug) {
+			System.out.println(archiveDocument.toString());
+		}
 	}
 
 	/**
