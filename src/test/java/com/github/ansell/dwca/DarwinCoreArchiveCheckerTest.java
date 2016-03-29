@@ -58,6 +58,10 @@ public class DarwinCoreArchiveCheckerTest {
 
 	private Path testFile;
 
+	private Path testFile2;
+
+	private Path testFileNoMetadata;
+
 	private Path testTempDir;
 
 	private Path testMetadataXml;
@@ -67,13 +71,39 @@ public class DarwinCoreArchiveCheckerTest {
 	@Before
 	public void setUp() throws Exception {
 		testTempDir = tempDir.newFolder("dwca-check-temp").toPath();
-		testFile = tempDir.newFolder("dwca-check-input").toPath().resolve("dwca-test.zip");
+		testFile = tempDir.newFolder("dwca-check-input1").toPath().resolve("dwca-test.zip");
 		try (OutputStream out = Files.newOutputStream(testFile, StandardOpenOption.CREATE);
 				ZipOutputStream zipOut = new ZipOutputStream(out, StandardCharsets.UTF_8);) {
 			ZipEntry metadataXml = new ZipEntry(DarwinCoreArchiveChecker.METADATA_XML);
 			zipOut.putNextEntry(metadataXml);
 			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"), zipOut);
 			zipOut.closeEntry();
+			ZipEntry specimensCsv = new ZipEntry("specimens.csv");
+			zipOut.putNextEntry(specimensCsv);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), zipOut);
+			zipOut.flush();
+			zipOut.closeEntry();
+			zipOut.flush();
+			out.flush();
+		}
+		testFile2 = tempDir.newFolder("dwca-check-input2").toPath().resolve("dwca-test2.zip");
+		try (OutputStream out = Files.newOutputStream(testFile2, StandardOpenOption.CREATE);
+				ZipOutputStream zipOut = new ZipOutputStream(out, StandardCharsets.UTF_8);) {
+			ZipEntry metaXml = new ZipEntry(DarwinCoreArchiveChecker.META_XML);
+			zipOut.putNextEntry(metaXml);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"), zipOut);
+			zipOut.closeEntry();
+			ZipEntry specimensCsv = new ZipEntry("specimens.csv");
+			zipOut.putNextEntry(specimensCsv);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), zipOut);
+			zipOut.flush();
+			zipOut.closeEntry();
+			zipOut.flush();
+			out.flush();
+		}
+		testFileNoMetadata = tempDir.newFolder("dwca-check-input3").toPath().resolve("dwca-test-no-metadata.zip");
+		try (OutputStream out = Files.newOutputStream(testFileNoMetadata, StandardOpenOption.CREATE);
+				ZipOutputStream zipOut = new ZipOutputStream(out, StandardCharsets.UTF_8);) {
 			ZipEntry specimensCsv = new ZipEntry("specimens.csv");
 			zipOut.putNextEntry(specimensCsv);
 			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), zipOut);
@@ -112,6 +142,28 @@ public class DarwinCoreArchiveCheckerTest {
 	@Test
 	public final void testMain() throws Exception {
 		DarwinCoreArchiveChecker.main("--input", testFile.toAbsolutePath().toString());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainAlternate() throws Exception {
+		DarwinCoreArchiveChecker.main("--input", testFile2.toAbsolutePath().toString());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainNoMetadata() throws Exception {
+		thrown.expect(IllegalStateException.class);
+		thrown.expectMessage("Did not find a metadata file in the ZIP file");
+		DarwinCoreArchiveChecker.main("--input", testFileNoMetadata.toAbsolutePath().toString());
 	}
 
 	/**

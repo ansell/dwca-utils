@@ -52,6 +52,7 @@ import joptsimple.OptionSpec;
 public class DarwinCoreArchiveChecker {
 
 	public static final String METADATA_XML = "metadata.xml";
+	public static final String META_XML = "meta.xml";
 
 	/**
 	 * Private constructor for static only class
@@ -83,13 +84,18 @@ public class DarwinCoreArchiveChecker {
 
 		final Path inputPath = input.value(options).toPath();
 		if (!Files.exists(inputPath)) {
-			throw new FileNotFoundException("Could not find input Darwin Core Archive file or metadata file: " + inputPath.toString());
+			throw new FileNotFoundException(
+					"Could not find input Darwin Core Archive file or metadata file: " + inputPath.toString());
 		}
 
-		Path metadataPath;
+		final Path metadataPath;
 		if (inputPath.getFileName().toString().contains(".zip")) {
 			Path tempDir = Files.createTempDirectory("dwca-check-");
 			metadataPath = checkZip(inputPath, tempDir);
+			if (metadataPath == null) {
+				throw new IllegalStateException(
+						"Did not find a metadata file in the ZIP file: " + inputPath.toAbsolutePath().toString());
+			}
 		} else {
 			metadataPath = inputPath;
 		}
@@ -126,7 +132,7 @@ public class DarwinCoreArchiveChecker {
 			try (InputStream in = nextFile.getContent().getInputStream();) {
 				String baseName = nextFile.getName().getBaseName();
 				Path nextTempFile = tempDir.resolve(baseName);
-				if (baseName.equalsIgnoreCase(METADATA_XML)) {
+				if (baseName.equalsIgnoreCase(METADATA_XML) || baseName.equalsIgnoreCase(META_XML)) {
 					if (metadataPath != null) {
 						throw new RuntimeException("Duplicate metadata.xml files found: original=" + metadataPath
 								+ " duplicate=" + baseName);
@@ -136,6 +142,11 @@ public class DarwinCoreArchiveChecker {
 
 				Files.copy(in, nextTempFile);
 			}
+		}
+
+		if (metadataPath == null) {
+			throw new IllegalStateException(
+					"Did not find a metadata file in the ZIP file: " + inputPath.toAbsolutePath().toString());
 		}
 
 		return metadataPath;
