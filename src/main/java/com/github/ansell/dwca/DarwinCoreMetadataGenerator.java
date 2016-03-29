@@ -150,6 +150,11 @@ public class DarwinCoreMetadataGenerator {
 		String iriForACRDF = DarwinCoreArchiveVocab.AC_TERMS;
 		parseRDF(pathToACRDF, iriForACRDF, vocabMap, RDFFormat.TURTLE);
 
+		// Global Names Architecture
+		String pathToGNARDF = "/gna.rdf";
+		String iriForGNARDF = DarwinCoreArchiveVocab.GNA_TERMS;
+		parseRDF(pathToGNARDF, iriForGNARDF, vocabMap, RDFFormat.RDFXML);
+
 		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
 		core.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
