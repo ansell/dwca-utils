@@ -124,7 +124,7 @@ public class DarwinCoreField {
 	public static DarwinCoreField fromAttributes(Attributes attributes) {
 		DarwinCoreField result = new DarwinCoreField();
 		for (int i = 0; i < attributes.getLength(); i++) {
-			String namespace = attributes.getURI(i);
+			// String namespace = attributes.getURI(i);
 			String localName = attributes.getLocalName(i);
 			if (DarwinCoreArchiveVocab.INDEX.equals(localName)) {
 				result.setIndex(Integer.parseInt(attributes.getValue(i)));

@@ -25,13 +25,9 @@
  */
 package com.github.ansell.dwca;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -47,9 +43,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.VFS;
 import org.openrdf.model.IRI;
 import org.openrdf.model.Model;
 import org.openrdf.model.Resource;
@@ -58,7 +51,6 @@ import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.Rio;
 import org.openrdf.rio.UnsupportedRDFormatException;
-import org.xml.sax.SAXException;
 
 import com.github.ansell.csv.util.CSVUtil;
 import com.github.ansell.jdefaultdict.JDefaultDict;
@@ -167,7 +159,7 @@ public class DarwinCoreMetadataGenerator {
 		coreFile.addLocation(inputPath.getFileName().toString());
 		result.getCore().setFiles(coreFile);
 
-		populateFields(inputPath, vocabMap, result, core);
+		populateFields(inputPath, vocabMap, core);
 
 		for (Path nextExtensionPath : extensionPaths) {
 			DarwinCoreCoreOrExtension nextExtension = DarwinCoreCoreOrExtension.newExtension();
@@ -180,7 +172,7 @@ public class DarwinCoreMetadataGenerator {
 			nextExtensionFile.addLocation(nextExtensionPath.getFileName().toString());
 			nextExtension.setFiles(nextExtensionFile);
 
-			populateFields(nextExtensionPath, vocabMap, result, nextExtension);
+			populateFields(nextExtensionPath, vocabMap, nextExtension);
 			// We completely ignore empty files
 			if (!nextExtension.getFields().isEmpty()) {
 				result.addExtension(nextExtension);
@@ -198,13 +190,24 @@ public class DarwinCoreMetadataGenerator {
 	}
 
 	/**
+	 * Parse an RDF vocabulary into the given vocabMap.
+	 * 
 	 * @param pathToVocab
+	 *            The path to the vocabulary on the classpath
 	 * @param iriForVocab
+	 *            The base IRI for the vocabulary file
 	 * @param vocabMap
-	 * @return
+	 *            The map to parse the vocabulary into
+	 * @param rdfFormat
+	 *            The RDF format that the vocabulary file is in.
 	 * @throws IOException
+	 *             If there is an IO exception accessing the file on the
+	 *             classpath.
 	 * @throws RDFParseException
+	 *             If there is an exception while parsing the file as RDF.
 	 * @throws UnsupportedRDFormatException
+	 *             If the given RDF format does not have a parser on the
+	 *             classpath.
 	 */
 	public static void parseRDF(String pathToVocab, String iriForVocab, Map<String, Map<String, List<IRI>>> vocabMap,
 			RDFFormat rdfFormat) throws IOException, RDFParseException, UnsupportedRDFormatException {
@@ -224,14 +227,19 @@ public class DarwinCoreMetadataGenerator {
 	 * Populate field names for a core or extension from the given file
 	 * 
 	 * @param inputPath
-	 * @param nameToIRIMap
-	 * @param vocabularyMap
-	 * @param result
+	 *            The path to the CSV file that contains the field names as
+	 *            headers
+	 * @param vocabMap
+	 *            The map containing the vocabularies that will be used to map
+	 *            the field names to IRIs.
 	 * @param coreOrExtension
+	 *            The core or extension representing the given file which we
+	 *            need to add the fields to.
 	 * @throws IOException
+	 *             If there was an IO exception accessing the file
 	 */
 	public static void populateFields(final Path inputPath, Map<String, Map<String, List<IRI>>> vocabMap,
-			DarwinCoreArchiveDocument result, DarwinCoreCoreOrExtension coreOrExtension) throws IOException {
+			DarwinCoreCoreOrExtension coreOrExtension) throws IOException {
 		List<String> headers = new ArrayList<>();
 		try (Reader inputStreamReader = Files.newBufferedReader(inputPath);) {
 			CSVUtil.streamCSV(inputStreamReader, h -> headers.addAll(h), (h, l) -> l, l -> {

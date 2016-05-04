@@ -173,7 +173,7 @@ public class DarwinCoreCoreOrExtension {
 	private DarwinCoreCoreOrExtension(CoreOrExtension type, Attributes attributes) {
 		this(type);
 		for (int i = 0; i < attributes.getLength(); i++) {
-			String namespace = attributes.getURI(i);
+			// String namespace = attributes.getURI(i);
 			String localName = attributes.getLocalName(i);
 			if (DarwinCoreArchiveVocab.ROW_TYPE.equals(localName)) {
 				this.setRowType(attributes.getValue(i));

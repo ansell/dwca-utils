@@ -36,10 +36,13 @@ Run csv2dwca with --help to get usage details:
     <dependency>
         <groupId>com.github.ansell.dwca</groupId>
         <artifactId>dwca-utils</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </dependency>
 
 # Changelog
+
+## 2016-05-04
+* Release 0.0.2
 
 ## 2016-03-29
 * Add --show-defaults to allow the printing of values that should be assumed from the spec, but are not always interpreted correctly by third-parties

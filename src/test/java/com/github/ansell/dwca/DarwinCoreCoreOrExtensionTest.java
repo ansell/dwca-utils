@@ -28,7 +28,6 @@ package com.github.ansell.dwca;
 import static org.junit.Assert.*;
 
 import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeFormatter;
 
 import org.junit.Before;
 import org.junit.Rule;

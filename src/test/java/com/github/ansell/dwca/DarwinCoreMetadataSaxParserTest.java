@@ -27,14 +27,12 @@ package com.github.ansell.dwca;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.xml.sax.SAXException;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
