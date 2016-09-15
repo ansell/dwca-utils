@@ -52,6 +52,7 @@ import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 
+import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.util.CSVUtil;
 import com.github.ansell.jdefaultdict.JDefaultDict;
 
@@ -242,7 +243,7 @@ public class DarwinCoreMetadataGenerator {
 			DarwinCoreCoreOrExtension coreOrExtension) throws IOException {
 		List<String> headers = new ArrayList<>();
 		try (Reader inputStreamReader = Files.newBufferedReader(inputPath);) {
-			CSVUtil.streamCSV(inputStreamReader, h -> headers.addAll(h), (h, l) -> l, l -> {
+			CSVStream.parse(inputStreamReader, h -> headers.addAll(h), (h, l) -> l, l -> {
 			});
 		}
 
