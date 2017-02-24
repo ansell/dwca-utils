@@ -228,9 +228,11 @@
 							<prefix>http://rs.tdwg.org/dwc/terms/</prefix>
 							<file>src/main/resources/dwcterms.rdf</file>
 						</schema>
-						<!-- schema> TODO: FIX BUG in rdf4j-schema-generator <className>GNA</className> 
-							<prefix>http://rs.gbif.org/terms/1.0/</prefix> <file>src/main/resources/gna.rdf</file> 
-							</schema -->
+						<schema>
+							<className>GNA</className>
+							<prefix>http://rs.gbif.org/terms/1.0/</prefix>
+							<file>src/main/resources/gna.rdf</file>
+						</schema>
 						<schema>
 							<className>ACTERMS</className>
 							<prefix>http://rs.tdwg.org/ac/terms/</prefix>
@@ -377,7 +379,7 @@
 				<plugin>
 					<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
 					<artifactId>schema-generator-maven-plugin</artifactId>
-					<version>0.1</version>
+					<version>0.2-SNAPSHOT</version>
 				</plugin>
 				<!--This plugin's configuration is used to store Eclipse m2e settings 
 					only. It has no influence on the Maven build itself. -->
