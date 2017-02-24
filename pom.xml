@@ -32,10 +32,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<jackson.version>2.8.2</jackson.version>
+		<jackson.version>2.8.7</jackson.version>
 		<junit.version>4.12</junit.version>
-		<slf4j.version>1.7.21</slf4j.version>
-		<rdf4j.version>2.0.1</rdf4j.version>
+		<slf4j.version>1.7.23</slf4j.version>
+		<rdf4j.version>2.2</rdf4j.version>
 	</properties>
 	<prerequisites>
 		<maven>3.0.5</maven>
@@ -201,6 +201,45 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
+				<artifactId>schema-generator-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>generate-schemas</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<output>${project.build.directory}/generated-sources/rdf4j-schemas</output>
+					<packageName>com.github.ansell.dwca.schemas</packageName>
+					<preferredLanguage>en</preferredLanguage>
+					<createResourceBundles>true</createResourceBundles>
+					<constantCase>UPPER_UNDERSCORE</constantCase>
+					<createStringConstants>true</createStringConstants>
+					<stringConstantCase>UPPER_UNDERSCORE</stringConstantCase>
+					<stringConstantPrefix>_</stringConstantPrefix>
+					<stringConstantSuffix>_STRING</stringConstantSuffix>
+					<schemas>
+						<schema>
+							<className>DWCTERMS</className>
+							<prefix>http://rs.tdwg.org/dwc/terms/</prefix>
+							<file>src/main/resources/dwcterms.rdf</file>
+						</schema>
+						<!-- schema> TODO: FIX BUG in rdf4j-schema-generator <className>GNA</className> 
+							<prefix>http://rs.gbif.org/terms/1.0/</prefix> <file>src/main/resources/gna.rdf</file> 
+							</schema -->
+						<schema>
+							<className>ACTERMS</className>
+							<prefix>http://rs.tdwg.org/ac/terms/</prefix>
+							<file>src/main/resources/acterms.ttl</file>
+						</schema>
+					</schemas>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>appassembler-maven-plugin</artifactId>
 				<executions>
@@ -334,6 +373,11 @@
 					<groupId>org.eluder.coveralls</groupId>
 					<artifactId>coveralls-maven-plugin</artifactId>
 					<version>4.1.0</version>
+				</plugin>
+				<plugin>
+					<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
+					<artifactId>schema-generator-maven-plugin</artifactId>
+					<version>0.1</version>
 				</plugin>
 				<!--This plugin's configuration is used to store Eclipse m2e settings 
 					only. It has no influence on the Maven build itself. -->
