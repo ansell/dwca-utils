@@ -130,7 +130,7 @@ public class DarwinCoreMetadataGenerator {
 
 		// Darwin Core
 		String pathToDWCRDF = "/dwcterms.rdf";
-		String iriForDWCRDF = DarwinCoreArchiveVocab.DWC_TERMS;
+		String iriForDWCRDF = DarwinCoreArchiveConstants.DWC_TERMS;
 		parseRDF(pathToDWCRDF, iriForDWCRDF, vocabMap, RDFFormat.RDFXML);
 
 		// Dublin Core
@@ -140,17 +140,17 @@ public class DarwinCoreMetadataGenerator {
 
 		// Audubon Core
 		String pathToACRDF = "/acterms.ttl";
-		String iriForACRDF = DarwinCoreArchiveVocab.AC_TERMS;
+		String iriForACRDF = DarwinCoreArchiveConstants.AC_TERMS;
 		parseRDF(pathToACRDF, iriForACRDF, vocabMap, RDFFormat.TURTLE);
 
 		// Global Names Architecture
 		String pathToGNARDF = "/gna.rdf";
-		String iriForGNARDF = DarwinCoreArchiveVocab.GNA_TERMS;
+		String iriForGNARDF = DarwinCoreArchiveConstants.GNA_TERMS;
 		parseRDF(pathToGNARDF, iriForGNARDF, vocabMap, RDFFormat.RDFXML);
 
 		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 		DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
-		core.setRowType(DarwinCoreArchiveVocab.SIMPLE_DARWIN_RECORD);
+		core.setRowType(DarwinCoreArchiveConstants.SIMPLE_DARWIN_RECORD);
 		core.setIdOrCoreId("0");
 		core.setIgnoreHeaderLines(1);
 		core.setLinesTerminatedBy("\n");
@@ -164,7 +164,7 @@ public class DarwinCoreMetadataGenerator {
 
 		for (Path nextExtensionPath : extensionPaths) {
 			DarwinCoreCoreOrExtension nextExtension = DarwinCoreCoreOrExtension.newExtension();
-			nextExtension.setRowType(DarwinCoreArchiveVocab.MULTIMEDIA_RECORD);
+			nextExtension.setRowType(DarwinCoreArchiveConstants.MULTIMEDIA_RECORD);
 			// TODO: Choose this from a predefined list such as "catalogNumber"
 			// Could also csvsum to get likely primary keys based on uniqueness
 			nextExtension.setIdOrCoreId("0");

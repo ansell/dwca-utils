@@ -36,7 +36,7 @@ import com.github.ansell.dwca.schemas.GNA;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public final class DarwinCoreArchiveVocab {
+public final class DarwinCoreArchiveConstants {
 
 	public static final String DWC = "http://rs.tdwg.org/dwc/text/";
 	public static final String DWC_TERMS = DWCTERMS.NAMESPACE;
@@ -67,6 +67,6 @@ public final class DarwinCoreArchiveVocab {
 	/**
 	 * Private constructor for static-only class.
 	 */
-	private DarwinCoreArchiveVocab() {
+	private DarwinCoreArchiveConstants() {
 	}
 }

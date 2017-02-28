@@ -175,19 +175,19 @@ public class DarwinCoreCoreOrExtension {
 		for (int i = 0; i < attributes.getLength(); i++) {
 			// String namespace = attributes.getURI(i);
 			String localName = attributes.getLocalName(i);
-			if (DarwinCoreArchiveVocab.ROW_TYPE.equals(localName)) {
+			if (DarwinCoreArchiveConstants.ROW_TYPE.equals(localName)) {
 				this.setRowType(attributes.getValue(i));
-			} else if (DarwinCoreArchiveVocab.FIELDS_TERMINATED_BY.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.FIELDS_TERMINATED_BY.equals(localName)) {
 				this.setFieldsTerminatedBy(attributes.getValue(i));
-			} else if (DarwinCoreArchiveVocab.LINES_TERMINATED_BY.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.LINES_TERMINATED_BY.equals(localName)) {
 				this.setLinesTerminatedBy(attributes.getValue(i));
-			} else if (DarwinCoreArchiveVocab.FIELDS_ENCLOSED_BY.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.FIELDS_ENCLOSED_BY.equals(localName)) {
 				this.setFieldsEnclosedBy(attributes.getValue(i));
-			} else if (DarwinCoreArchiveVocab.ENCODING.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.ENCODING.equals(localName)) {
 				this.setEncoding(Charset.forName(attributes.getValue(i)));
-			} else if (DarwinCoreArchiveVocab.IGNORE_HEADER_LINES.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.IGNORE_HEADER_LINES.equals(localName)) {
 				this.setIgnoreHeaderLines(Integer.parseInt(attributes.getValue(i)));
-			} else if (DarwinCoreArchiveVocab.DATE_FORMAT.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.DATE_FORMAT.equals(localName)) {
 				// Need to change capital D and Y from spec into lower-case
 				// d and y for DateTimeFormatter
 				String nextValue = attributes.getValue(i).replaceAll("D", "d").replaceAll("Y", "y");
@@ -340,35 +340,35 @@ public class DarwinCoreCoreOrExtension {
 	 */
 	public void toXML(XMLStreamWriter writer, boolean showDefaults) throws XMLStreamException, IOException {
 		if (this.type == CoreOrExtension.CORE) {
-			writer.writeStartElement(DarwinCoreArchiveVocab.CORE);
+			writer.writeStartElement(DarwinCoreArchiveConstants.CORE);
 		} else if (this.type == CoreOrExtension.EXTENSION) {
-			writer.writeStartElement(DarwinCoreArchiveVocab.EXTENSION);
+			writer.writeStartElement(DarwinCoreArchiveConstants.EXTENSION);
 		}
-		writer.writeAttribute(DarwinCoreArchiveVocab.ROW_TYPE, this.getRowType());
+		writer.writeAttribute(DarwinCoreArchiveConstants.ROW_TYPE, this.getRowType());
 		if (showDefaults || this.getFieldsTerminatedBy() != DEFAULT_FIELDS_TERMINATED_BY) {
-			writer.writeAttribute(DarwinCoreArchiveVocab.FIELDS_TERMINATED_BY, this.getFieldsTerminatedBy());
+			writer.writeAttribute(DarwinCoreArchiveConstants.FIELDS_TERMINATED_BY, this.getFieldsTerminatedBy());
 		}
 		if (showDefaults || this.getLinesTerminatedBy() != DEFAULT_LINES_TERMINATED_BY) {
-			writer.writeAttribute(DarwinCoreArchiveVocab.LINES_TERMINATED_BY,
+			writer.writeAttribute(DarwinCoreArchiveConstants.LINES_TERMINATED_BY,
 					this.getLinesTerminatedBy().replace("\r", "\\r").replace("\n", "\\n"));
 		}
 		if (showDefaults || this.getFieldsEnclosedBy() != DEFAULT_FIELDS_ENCLOSED_BY) {
-			writer.writeAttribute(DarwinCoreArchiveVocab.FIELDS_ENCLOSED_BY, this.getFieldsEnclosedBy());
+			writer.writeAttribute(DarwinCoreArchiveConstants.FIELDS_ENCLOSED_BY, this.getFieldsEnclosedBy());
 		}
 		if (showDefaults || this.getEncoding() != DEFAULT_ENCODING) {
-			writer.writeAttribute(DarwinCoreArchiveVocab.ENCODING, this.getEncoding().displayName(Locale.ENGLISH));
+			writer.writeAttribute(DarwinCoreArchiveConstants.ENCODING, this.getEncoding().displayName(Locale.ENGLISH));
 		}
 		if (showDefaults || this.getIgnoreHeaderLines() != DEFAULT_IGNORE_HEADER_LINES) {
-			writer.writeAttribute(DarwinCoreArchiveVocab.IGNORE_HEADER_LINES,
+			writer.writeAttribute(DarwinCoreArchiveConstants.IGNORE_HEADER_LINES,
 					Integer.toString(this.getIgnoreHeaderLines()));
 		}
 		if (showDefaults || this.getDateFormat() != DEFAULT_DATE_FORMAT_PATTERN) {
-			writer.writeAttribute(DarwinCoreArchiveVocab.DATE_FORMAT,
+			writer.writeAttribute(DarwinCoreArchiveConstants.DATE_FORMAT,
 					this.getDateFormat().replace("d", "D").replace("y", "Y"));
 		}
-		writer.writeStartElement(DarwinCoreArchiveVocab.FILES);
+		writer.writeStartElement(DarwinCoreArchiveConstants.FILES);
 		for (String nextLocation : this.getFiles().getLocations()) {
-			writer.writeStartElement(DarwinCoreArchiveVocab.LOCATION);
+			writer.writeStartElement(DarwinCoreArchiveConstants.LOCATION);
 			writer.writeCharacters(nextLocation);
 			// end location
 			writer.writeEndElement();
@@ -378,25 +378,25 @@ public class DarwinCoreCoreOrExtension {
 		String coreId = this.getIdOrCoreId();
 		if (coreId != null) {
 			if (this.type == CoreOrExtension.CORE) {
-				writer.writeStartElement(DarwinCoreArchiveVocab.ID);
+				writer.writeStartElement(DarwinCoreArchiveConstants.ID);
 			} else if (this.type == CoreOrExtension.EXTENSION) {
-				writer.writeStartElement(DarwinCoreArchiveVocab.COREID);
+				writer.writeStartElement(DarwinCoreArchiveConstants.COREID);
 			}
-			writer.writeAttribute(DarwinCoreArchiveVocab.INDEX, coreId);
+			writer.writeAttribute(DarwinCoreArchiveConstants.INDEX, coreId);
 			// end id
 			writer.writeEndElement();
 		}
 		for (DarwinCoreField nextField : this.getFields()) {
-			writer.writeStartElement(DarwinCoreArchiveVocab.FIELD);
+			writer.writeStartElement(DarwinCoreArchiveConstants.FIELD);
 			if (nextField.getIndex() != null) {
-				writer.writeAttribute(DarwinCoreArchiveVocab.INDEX, nextField.getIndex().toString());
+				writer.writeAttribute(DarwinCoreArchiveConstants.INDEX, nextField.getIndex().toString());
 			}
-			writer.writeAttribute(DarwinCoreArchiveVocab.TERM, nextField.getTerm());
+			writer.writeAttribute(DarwinCoreArchiveConstants.TERM, nextField.getTerm());
 			if (nextField.getDefault() != null) {
-				writer.writeAttribute(DarwinCoreArchiveVocab.DEFAULT, nextField.getDefault());
+				writer.writeAttribute(DarwinCoreArchiveConstants.DEFAULT, nextField.getDefault());
 			}
 			if (nextField.getVocabulary() != null) {
-				writer.writeAttribute(DarwinCoreArchiveVocab.VOCABULARY, nextField.getVocabulary());
+				writer.writeAttribute(DarwinCoreArchiveConstants.VOCABULARY, nextField.getVocabulary());
 			}
 			// end field
 			writer.writeEndElement();

@@ -84,8 +84,8 @@ public class DarwinCoreArchiveDocument {
 		XMLOutputFactory factory = XMLOutputFactory.newFactory();
 		XMLStreamWriter writer = new IndentingXMLStreamWriter(factory.createXMLStreamWriter(out));
 		writer.writeStartDocument();
-		writer.writeStartElement(DarwinCoreArchiveVocab.ARCHIVE);
-		writer.writeNamespace("", DarwinCoreArchiveVocab.DWC);
+		writer.writeStartElement(DarwinCoreArchiveConstants.ARCHIVE);
+		writer.writeNamespace("", DarwinCoreArchiveConstants.DWC);
 		writer.writeNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 		writer.writeNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 		writer.writeAttribute("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation",

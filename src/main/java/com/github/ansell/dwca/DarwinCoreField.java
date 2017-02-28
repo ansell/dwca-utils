@@ -126,13 +126,13 @@ public class DarwinCoreField {
 		for (int i = 0; i < attributes.getLength(); i++) {
 			// String namespace = attributes.getURI(i);
 			String localName = attributes.getLocalName(i);
-			if (DarwinCoreArchiveVocab.INDEX.equals(localName)) {
+			if (DarwinCoreArchiveConstants.INDEX.equals(localName)) {
 				result.setIndex(Integer.parseInt(attributes.getValue(i)));
-			} else if (DarwinCoreArchiveVocab.TERM.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.TERM.equals(localName)) {
 				result.setTerm(attributes.getValue(i));
-			} else if (DarwinCoreArchiveVocab.DEFAULT.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.DEFAULT.equals(localName)) {
 				result.setDefault(attributes.getValue(i));
-			} else if (DarwinCoreArchiveVocab.VOCABULARY.equals(localName)) {
+			} else if (DarwinCoreArchiveConstants.VOCABULARY.equals(localName)) {
 				result.setVocabulary(attributes.getValue(i));
 			} else {
 				System.out.println("Found unrecognised Darwin Core attribute for field " + " : " + localName);
