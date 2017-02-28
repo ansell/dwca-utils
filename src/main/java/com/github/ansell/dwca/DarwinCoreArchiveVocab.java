@@ -25,6 +25,10 @@
  */
 package com.github.ansell.dwca;
 
+import com.github.ansell.dwca.schemas.ACTERMS;
+import com.github.ansell.dwca.schemas.DWCTERMS;
+import com.github.ansell.dwca.schemas.GNA;
+
 /**
  * The terms referenced in the Darwin Core Archive vocabulary.
  * 
@@ -35,9 +39,9 @@ package com.github.ansell.dwca;
 public final class DarwinCoreArchiveVocab {
 
 	public static final String DWC = "http://rs.tdwg.org/dwc/text/";
-	public static final String DWC_TERMS = "http://rs.tdwg.org/dwc/terms/";
-	public static final String AC_TERMS = "http://rs.tdwg.org/ac/terms/";
-	public static final String GNA_TERMS = "http://rs.gbif.org/terms/1.0/";
+	public static final String DWC_TERMS = DWCTERMS.NAMESPACE;
+	public static final String AC_TERMS = ACTERMS.NAMESPACE;
+	public static final String GNA_TERMS = GNA.NAMESPACE;
 	public static final String ROW_TYPE = "rowType";
 	public static final String FIELDS_TERMINATED_BY = "fieldsTerminatedBy";
 	public static final String LINES_TERMINATED_BY = "linesTerminatedBy";
