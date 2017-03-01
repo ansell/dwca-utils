@@ -36,6 +36,7 @@
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.23</slf4j.version>
 		<rdf4j.version>2.2</rdf4j.version>
+		<schemagenerator.version>0.3-SNAPSHOT</schemagenerator.version>
 	</properties>
 	<prerequisites>
 		<maven>3.0.5</maven>
@@ -89,6 +90,10 @@
 		<dependency>
 			<groupId>com.github.ansell.abstract-service-loader</groupId>
 			<artifactId>abstract-service-loader</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
+			<artifactId>schema-generator</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -203,6 +208,11 @@
 				<groupId>com.github.ansell.abstract-service-loader</groupId>
 				<artifactId>abstract-service-loader</artifactId>
 				<version>0.5</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
+				<artifactId>schema-generator</artifactId>
+				<version>${schemagenerator.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -390,7 +400,7 @@
 				<plugin>
 					<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
 					<artifactId>schema-generator-maven-plugin</artifactId>
-					<version>0.3-SNAPSHOT</version>
+					<version>${schemagenerator.version}</version>
 				</plugin>
 				<!--This plugin's configuration is used to store Eclipse m2e settings 
 					only. It has no influence on the Maven build itself. -->
