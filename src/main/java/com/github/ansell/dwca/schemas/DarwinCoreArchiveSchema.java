@@ -3,8 +3,6 @@
  */
 package com.github.ansell.dwca.schemas;
 
-import org.eclipse.rdf4j.model.IRI;
-
 import com.github.ansell.rdf4j.schemagenerator.Schema;
 
 /**
@@ -15,10 +13,4 @@ import com.github.ansell.rdf4j.schemagenerator.Schema;
  */
 public interface DarwinCoreArchiveSchema extends Schema {
 
-	/**
-	 * 
-	 * @return The IRI used as the base for this schema.
-	 */
-	IRI getIRI();
-	
 }
