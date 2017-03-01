@@ -200,9 +200,7 @@
 				</exclusions>
 			</dependency>
 			<dependency>
-				<groupId>
-					com.github.ansell.abstract-service-loader
-				</groupId>
+				<groupId>com.github.ansell.abstract-service-loader</groupId>
 				<artifactId>abstract-service-loader</artifactId>
 				<version>0.5</version>
 			</dependency>
@@ -233,6 +231,8 @@
 					<stringConstantCase>UPPER_UNDERSCORE</stringConstantCase>
 					<stringConstantPrefix>_</stringConstantPrefix>
 					<stringConstantSuffix>_STRING</stringConstantSuffix>
+					<createMetaInfServices>true</createMetaInfServices>
+					<metaInfServicesInterface>com.github.ansell.dwca.schemas.DarwinCoreArchiveSchema</metaInfServicesInterface>
 					<schemas>
 						<schema>
 							<className>DWCTERMS</className>
@@ -390,7 +390,7 @@
 				<plugin>
 					<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
 					<artifactId>schema-generator-maven-plugin</artifactId>
-					<version>0.2</version>
+					<version>0.3-SNAPSHOT</version>
 				</plugin>
 				<!--This plugin's configuration is used to store Eclipse m2e settings 
 					only. It has no influence on the Maven build itself. -->
