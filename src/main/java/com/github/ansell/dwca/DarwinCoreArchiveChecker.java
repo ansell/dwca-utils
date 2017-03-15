@@ -33,6 +33,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
@@ -92,21 +93,25 @@ public class DarwinCoreArchiveChecker {
 					"Could not find input Darwin Core Archive file or metadata file: " + inputPath.toString());
 		}
 
-		final Path metadataPath;
-		if (inputPath.getFileName().toString().contains(".zip")) {
-			Path tempDir = Files.createTempDirectory("dwca-check-");
-			metadataPath = checkZip(inputPath, tempDir);
-			if (metadataPath == null) {
-				throw new IllegalStateException(
-						"Did not find a metadata file in the ZIP file: " + inputPath.toAbsolutePath().toString());
+		final Path tempDir = Files.createTempDirectory("dwca-check-");
+		try {
+			final Path metadataPath;
+			if (inputPath.getFileName().toString().contains(".zip")) {
+				metadataPath = checkZip(inputPath, tempDir);
+				if (metadataPath == null) {
+					throw new IllegalStateException(
+							"Did not find a metadata file in the ZIP file: " + inputPath.toAbsolutePath().toString());
+				}
+			} else {
+				metadataPath = inputPath;
 			}
-		} else {
-			metadataPath = inputPath;
-		}
-
-		DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(metadataPath);
-		if(debug) {
-			System.out.println(archiveDocument.toString());
+	
+			DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(metadataPath);
+			if(debug) {
+				System.out.println(archiveDocument.toString());
+			}
+		} finally {
+			FileUtils.deleteQuietly(tempDir.toFile());
 		}
 	}
 
