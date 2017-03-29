@@ -155,7 +155,7 @@ public class DarwinCoreMetadataGenerator {
 				}, (h, l) -> {
 					return l;
 				}, l -> {
-				}, null, CSVStream.DEFAULT_HEADER_COUNT);
+				});
 			}
 		}
 
