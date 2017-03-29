@@ -135,7 +135,7 @@ public class DarwinCoreArchiveChecker {
     			// Only support a single core file
     			String coreFileName = core.getFiles().getLocations().get(0);
     			Path coreFilePath = metadataPath.resolveSibling(coreFileName).normalize().toAbsolutePath();
-    			try (Reader inputReader = Files.newBufferedReader(metadataPath.resolveSibling(coreFileName), core.getEncoding());
+    			try (Reader inputReader = Files.newBufferedReader(coreFilePath, core.getEncoding());
     			        Writer summaryWriter = Files.newBufferedWriter(outputDirPath.resolve("Statistics-" + coreFilePath.getFileName().toString()), core.getEncoding());
     			        Writer mappingWriter = Files.newBufferedWriter(outputDirPath.resolve("Mapping-" + coreFilePath.getFileName().toString()), core.getEncoding());
     			    )
