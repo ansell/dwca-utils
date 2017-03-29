@@ -141,6 +141,14 @@ public class DarwinCoreArchiveCheckerTest {
 	 */
 	@Test
 	public final void testMain() throws Exception {
+//	    com.github.ansell.csv.stream.CSVStreamException: Line and header sizes were different: 
+//	    [http://rs.tdwg.org/dwc/terms/catalogNumber, http://rs.tdwg.org/dwc/terms/scientificName, http://rs.tdwg.org/dwc/terms/individualCount, http://rs.tdwg.org/dwc/terms/datasetID] 
+//      [123,                                        Cryptantha gypsophila Reveal & C.R. Broome,  12]
+//	        at com.github.ansell.csv.stream.CSVStream.parse(CSVStream.java:236)
+//	        at com.github.ansell.csv.sum.CSVSummariser.runSummarise(CSVSummariser.java:236)
+//	        at com.github.ansell.dwca.DarwinCoreArchiveChecker.main(DarwinCoreArchiveChecker.java:142)
+//	        at com.github.ansell.dwca.DarwinCoreArchiveCheckerTest.testMain(DarwinCoreArchiveCheckerTest.java:144)
+
 		DarwinCoreArchiveChecker.main("--input", testFile.toAbsolutePath().toString());
 	}
 

@@ -89,17 +89,17 @@ public class DarwinCoreMetadataGenerator {
 
 		final OptionSpec<Void> help = parser.accepts("help").forHelp();
 		final OptionSpec<File> input = parser.accepts("input").withRequiredArg().ofType(File.class).required()
-				.describedAs("The input CSV file to be parsed.");
+				.describedAs("The core input CSV file to be parsed.");
 		final OptionSpec<File> overrideHeadersFile = parser.accepts("override-headers-file").withRequiredArg()
 				.ofType(File.class).describedAs(
-						"A file whose first line contains the headers to use, to override those found in the file.");
+						"A file whose first line contains the headers to use, to override those found in the core file.");
 		final OptionSpec<Integer> headerLineCount = parser.accepts("header-line-count").withRequiredArg()
 				.ofType(Integer.class)
 				.describedAs(
-						"The number of header lines present in the file. Can be used in conjunction with override-headers-file to substitute a different set of headers")
+						"The number of header lines present in the core input file. Can be used in conjunction with override-headers-file to substitute a different set of headers")
 				.defaultsTo(1);
 		final OptionSpec<File> extensionOption = parser.accepts("extension").withRequiredArg().ofType(File.class)
-				.describedAs("Extension CSV files to be included. May be used multiple times if needed.");
+				.describedAs("Extension CSV files to be included. May be used multiple times if needed. They must contain a single header line");
 		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).required()
 				.describedAs("The output metadata.xml file to be generated.");
 		final OptionSpec<Boolean> showDefaults = parser.accepts("show-defaults").withOptionalArg().ofType(Boolean.class)

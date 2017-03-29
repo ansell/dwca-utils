@@ -30,14 +30,20 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
 import org.xml.sax.SAXException;
+
+import com.github.ansell.csv.sum.CSVSummariser;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -67,6 +73,8 @@ public class DarwinCoreArchiveChecker {
 		final OptionSpec<Void> help = parser.accepts("help").forHelp();
 		final OptionSpec<File> input = parser.accepts("input").withRequiredArg().ofType(File.class).required()
 				.describedAs("The input Darwin Core Archive file or metadata file to be checked.");
+		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class)
+		        .describedAs("A directory to output summary and other files to. If this is not set, no output will be preserved.");
 		final OptionSpec<Boolean> debugOption = parser.accepts("debug").withRequiredArg().ofType(Boolean.class).defaultsTo(Boolean.FALSE)
 				.describedAs("Set to true to debug.");
 
@@ -94,7 +102,15 @@ public class DarwinCoreArchiveChecker {
 		}
 
 		final Path tempDir = Files.createTempDirectory("dwca-check-");
+
 		try {
+	        final Path outputDirPath;
+	        if(options.has(output)) {
+	            outputDirPath = output.value(options).toPath();
+	        } else {
+	            outputDirPath = tempDir;
+	        }
+	        
 			final Path metadataPath;
 			if (inputPath.getFileName().toString().contains(".zip")) {
 				metadataPath = checkZip(inputPath, tempDir);
@@ -109,6 +125,23 @@ public class DarwinCoreArchiveChecker {
 			DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(metadataPath);
 			if(debug) {
 				System.out.println(archiveDocument.toString());
+			}
+			
+			if(options.has(output)) {
+    			// Summarise the core document
+    			DarwinCoreCoreOrExtension core = archiveDocument.getCore();
+    			int headerLineCount = core.getIgnoreHeaderLines();
+    			List<String> coreFields = core.getFields().stream().map(f -> f.getTerm()).collect(Collectors.toList());
+    			// Only support a single core file
+    			String coreFileName = core.getFiles().getLocations().get(0);
+    			Path coreFilePath = metadataPath.resolveSibling(coreFileName).normalize().toAbsolutePath();
+    			try (Reader inputReader = Files.newBufferedReader(metadataPath.resolveSibling(coreFileName), core.getEncoding());
+    			        Writer summaryWriter = Files.newBufferedWriter(outputDirPath.resolve("Statistics-" + coreFilePath.getFileName().toString()), core.getEncoding());
+    			        Writer mappingWriter = Files.newBufferedWriter(outputDirPath.resolve("Mapping-" + coreFilePath.getFileName().toString()), core.getEncoding());
+    			    )
+    			{
+    			    CSVSummariser.runSummarise(inputReader, summaryWriter, mappingWriter, 20, true, debug, coreFields, headerLineCount);
+    			}
 			}
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
