@@ -107,7 +107,7 @@
 			<dependency>
 				<groupId>com.github.ansell.csv.sum</groupId>
 				<artifactId>csvsum</artifactId>
-				<version>0.4.0</version>
+				<version>0.4.1-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.eclipse.rdf4j</groupId>

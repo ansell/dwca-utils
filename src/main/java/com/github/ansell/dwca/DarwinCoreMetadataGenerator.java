@@ -25,9 +25,11 @@
  */
 package com.github.ansell.dwca;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -38,11 +40,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.output.NullOutputStream;
+import org.apache.commons.io.output.NullWriter;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
@@ -53,6 +58,7 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 
 import com.github.ansell.csv.stream.CSVStream;
+import com.github.ansell.csv.sum.CSVSummariser;
 import com.github.ansell.csv.util.CSVUtil;
 import com.github.ansell.jdefaultdict.JDefaultDict;
 
@@ -84,6 +90,14 @@ public class DarwinCoreMetadataGenerator {
 		final OptionSpec<Void> help = parser.accepts("help").forHelp();
 		final OptionSpec<File> input = parser.accepts("input").withRequiredArg().ofType(File.class).required()
 				.describedAs("The input CSV file to be parsed.");
+		final OptionSpec<File> overrideHeadersFile = parser.accepts("override-headers-file").withRequiredArg()
+				.ofType(File.class).describedAs(
+						"A file whose first line contains the headers to use, to override those found in the file.");
+		final OptionSpec<Integer> headerLineCount = parser.accepts("header-line-count").withRequiredArg()
+				.ofType(Integer.class)
+				.describedAs(
+						"The number of header lines present in the file. Can be used in conjunction with override-headers-file to substitute a different set of headers")
+				.defaultsTo(1);
 		final OptionSpec<File> extensionOption = parser.accepts("extension").withRequiredArg().ofType(File.class)
 				.describedAs("Extension CSV files to be included. May be used multiple times if needed.");
 		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).required()
@@ -91,6 +105,8 @@ public class DarwinCoreMetadataGenerator {
 		final OptionSpec<Boolean> showDefaults = parser.accepts("show-defaults").withOptionalArg().ofType(Boolean.class)
 				.defaultsTo(Boolean.FALSE).describedAs(
 						"Show default values that should be assumed from the spec but may cause bugs with some implementations.");
+		final OptionSpec<Boolean> debug = parser.accepts("debug").withRequiredArg().ofType(Boolean.class)
+				.defaultsTo(Boolean.FALSE).describedAs("Set to true to debug.");
 
 		OptionSet options = null;
 
@@ -125,6 +141,28 @@ public class DarwinCoreMetadataGenerator {
 				extensionPaths.add(nextExtensionPath);
 			}
 		}
+
+		int headerLineCountInt = headerLineCount.value(options);
+		boolean debugBoolean = debug.value(options);
+		
+		// Defaults to null, with any strings in the file overriding that
+		AtomicReference<List<String>> overrideHeadersList = new AtomicReference<>();
+		if(options.has(overrideHeadersFile)) {
+			try (final BufferedReader newBufferedReader = Files
+					.newBufferedReader(overrideHeadersFile.value(options).toPath());) {
+				CSVStream.parse(newBufferedReader, h -> {
+					overrideHeadersList.set(h);
+				}, (h, l) -> {
+					return l;
+				}, l -> {
+				}, null, CSVStream.DEFAULT_HEADER_COUNT);
+			}
+		}
+
+		try(Reader inputReader = Files.newBufferedReader(inputPath, StandardCharsets.UTF_8);) {
+			CSVSummariser.runSummarise(inputReader, new OutputStreamWriter(System.out, StandardCharsets.UTF_8), new NullWriter(), 20, true, debugBoolean, overrideHeadersList.get(), headerLineCountInt);
+		}
+		
 		Map<String, Map<String, List<IRI>>> vocabMap = new JDefaultDict<>(
 				k -> new JDefaultDict<>(l -> new ArrayList<>()));
 
