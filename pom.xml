@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.ansell.dwca</groupId>
 	<artifactId>dwca-utils</artifactId>
-	<version>0.0.3</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<name>Darwin Core Archive Utils</name>
 	<description>Utilities for working with Darwin Core Archives</description>
 	<packaging>jar</packaging>
@@ -36,7 +36,7 @@
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.25</slf4j.version>
 		<rdf4j.version>2.2</rdf4j.version>
-		<schemagenerator.version>0.3</schemagenerator.version>
+		<schemagenerator.version>0.4-SNAPSHOT</schemagenerator.version>
 	</properties>
 	<prerequisites>
 		<maven>3.0.5</maven>
