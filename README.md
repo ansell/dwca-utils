@@ -36,10 +36,15 @@ Run csv2dwca with --help to get usage details:
     <dependency>
         <groupId>com.github.ansell.dwca</groupId>
         <artifactId>dwca-utils</artifactId>
-        <version>0.0.2</version>
+        <version>0.0.3</version>
     </dependency>
 
 # Changelog
+
+## 2017-04-03
+* Release 0.0.3
+* Allow overriding of headers in source files during generation
+* Allow the use of meta.xml field definitions during dwcacheck and integrate with csvsum to generate statistics using them
 
 ## 2016-05-04
 * Release 0.0.2
