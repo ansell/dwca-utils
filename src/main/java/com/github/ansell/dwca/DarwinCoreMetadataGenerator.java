@@ -303,9 +303,8 @@ public class DarwinCoreMetadataGenerator {
     /**
      * Populate field names for a core or extension from the given file
      * 
-     * @param inputPath
-     *            The path to the CSV file that contains the field names as
-     *            headers
+     * @param headers
+     *            The headers to use
      * @param vocabMap
      *            The map containing the vocabularies that will be used to map
      *            the field names to IRIs.
