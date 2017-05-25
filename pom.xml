@@ -32,11 +32,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<jackson.version>2.8.7</jackson.version>
+		<jackson.version>2.8.8</jackson.version>
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.25</slf4j.version>
-		<rdf4j.version>2.2</rdf4j.version>
-		<schemagenerator.version>0.4-SNAPSHOT</schemagenerator.version>
+		<rdf4j.version>2.2.1</rdf4j.version>
+		<schemagenerator.version>0.4</schemagenerator.version>
 	</properties>
 	<prerequisites>
 		<maven>3.0.5</maven>
