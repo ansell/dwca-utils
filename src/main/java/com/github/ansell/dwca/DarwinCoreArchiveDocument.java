@@ -39,7 +39,7 @@ import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
 import javanet.staxutils.IndentingXMLStreamWriter;
 
 /**
- * Represents an entire Darwin Core Archive document as parsed into memory.
+ * Represents an entire Darwin Core Archive metadata.xml file as parsed into memory.
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
@@ -179,7 +179,7 @@ public class DarwinCoreArchiveDocument {
 				}
 			}
 
-		}
-	}
+        }
+    }
 
 }
