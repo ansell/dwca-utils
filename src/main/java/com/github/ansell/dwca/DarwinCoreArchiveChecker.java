@@ -140,20 +140,21 @@ public class DarwinCoreArchiveChecker {
             String coreFileName = core.getFiles().getLocations().get(0);
             Path coreFilePath = metadataPath.resolveSibling(coreFileName).normalize()
                     .toAbsolutePath();
-            try (Reader inputReader = Files.newBufferedReader(coreFilePath, core.getEncoding());
-                    Writer summaryWriter = Files.newBufferedWriter(
+            try (Reader inputReader = Files.newBufferedReader(coreFilePath, core.getEncoding());) {
+                if (options.has(output)) {
+                    try (Writer summaryWriter = Files.newBufferedWriter(
                             outputDirPath
                                     .resolve("Statistics-" + coreFilePath.getFileName().toString()),
                             core.getEncoding());
-                    Writer mappingWriter = Files.newBufferedWriter(
-                            outputDirPath
-                                    .resolve("Mapping-" + coreFilePath.getFileName().toString()),
-                            core.getEncoding());) {
-                if (options.has(output)) {
-                    // Summarise the core document
-                    CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(),
-                            core.getCsvSchema(), summaryWriter, mappingWriter, 20, true, debug,
-                            coreFields, headerLineCount);
+                            Writer mappingWriter = Files.newBufferedWriter(
+                                    outputDirPath.resolve(
+                                            "Mapping-" + coreFilePath.getFileName().toString()),
+                                    core.getEncoding());) {
+                        // Summarise the core document
+                        CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(),
+                                core.getCsvSchema(), summaryWriter, mappingWriter, 20, true, debug,
+                                coreFields, headerLineCount);
+                    }
                 } else {
                     CSVStream.parse(inputReader, h -> {
                     }, (h, l) -> l, l -> {

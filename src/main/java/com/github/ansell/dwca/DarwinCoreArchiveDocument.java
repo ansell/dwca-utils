@@ -178,7 +178,6 @@ public class DarwinCoreArchiveDocument {
 							"Fields that do not have indexes must have default values set: " + field.getTerm());
 				}
 			}
-
         }
     }
 
