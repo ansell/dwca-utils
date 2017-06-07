@@ -44,6 +44,7 @@ import org.apache.commons.vfs2.VFS;
 import org.xml.sax.SAXException;
 
 import com.github.ansell.csv.stream.CSVStream;
+import com.github.ansell.csv.stream.CSVStreamException;
 import com.github.ansell.csv.sum.CSVSummariser;
 
 import joptsimple.OptionException;
@@ -110,7 +111,8 @@ public class DarwinCoreArchiveChecker {
 
         try {
             final Path outputDirPath;
-            if (options.has(output)) {
+            boolean hasOutput = options.has(output);
+            if (hasOutput) {
                 outputDirPath = output.value(options).toPath();
             } else {
                 outputDirPath = tempDir;
@@ -133,36 +135,54 @@ public class DarwinCoreArchiveChecker {
             }
 
             DarwinCoreCoreOrExtension core = archiveDocument.getCore();
-            int headerLineCount = core.getIgnoreHeaderLines();
-            List<String> coreFields = core.getFields().stream().map(f -> f.getTerm())
-                    .collect(Collectors.toList());
-            // Only support a single core file
-            String coreFileName = core.getFiles().getLocations().get(0);
-            Path coreFilePath = metadataPath.resolveSibling(coreFileName).normalize()
-                    .toAbsolutePath();
-            try (Reader inputReader = Files.newBufferedReader(coreFilePath, core.getEncoding());) {
-                if (options.has(output)) {
-                    try (Writer summaryWriter = Files.newBufferedWriter(
-                            outputDirPath
-                                    .resolve("Statistics-" + coreFilePath.getFileName().toString()),
-                            core.getEncoding());
-                            Writer mappingWriter = Files.newBufferedWriter(
-                                    outputDirPath.resolve(
-                                            "Mapping-" + coreFilePath.getFileName().toString()),
-                                    core.getEncoding());) {
-                        // Summarise the core document
-                        CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(),
-                                core.getCsvSchema(), summaryWriter, mappingWriter, 20, true, debug,
-                                coreFields, headerLineCount);
-                    }
-                } else {
-                    CSVStream.parse(inputReader, h -> {
-                    }, (h, l) -> l, l -> {
-                    }, coreFields, headerLineCount, CSVStream.defaultMapper(), core.getCsvSchema());
-                }
+            checkCoreOrExtension(core, metadataPath, outputDirPath, hasOutput, debug);
+            for(DarwinCoreCoreOrExtension extension : archiveDocument.getExtensions()) {
+                checkCoreOrExtension(extension, metadataPath, outputDirPath, hasOutput, debug);
             }
         } finally {
             FileUtils.deleteQuietly(tempDir.toFile());
+        }
+    }
+
+    /**
+     * @param coreOrExtension
+     * @param metadataPath
+     * @param outputDirPath
+     * @param hasOutput
+     * @param debug
+     * @throws IOException
+     * @throws CSVStreamException
+     */
+    public static void checkCoreOrExtension(DarwinCoreCoreOrExtension coreOrExtension,
+            final Path metadataPath, final Path outputDirPath, boolean hasOutput,
+            final boolean debug) throws IOException, CSVStreamException {
+        int headerLineCount = coreOrExtension.getIgnoreHeaderLines();
+        List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
+                .collect(Collectors.toList());
+        // TODO: Only support a single file currently
+        String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
+        Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
+                .toAbsolutePath();
+        try (Reader inputReader = Files.newBufferedReader(coreOrExtensionFilePath, coreOrExtension.getEncoding());) {
+            if (hasOutput) {
+                try (Writer summaryWriter = Files.newBufferedWriter(
+                        outputDirPath
+                                .resolve("Statistics-" + coreOrExtensionFilePath.getFileName().toString()),
+                        coreOrExtension.getEncoding());
+                        Writer mappingWriter = Files.newBufferedWriter(
+                                outputDirPath.resolve(
+                                        "Mapping-" + coreOrExtensionFilePath.getFileName().toString()),
+                                coreOrExtension.getEncoding());) {
+                    // Summarise the core document
+                    CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(),
+                            coreOrExtension.getCsvSchema(), summaryWriter, mappingWriter, 20, true, debug,
+                            coreOrExtensionFields, headerLineCount);
+                }
+            } else {
+                CSVStream.parse(inputReader, h -> {
+                }, (h, l) -> l, l -> {
+                }, coreOrExtensionFields, headerLineCount, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
+            }
         }
     }
 

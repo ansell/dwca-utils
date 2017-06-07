@@ -76,6 +76,10 @@ public class DarwinCoreArchiveCheckerTest {
 
     private Path testMetadataXmlWhalesTxt;
 
+    private Path testMetadataXmlTypesCsv;
+
+    private Path testMetadataXmlDistributionCsv;
+
     @Before
     public void setUp() throws Exception {
         testTempDir = tempDir.newFolder("dwca-check-temp").toPath();
@@ -150,12 +154,22 @@ public class DarwinCoreArchiveCheckerTest {
         testMetadataXmlWithExtension = testMetadataXmlWithExtensionFolder
                 .resolve(DarwinCoreArchiveChecker.METADATA_XML);
         testMetadataXmlWhalesTxt = testMetadataXmlWithExtensionFolder.resolve("whales.txt");
+        testMetadataXmlTypesCsv = testMetadataXmlWithExtensionFolder.resolve("types.csv");
+        testMetadataXmlDistributionCsv = testMetadataXmlWithExtensionFolder.resolve("distribution.csv");
         try (Writer out = Files.newBufferedWriter(testMetadataXmlWithExtension)) {
             IOUtils.copy(this.getClass()
                     .getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out);
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlWhalesTxt)) {
             IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/whales.txt"),
+                    out);
+        }
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlTypesCsv)) {
+            IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"),
+                    out);
+        }
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlDistributionCsv)) {
+            IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"),
                     out);
         }
     }
