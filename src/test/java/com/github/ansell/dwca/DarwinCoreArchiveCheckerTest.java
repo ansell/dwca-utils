@@ -80,6 +80,12 @@ public class DarwinCoreArchiveCheckerTest {
 
     private Path testMetadataXmlDistributionCsv;
 
+    private Path testMetadataXmlTsvFolder;
+
+    private Path testMetadataXmlTsv;
+
+    private Path testMetadataXmlSpecimensTsv;
+
     @Before
     public void setUp() throws Exception {
         testTempDir = tempDir.newFolder("dwca-check-temp").toPath();
@@ -172,6 +178,19 @@ public class DarwinCoreArchiveCheckerTest {
         try (Writer out = Files.newBufferedWriter(testMetadataXmlDistributionCsv)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"),
+                    out);
+        }
+        testMetadataXmlTsvFolder = tempDir.newFolder("dwca-check-unittest-tsv").toPath();
+        testMetadataXmlTsv = testMetadataXmlTsvFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
+        testMetadataXmlSpecimensTsv = testMetadataXmlTsvFolder.resolve("specimens.tsv");
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlTsv)) {
+            IOUtils.copy(
+                    this.getClass().getResourceAsStream("/com/github/ansell/dwca/tsvmetadata.xml"),
+                    out);
+        }
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensTsv)) {
+            IOUtils.copy(
+                    this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.tsv"),
                     out);
         }
     }
@@ -281,6 +300,20 @@ public class DarwinCoreArchiveCheckerTest {
         assertTrue(Files.exists(testOutput.resolve("Mapping-types.csv")));
         assertTrue(Files.exists(testOutput.resolve("Statistics-whales.txt")));
         assertTrue(Files.exists(testOutput.resolve("Mapping-whales.txt")));
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainTsvMetadataWithOutput() throws Exception {
+        Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
+        DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--output",
+                testOutput.toAbsolutePath().toString());
+        assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv")));
+        assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.tsv")));
     }
 
     /**
