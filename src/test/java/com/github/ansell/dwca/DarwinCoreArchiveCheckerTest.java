@@ -312,7 +312,7 @@ public class DarwinCoreArchiveCheckerTest {
         Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
         DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--output",
                 testOutput.toAbsolutePath().toString());
-        assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv")));
+        assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv"))); 
         assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.tsv")));
     }
 
