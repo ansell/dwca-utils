@@ -155,7 +155,8 @@ public class DarwinCoreArchiveCheckerTest {
                 .resolve(DarwinCoreArchiveChecker.METADATA_XML);
         testMetadataXmlWhalesTxt = testMetadataXmlWithExtensionFolder.resolve("whales.txt");
         testMetadataXmlTypesCsv = testMetadataXmlWithExtensionFolder.resolve("types.csv");
-        testMetadataXmlDistributionCsv = testMetadataXmlWithExtensionFolder.resolve("distribution.csv");
+        testMetadataXmlDistributionCsv = testMetadataXmlWithExtensionFolder
+                .resolve("distribution.csv");
         try (Writer out = Files.newBufferedWriter(testMetadataXmlWithExtension)) {
             IOUtils.copy(this.getClass()
                     .getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out);
@@ -169,7 +170,8 @@ public class DarwinCoreArchiveCheckerTest {
                     out);
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlDistributionCsv)) {
-            IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"),
+            IOUtils.copy(
+                    this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"),
                     out);
         }
     }
@@ -246,6 +248,39 @@ public class DarwinCoreArchiveCheckerTest {
     public final void testMainBasicMetadataWithExtension() throws Exception {
         DarwinCoreArchiveChecker.main("--input",
                 testMetadataXmlWithExtension.toAbsolutePath().toString());
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainBasicMetadataWithOutput() throws Exception {
+        Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
+        DarwinCoreArchiveChecker.main("--input", testMetadataXml.toAbsolutePath().toString(), "--output",
+                testOutput.toAbsolutePath().toString());
+        assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.csv")));
+        assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.csv")));
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainBasicMetadataWithExtensionWithOutput() throws Exception {
+        Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
+        DarwinCoreArchiveChecker.main("--input",
+                testMetadataXmlWithExtension.toAbsolutePath().toString(), "--output",
+                testOutput.toAbsolutePath().toString());
+        assertTrue(Files.exists(testOutput.resolve("Statistics-distribution.csv")));
+        assertTrue(Files.exists(testOutput.resolve("Mapping-distribution.csv")));
+        assertTrue(Files.exists(testOutput.resolve("Statistics-types.csv")));
+        assertTrue(Files.exists(testOutput.resolve("Mapping-types.csv")));
+        assertTrue(Files.exists(testOutput.resolve("Statistics-whales.txt")));
+        assertTrue(Files.exists(testOutput.resolve("Mapping-whales.txt")));
     }
 
     /**
