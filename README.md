@@ -1,6 +1,6 @@
 # dwca-utils
 
-Darwin Core Archive Utils
+Darwin Core Archive Utils for parsing archives that are compliant with the [Darwin Core Text Guide](http://rs.tdwg.org/dwc/terms/guides/text/)
 
 [![Build Status](https://travis-ci.org/ansell/dwca-utils.svg?branch=master)](https://travis-ci.org/ansell/dwca-utils) [![Coverage Status](https://coveralls.io/repos/ansell/dwca-utils/badge.svg?branch=master)](https://coveralls.io/r/ansell/dwca-utils?branch=master)
 
@@ -17,6 +17,8 @@ Set the relevant programs to be executable.
 
 # Darwin Core Archive Checker
 
+Checks that archives are compliant with the Darwin Core Text Guide
+
 ## Usage
 
 Run dwcacheck with --help to get usage details:
@@ -24,6 +26,8 @@ Run dwcacheck with --help to get usage details:
     ./dwcacheck --help
 
 # Darwin Core Metadata Generator
+
+Generates Darwin Core Text metadata.xml files based on given core and extension files.
 
 ## Usage
 
@@ -40,6 +44,10 @@ Run csv2dwca with --help to get usage details:
     </dependency>
 
 # Changelog
+
+## 2017-06-07
+* Check extension files when using dwcacheck
+* Pass quote/field separator/line ending information from metadata.xml through to CSV parser
 
 ## 2017-04-03
 * Release 0.0.3

@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.NullWriter;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -62,7 +61,6 @@ import org.xml.sax.SAXException;
 
 import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.sum.CSVSummariser;
-import com.github.ansell.csv.util.CSVUtil;
 import com.github.ansell.jdefaultdict.JDefaultDict;
 
 import joptsimple.OptionException;
