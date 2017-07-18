@@ -29,7 +29,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +50,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.NullWriter;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Model;
@@ -166,11 +169,13 @@ public class DarwinCoreMetadataGenerator {
             }
         }
 
-        try (final Reader inputReader = Files.newBufferedReader(inputPath,
-                StandardCharsets.UTF_8);) {
-            CSVSummariser.runSummarise(inputReader,
-                    new OutputStreamWriter(System.out, StandardCharsets.UTF_8), new NullWriter(),
-                    20, true, debugBoolean, overrideHeadersList.get(), headerLineCountInt);
+        try (final Reader inputReader = Files.newBufferedReader(inputPath, StandardCharsets.UTF_8);
+                final OutputStream statisticsStream = debugBoolean ? System.out
+                        : new NullOutputStream();
+                final Writer statisticsOutput = new OutputStreamWriter(statisticsStream,
+                        StandardCharsets.UTF_8);) {
+            CSVSummariser.runSummarise(inputReader, statisticsOutput, new NullWriter(), 20, true,
+                    debugBoolean, overrideHeadersList.get(), headerLineCountInt);
         }
 
         final Map<String, Map<String, List<IRI>>> vocabMap = getDefaultVocabularies();
@@ -225,7 +230,7 @@ public class DarwinCoreMetadataGenerator {
             CSVStream.parse(inputStreamReader, h -> coreHeaders.addAll(h), (h, l) -> l, l -> {
             });
         }
-        
+
         populateFields(coreHeaders, vocabMap, core);
 
         for (final Path nextExtensionPath : extensionPaths) {
@@ -242,8 +247,9 @@ public class DarwinCoreMetadataGenerator {
 
             List<String> nextExtensionHeaders = new ArrayList<>();
             try (Reader inputStreamReader = Files.newBufferedReader(nextExtensionPath);) {
-                CSVStream.parse(inputStreamReader, h -> nextExtensionHeaders.addAll(h), (h, l) -> l, l -> {
-                });
+                CSVStream.parse(inputStreamReader, h -> nextExtensionHeaders.addAll(h), (h, l) -> l,
+                        l -> {
+                        });
             }
             populateFields(nextExtensionHeaders, vocabMap, nextExtension);
             // We completely ignore empty files
