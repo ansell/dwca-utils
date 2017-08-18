@@ -1,0 +1,349 @@
+Column name,Requested field,DwC Name,Field name,Field description,Download field name,Download field description,More information
+basisOfRecord,basisOfRecord.p,basisOfRecord,basis_of_record,Basis Of Record - processed,basisOfRecord.p,Basis Of Record - processed,http://rs.tdwg.org/dwc/terms/basisOfRecord
+dcterms:bibliographicCitation,bibliographicCitation,dcterms:bibliographicCitation,bibliographicCitation,,bibliographicCitation,,http://rs.tdwg.org/dwc/terms/dcterms:bibliographicCitation
+dcterms:bibliographicCitation,citation,dcterms:bibliographicCitation,citation,,citation,,http://rs.tdwg.org/dwc/terms/dcterms:bibliographicCitation
+collectionID,collectionID,collectionID,collectionID,,collectionID,,http://rs.tdwg.org/dwc/terms/collectionID
+collectionCode,collectionCode,collectionCode,collection_code,Collection Code,collectionCode,Collection Code,The collection code for this record. This will be populated if the data has come from a museum or herbaria http://rs.tdwg.org/dwc/terms/collectionCode
+dataGeneralizations,dataGeneralizations.p,dataGeneralizations,dataGeneralizations.p,Data Generalised during processing,dataGeneralizations.p,Data Generalised during processing,http://rs.tdwg.org/dwc/terms/dataGeneralizations
+datasetID,datasetID,datasetID,datasetID,,datasetID,,http://rs.tdwg.org/dwc/terms/datasetID
+datasetName,datasetName,datasetName,dataset_name,,datasetName,,http://rs.tdwg.org/dwc/terms/datasetName
+dynamicProperties,dynamicProperties,dynamicProperties,dynamicProperties,,dynamicProperties,,http://rs.tdwg.org/dwc/terms/dynamicProperties
+informationWithheld,informationWithheld.p,informationWithheld,informationWithheld.p,Information withheld during processing,informationWithheld.p,Information withheld during processing,http://rs.tdwg.org/dwc/terms/informationWithheld
+institutionID,institutionID,institutionID,institutionID,,institutionID,,http://rs.tdwg.org/dwc/terms/institutionID
+institutionCode,institutionCode,institutionCode,institution_code,Institution Code,institutionCode,Institution Code,The institution code for this record. This will be populated if the data has come from a museum or herbaria http://rs.tdwg.org/dwc/terms/institutionCode
+dcterms:language,language,dcterms:language,language,,language,,http://rs.tdwg.org/dwc/terms/dcterms:language
+dcterms:license,license,dcterms:license,license,,license,,http://rs.tdwg.org/dwc/terms/dcterms:license
+dcterms:modified,modified.p,dcterms:modified,modified_date,,modified.p,,http://rs.tdwg.org/dwc/terms/dcterms:modified
+ownerInstitutionCode,ownerInstitutionCode,ownerInstitutionCode,ownerInstitutionCode,,ownerInstitutionCode,,http://rs.tdwg.org/dwc/terms/ownerInstitutionCode
+basisOfRecord,basisOfRecord.p,basisOfRecord,basis_of_record,Basis Of Record - processed,basisOfRecord.p,Basis Of Record - processed,http://rs.tdwg.org/dwc/terms/basisOfRecord
+dcterms:references,references,dcterms:references,references,,references,,http://rs.tdwg.org/dwc/terms/dcterms:references
+dcterms:accessRights,rights,dcterms:accessRights,rights,,rights,,http://rs.tdwg.org/dwc/terms/dcterms:accessRights
+dcterms:rightsHolder,rightsholder,dcterms:rightsHolder,rightsholder,,rightsholder,,http://rs.tdwg.org/dwc/terms/dcterms:rightsHolder
+dcterms:type,type,dcterms:type,type,,type,,http://rs.tdwg.org/dwc/terms/dcterms:type
+associatedMedia,associatedMedia,associatedMedia,associatedMedia,,associatedMedia,,http://rs.tdwg.org/dwc/terms/associatedMedia
+associatedReferences,associatedReferences,associatedReferences,associatedReferences,,associatedReferences,,http://rs.tdwg.org/dwc/terms/associatedReferences
+associatedSequences,associatedSequences,associatedSequences,associatedSequences,,associatedSequences,,http://rs.tdwg.org/dwc/terms/associatedSequences
+associatedTaxa,associatedTaxa,associatedTaxa,associatedTaxa,,associatedTaxa,,http://rs.tdwg.org/dwc/terms/associatedTaxa
+behavior,behavior,behavior,behavior,,behavior,,http://rs.tdwg.org/dwc/terms/behavior
+catalogNumber,catalogNumber,catalogNumber,catalogue_number,Catalog Number,catalogNumber,Catalog Number,The catalogue number for this record. This will be populated if the data has come from a museum or herbaria http://rs.tdwg.org/dwc/terms/catalogNumber
+recordedBy,recordedBy.p,recordedBy,collectors,,recordedBy.p,,http://rs.tdwg.org/dwc/terms/recordedBy
+disposition,disposition,disposition,disposition,,disposition,,http://rs.tdwg.org/dwc/terms/disposition
+establishmentMeans,establishmentMeans.p,establishmentMeans,establishment_means,,establishmentMeans.p,,http://rs.tdwg.org/dwc/terms/establishmentMeans
+individualCount,individualCount,individualCount,individualCount,,individualCount,,http://rs.tdwg.org/dwc/terms/individualCount
+lifeStage,lifeStage,lifeStage,lifeStage,,lifeStage,,http://rs.tdwg.org/dwc/terms/lifeStage
+occurrenceRemarks,occurrenceRemarks,occurrenceRemarks,occurrenceRemarks,,occurrenceRemarks,,http://rs.tdwg.org/dwc/terms/occurrenceRemarks
+occurrenceStatus,occurrenceStatus.p,occurrenceStatus,occurrenceStatus.p,,occurrenceStatus.p,,http://rs.tdwg.org/dwc/terms/occurrenceStatus
+occurrenceID,occurrenceID,occurrenceID,occurrence_id,,occurrenceID,,http://rs.tdwg.org/dwc/terms/occurrenceID
+organismQuantity,organismQuantity,organismQuantity,organismQuantity,,organismQuantity,,http://rs.tdwg.org/dwc/terms/organismQuantity
+organismQuantityType,organismQuantityType,organismQuantityType,organismQuantityType,,organismQuantityType,,http://rs.tdwg.org/dwc/terms/organismQuantityType
+otherCatalogNumbers,otherCatalogNumbers,otherCatalogNumbers,otherCatalogNumbers,,otherCatalogNumbers,,http://rs.tdwg.org/dwc/terms/otherCatalogNumbers
+preparations,preparations,preparations,preparations,Preparations,preparations,Preparations,http://rs.tdwg.org/dwc/terms/preparations
+sex,sex,sex,raw_sex,Sex,sex,Sex,http://rs.tdwg.org/dwc/terms/sex
+recordNumber,recordNumber,recordNumber,record_number,,recordNumber,,http://rs.tdwg.org/dwc/terms/recordNumber
+reproductiveCondition,reproductiveCondition,reproductiveCondition,reproductive_condition_s,,reproductiveCondition,,http://rs.tdwg.org/dwc/terms/reproductiveCondition
+associatedOrganisms,associatedOrganisms,associatedOrganisms,associatedOrganisms,,associatedOrganisms,,http://rs.tdwg.org/dwc/terms/associatedOrganisms
+associatedOccurrences,associatedOccurrences.p,associatedOccurrences,duplicate_record,,associatedOccurrences.p,,http://rs.tdwg.org/dwc/terms/associatedOccurrences
+organismID,organismID,organismID,organismID,,organismID,,http://rs.tdwg.org/dwc/terms/organismID
+organismName,organismName,organismName,organismName,,organismName,,http://rs.tdwg.org/dwc/terms/organismName
+organismRemarks,organismRemarks,organismRemarks,organismRemarks,,organismRemarks,,http://rs.tdwg.org/dwc/terms/organismRemarks
+organismScope,organismScope,organismScope,organismScope,,organismScope,,http://rs.tdwg.org/dwc/terms/organismScope
+previousIdentifications,previousIdentifications,previousIdentifications,previousIdentifications,,previousIdentifications,,http://rs.tdwg.org/dwc/terms/previousIdentifications
+day,day.p,day,day.p,Day - parsed,day.p,Day - parsed,http://rs.tdwg.org/dwc/terms/day
+endDayOfYear,endDayOfYear,endDayOfYear,endDayOfYear,,endDayOfYear,,http://rs.tdwg.org/dwc/terms/endDayOfYear
+eventRemarks,eventRemarks,eventRemarks,eventRemarks,,eventRemarks,,http://rs.tdwg.org/dwc/terms/eventRemarks
+eventTime,eventTime,eventTime,eventTime,,eventTime,,http://rs.tdwg.org/dwc/terms/eventTime
+eventID,eventID,eventID,event_id,,eventID,,http://rs.tdwg.org/dwc/terms/eventID
+fieldNotes,fieldNotes,fieldNotes,fieldNotes,,fieldNotes,,http://rs.tdwg.org/dwc/terms/fieldNotes
+fieldNumber,fieldNumber,fieldNumber,fieldNumber,,fieldNumber,,http://rs.tdwg.org/dwc/terms/fieldNumber
+habitat,habitat.p,habitat,habitat.p,,habitat.p,,http://rs.tdwg.org/dwc/terms/habitat
+month,month.p,month,month,Month - parsed,month.p,Month - parsed,"Month of observation, specimen collection date. http://rs.tdwg.org/dwc/terms/month"
+eventDate,eventDate.p,eventDate,occurrence_date,Event Date - parsed,eventDate.p,Event Date - parsed,"The ISO formatted date of observation, specimen collection date. http://rs.tdwg.org/dwc/terms/eventDate"
+parentEventID,parentEventID,parentEventID,parentEventID,,parentEventID,,http://rs.tdwg.org/dwc/terms/parentEventID
+sampleSizeUnit,sampleSizeUnit,sampleSizeUnit,sampleSizeUnit,,sampleSizeUnit,,http://rs.tdwg.org/dwc/terms/sampleSizeUnit
+samplingEffort,samplingEffort,samplingEffort,samplingEffort,,samplingEffort,,http://rs.tdwg.org/dwc/terms/samplingEffort
+samplingProtocol,samplingProtocol.p,samplingProtocol,samplingProtocol.p,,samplingProtocol.p,,http://rs.tdwg.org/dwc/terms/samplingProtocol
+startDayOfYear,startDayOfYear,startDayOfYear,startDayOfYear,,startDayOfYear,,http://rs.tdwg.org/dwc/terms/startDayOfYear
+verbatimEventDate,verbatimEventDate,verbatimEventDate,verbatimEventDate,,verbatimEventDate,,http://rs.tdwg.org/dwc/terms/verbatimEventDate
+year,year.p,year,year,Year - parsed,year.p,Year - parsed,"Year of observation, specimen collection date. http://rs.tdwg.org/dwc/terms/year"
+continent,continent,continent,continent,,continent,,http://rs.tdwg.org/dwc/terms/continent
+coordinatePrecision,coordinatePrecision.p,coordinatePrecision,coordinatePrecision.p,,coordinatePrecision.p,,http://rs.tdwg.org/dwc/terms/coordinatePrecision
+coordinateUncertaintyInMeters,coordinateUncertaintyInMeters.p,coordinateUncertaintyInMeters,coordinate_uncertainty,Coordinate Uncertainty in Metres - parsed,coordinateUncertaintyInMeters.p,Coordinate Uncertainty in Metres - parsed,http://rs.tdwg.org/dwc/terms/coordinateUncertaintyInMeters
+country,country.p,country,country,Country - parsed,country.p,Country - parsed,The country where the specimen was collected or observation was made http://rs.tdwg.org/dwc/terms/country
+countryCode,countryCode,countryCode,country_code,,countryCode,,http://rs.tdwg.org/dwc/terms/countryCode
+county,county,county,county,,county,,http://rs.tdwg.org/dwc/terms/county
+verbatimDepth,verbatimDepth.p,verbatimDepth,depth_d,,verbatimDepth.p,,http://rs.tdwg.org/dwc/terms/verbatimDepth
+verbatimElevation,verbatimElevation.p,verbatimElevation,elevation_d,,verbatimElevation.p,,http://rs.tdwg.org/dwc/terms/verbatimElevation
+footprintSRS,footprintSRS,footprintSRS,footprintSRS,,footprintSRS,,http://rs.tdwg.org/dwc/terms/footprintSRS
+footprintSpatialFit,footprintSpatialFit,footprintSpatialFit,footprintSpatialFit,,footprintSpatialFit,,http://rs.tdwg.org/dwc/terms/footprintSpatialFit
+footprintWKT,footprintWKT,footprintWKT,footprintWKT,,footprintWKT,,http://rs.tdwg.org/dwc/terms/footprintWKT
+geodeticDatum,geodeticDatum.p,geodeticDatum,geodeticDatum.p,,geodeticDatum.p,,http://rs.tdwg.org/dwc/terms/geodeticDatum
+georeferenceProtocol,georeferenceProtocol.p,georeferenceProtocol,georeferenceProtocol.p,,georeferenceProtocol.p,,http://rs.tdwg.org/dwc/terms/georeferenceProtocol
+georeferenceRemarks,georeferenceRemarks,georeferenceRemarks,georeferenceRemarks,,georeferenceRemarks,,http://rs.tdwg.org/dwc/terms/georeferenceRemarks
+georeferenceSources,georeferenceSources.p,georeferenceSources,georeferenceSources.p,,georeferenceSources.p,,http://rs.tdwg.org/dwc/terms/georeferenceSources
+georeferenceVerificationStatus,georeferenceVerificationStatus.p,georeferenceVerificationStatus,georeferenceVerificationStatus.p,,georeferenceVerificationStatus.p,,http://rs.tdwg.org/dwc/terms/georeferenceVerificationStatus
+georeferencedBy,georeferencedBy.p,georeferencedBy,georeferencedBy.p,,georeferencedBy.p,,http://rs.tdwg.org/dwc/terms/georeferencedBy
+georeferencedDate,georeferencedDate.p,georeferencedDate,georeferencedDate.p,,georeferencedDate.p,,http://rs.tdwg.org/dwc/terms/georeferencedDate
+higherGeography,higherGeography,higherGeography,higherGeography,,higherGeography,,http://rs.tdwg.org/dwc/terms/higherGeography
+higherGeographyID,higherGeographyID,higherGeographyID,higherGeographyID,,higherGeographyID,,http://rs.tdwg.org/dwc/terms/higherGeographyID
+island,island,island,island,,island,,http://rs.tdwg.org/dwc/terms/island
+islandGroup,islandGroup,islandGroup,islandGroup,,islandGroup,,http://rs.tdwg.org/dwc/terms/islandGroup
+decimalLatitude,decimalLatitude.p,decimalLatitude,latitude,Latitude - processed,decimalLatitude.p,Latitude - processed,"The decimal latitude associated with this record. If the original latitude was supplied in degrees, minutes, seconds, this value represents the converted value. http://rs.tdwg.org/dwc/terms/decimalLatitude"
+locality,locality.p,locality,locality.p,,locality.p,,http://rs.tdwg.org/dwc/terms/locality
+locationAccordingTo,locationAccordingTo,locationAccordingTo,locationAccordingTo,,locationAccordingTo,,http://rs.tdwg.org/dwc/terms/locationAccordingTo
+locationRemarks,locationRemarks,locationRemarks,locationRemarks,,locationRemarks,,http://rs.tdwg.org/dwc/terms/locationRemarks
+locationID,locationId,locationID,location_id,,locationId,,http://rs.tdwg.org/dwc/terms/locationID
+decimalLongitude,decimalLongitude.p,decimalLongitude,longitude,Longitude - processed,decimalLongitude.p,Longitude - processed,"The decimal longitude associated with this record. If the original longitude was supplied in degrees, minutes, seconds, this value represents the converted value. http://rs.tdwg.org/dwc/terms/decimalLongitude"
+maximumDepthInMeters,maximumDepthInMeters.p,maximumDepthInMeters,max_depth_d,Maximum Depth In Meters,maximumDepthInMeters.p,Maximum Depth In Meters,Max depth for this occurrence. http://rs.tdwg.org/dwc/terms/maximumDepthInMeters
+maximumElevationInMeters,maximumElevationInMeters.p,maximumElevationInMeters,max_elevation_d,Maximum Elevation In Metres,maximumElevationInMeters.p,Maximum Elevation In Metres,Max altitude/elevation for this occurrence. http://rs.tdwg.org/dwc/terms/maximumElevationInMeters
+maximumDistanceAboveSurfaceInMeters,maximumDistanceAboveSurfaceInMeters,maximumDistanceAboveSurfaceInMeters,maximumDistanceAboveSurfaceInMeters,,maximumDistanceAboveSurfaceInMeters,,http://rs.tdwg.org/dwc/terms/maximumDistanceAboveSurfaceInMeters
+minimumDepthInMeters,minimumDepthInMeters.p,minimumDepthInMeters,min_depth_d,Minimum Depth In Meters,minimumDepthInMeters.p,Minimum Depth In Meters,Min depth for this occurrence. http://rs.tdwg.org/dwc/terms/minimumDepthInMeters
+minimumElevationInMeters,minimumElevationInMeters.p,minimumElevationInMeters,min_elevation_d,Minimum Elevation In Metres,minimumElevationInMeters.p,Minimum Elevation In Metres,Min altitude/elevation for this occurrence. http://rs.tdwg.org/dwc/terms/minimumElevationInMeters
+minimumDistanceAboveSurfaceInMeters,minimumDistanceAboveSurfaceInMeters,minimumDistanceAboveSurfaceInMeters,minimumDistanceAboveSurfaceInMeters,,minimumDistanceAboveSurfaceInMeters,,http://rs.tdwg.org/dwc/terms/minimumDistanceAboveSurfaceInMeters
+municipality,municipality,municipality,municipality,,municipality,,http://rs.tdwg.org/dwc/terms/municipality
+pointRadiusSpatialFit,pointRadiusSpatialFit,pointRadiusSpatialFit,pointRadiusSpatialFit,,pointRadiusSpatialFit,,http://rs.tdwg.org/dwc/terms/pointRadiusSpatialFit
+stateProvince,stateProvince.p,stateProvince,state,State - parsed,stateProvince.p,State - parsed,The state or territory matching the supplied coordinates http://rs.tdwg.org/dwc/terms/stateProvince
+verbatimCoordinateSystem,verbatimCoordinateSystem,verbatimCoordinateSystem,verbatimCoordinateSystem,,verbatimCoordinateSystem,,http://rs.tdwg.org/dwc/terms/verbatimCoordinateSystem
+verbatimCoordinates,verbatimCoordinates,verbatimCoordinates,verbatimCoordinates,,verbatimCoordinates,,http://rs.tdwg.org/dwc/terms/verbatimCoordinates
+verbatimLatitude,verbatimLatitude,verbatimLatitude,verbatimLatitude,,verbatimLatitude,,http://rs.tdwg.org/dwc/terms/verbatimLatitude
+verbatimLocality,verbatimLocality,verbatimLocality,verbatimLocality,,verbatimLocality,,http://rs.tdwg.org/dwc/terms/verbatimLocality
+verbatimLongitude,verbatimLongitude,verbatimLongitude,verbatimLongitude,,verbatimLongitude,,http://rs.tdwg.org/dwc/terms/verbatimLongitude
+verbatimSRS,verbatimSRS,verbatimSRS,verbatimSRS,,verbatimSRS,,http://rs.tdwg.org/dwc/terms/verbatimSRS
+waterBody,waterBody,waterBody,waterBody,,waterBody,,http://rs.tdwg.org/dwc/terms/waterBody
+identificationID,identificationID,identificationID,identificationID,,identificationID,,http://rs.tdwg.org/dwc/terms/identificationID
+identificationReferences,identificationReferences.p,identificationReferences,identificationReferences.p,,identificationReferences.p,,http://rs.tdwg.org/dwc/terms/identificationReferences
+identificationRemarks,identificationRemarks,identificationRemarks,identificationRemarks,,identificationRemarks,,http://rs.tdwg.org/dwc/terms/identificationRemarks
+identificationVerificationStatus,identificationVerificationStatus,identificationVerificationStatus,identificationVerificationStatus,,identificationVerificationStatus,,http://rs.tdwg.org/dwc/terms/identificationVerificationStatus
+identifiedBy,identifiedBy.p,identifiedBy,identifiedBy.p,,identifiedBy.p,,http://rs.tdwg.org/dwc/terms/identifiedBy
+dateIdentified,dateIdentified.p,dateIdentified,identified_date,,dateIdentified.p,,http://rs.tdwg.org/dwc/terms/dateIdentified
+identificationQualifier,identificationQualifier,identificationQualifier,raw_identification_qualifier,,identificationQualifier,,http://rs.tdwg.org/dwc/terms/identificationQualifier
+typeStatus,typeStatus.p,typeStatus,type_status,,typeStatus.p,,http://rs.tdwg.org/dwc/terms/typeStatus
+acceptedNameUsage,acceptedNameUsage,acceptedNameUsage,acceptedNameUsage,,acceptedNameUsage,,http://rs.tdwg.org/dwc/terms/acceptedNameUsage
+acceptedNameUsageID,acceptedNameUsageID,acceptedNameUsageID,acceptedNameUsageID,,acceptedNameUsageID,,http://rs.tdwg.org/dwc/terms/acceptedNameUsageID
+class,classs.p,class,class,Class - matched,classs.p,Class - matched,The class the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/class
+class,classs,class,classs,,classs,,http://rs.tdwg.org/dwc/terms/class
+vernacularName,vernacularName.p,vernacularName,common_name,Vernacular Name - matched,vernacularName.p,Vernacular Name - matched,The common name the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/vernacularName
+family,family.p,family,family,Family - matched,family.p,Family - matched,The family the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/family
+genus,genus.p,genus,genus,Genus - matched,genus.p,Genus - matched,The genus the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/genus
+higherClassification,higherClassification,higherClassification,higherClassification,,higherClassification,,http://rs.tdwg.org/dwc/terms/higherClassification
+infraspecificEpithet,infraspecificEpithet,infraspecificEpithet,infraspecificEpithet,,infraspecificEpithet,,http://rs.tdwg.org/dwc/terms/infraspecificEpithet
+kingdom,kingdom.p,kingdom,kingdom,Kingdom - matched,kingdom.p,Kingdom - matched,The kingdom the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/kingdom
+nameAccordingTo,nameAccordingTo.p,nameAccordingTo,nameAccordingTo.p,,nameAccordingTo.p,,http://rs.tdwg.org/dwc/terms/nameAccordingTo
+nameAccordingToID,nameAccordingToID,nameAccordingToID,nameAccordingToID,,nameAccordingToID,,http://rs.tdwg.org/dwc/terms/nameAccordingToID
+namePublishedIn,namePublishedIn,namePublishedIn,namePublishedIn,,namePublishedIn,,http://rs.tdwg.org/dwc/terms/namePublishedIn
+namePublishedInID,namePublishedInID,namePublishedInID,namePublishedInID,,namePublishedInID,,http://rs.tdwg.org/dwc/terms/namePublishedInID
+namePublishedInYear,namePublishedInYear,namePublishedInYear,namePublishedInYear,,namePublishedInYear,,http://rs.tdwg.org/dwc/terms/namePublishedInYear
+nomenclaturalCode,nomenclaturalCode.p,nomenclaturalCode,nomenclaturalCode.p,,nomenclaturalCode.p,,http://rs.tdwg.org/dwc/terms/nomenclaturalCode
+nomenclaturalStatus,nomenclaturalStatus,nomenclaturalStatus,nomenclaturalStatus,,nomenclaturalStatus,,http://rs.tdwg.org/dwc/terms/nomenclaturalStatus
+order,order.p,order,order,Order - matched,order.p,Order - matched,The order the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/order
+originalNameUsageID,originalNameUsageID,originalNameUsageID,originalNameUsageID,,originalNameUsageID,,http://rs.tdwg.org/dwc/terms/originalNameUsageID
+originalNameUsage,originalNameUsage,originalNameUsage,original_name_usage,,originalNameUsage,,http://rs.tdwg.org/dwc/terms/originalNameUsage
+parentNameUsage,parentNameUsage,parentNameUsage,parentNameUsage,,parentNameUsage,,http://rs.tdwg.org/dwc/terms/parentNameUsage
+parentNameUsageID,parentNameUsageID,parentNameUsageID,parentNameUsageID,,parentNameUsageID,,http://rs.tdwg.org/dwc/terms/parentNameUsageID
+phylum,phylum.p,phylum,phylum,Phylum - matched,phylum.p,Phylum - matched,The phylum the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/phylum
+taxonRank,taxonRank.p,taxonRank,rank,Taxon Rank - matched,taxonRank.p,Taxon Rank - matched,The taxonomic rank the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/taxonRank
+scientificNameAuthorship,scientificNameAuthorship,scientificNameAuthorship,scientificNameAuthorship,,scientificNameAuthorship,,http://rs.tdwg.org/dwc/terms/scientificNameAuthorship
+scientificNameID,scientificNameID,scientificNameID,scientificNameID,,scientificNameID,,http://rs.tdwg.org/dwc/terms/scientificNameID
+specificEpithet,species.p,specificEpithet,species,Species - matched,species.p,Species - matched,The species the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/specificEpithet
+specificEpithet,specificEpithet,specificEpithet,specificEpithet,,specificEpithet,,http://rs.tdwg.org/dwc/terms/specificEpithet
+subgenus,subgenus,subgenus,subgenus,,subgenus,,http://rs.tdwg.org/dwc/terms/subgenus
+taxonID,taxonID,taxonID,taxonID,,taxonID,,http://rs.tdwg.org/dwc/terms/taxonID
+taxonRemarks,taxonRemarks,taxonRemarks,taxonRemarks,,taxonRemarks,,http://rs.tdwg.org/dwc/terms/taxonRemarks
+taxonConceptID,taxonConceptID.p,taxonConceptID,taxon_concept_lsid,Match Taxon Concept GUID,taxonConceptID.p,Match Taxon Concept GUID,The GUID for the concept in the National Species List (NSL) http://rs.tdwg.org/dwc/terms/taxonConceptID
+scientificName,scientificName.p,scientificName,taxon_name,Matched Scientific Name,scientificName.p,Matched Scientific Name,The name the ALA has matched this record to in the NSL http://rs.tdwg.org/dwc/terms/scientificName
+taxonomicStatus,taxonomicStatus,taxonomicStatus,taxonomicStatus,,taxonomicStatus,,http://rs.tdwg.org/dwc/terms/taxonomicStatus
+verbatimTaxonRank,verbatimTaxonRank,verbatimTaxonRank,verbatimTaxonRank,,verbatimTaxonRank,,http://rs.tdwg.org/dwc/terms/verbatimTaxonRank
+measurementAccuracy,measurementAccuracy,measurementAccuracy,measurementAccuracy,,measurementAccuracy,,http://rs.tdwg.org/dwc/terms/measurementAccuracy
+measurementDeterminedBy,measurementDeterminedBy,measurementDeterminedBy,measurementDeterminedBy,,measurementDeterminedBy,,http://rs.tdwg.org/dwc/terms/measurementDeterminedBy
+measurementDeterminedDate,measurementDeterminedDate,measurementDeterminedDate,measurementDeterminedDate,,measurementDeterminedDate,,http://rs.tdwg.org/dwc/terms/measurementDeterminedDate
+measurementID,measurementID,measurementID,measurementID,,measurementID,,http://rs.tdwg.org/dwc/terms/measurementID
+measurementMethod,measurementMethod,measurementMethod,measurementMethod,,measurementMethod,,http://rs.tdwg.org/dwc/terms/measurementMethod
+measurementRemarks,measurementRemarks,measurementRemarks,measurementRemarks,,measurementRemarks,,http://rs.tdwg.org/dwc/terms/measurementRemarks
+measurementType,measurementType,measurementType,measurementType,,measurementType,,http://rs.tdwg.org/dwc/terms/measurementType
+measurementUnit,measurementUnit,measurementUnit,measurementUnit,,measurementUnit,,http://rs.tdwg.org/dwc/terms/measurementUnit
+measurementValue,measurementValue,measurementValue,measurementValue,,measurementValue,,http://rs.tdwg.org/dwc/terms/measurementValue
+austConservation.p,austConservation.p,,austConservation.p,,austConservation.p,, 
+stateConservation.p,stateConservation.p,,stateConservation.p,,stateConservation.p,, 
+speciesGroups.p,speciesGroups.p,,species_group,,speciesGroups.p,, 
+species_subgroup,species_subgroup,,species_subgroup,Species subgroups,,, 
+Altitude value supplied in feet,altitudeInFeet,,,,,, 
+Altitude value non-numeric,altitudeNonNumeric,,,,,, 
+Altitude out of range,altitudeOutOfRange,,,,,, 
+Higher taxonomy missing,ambiguousName,,,,,, 
+Occurrence status assumed to be present,assumedPresentOccurrenceStatus,,,,,, 
+Basis of record badly formed,badlyFormedBasisOfRecord,,,,,, 
+Coordinate precision not valid,coordinatePrecisionMismatch,,,,,, 
+Coordinates centre of country,coordinatesCentreOfCountry,,,,,, 
+Supplied coordinates centre of state,coordinatesCentreOfStateProvince,,,,,, 
+Coordinates are out of range for species,coordinatesOutOfRange,,,,,, 
+Coordinates dont match supplied country,countryCoordinateMismatch,,,,,, 
+Country inferred from coordinates,countryInferredByCoordinates,,,,,, 
+Data are generalised,dataAreGeneralised,,,,,, 
+Date precision invalid,datePrecisionMismatch,,,,,, 
+Day and month transposed,dayMonthTransposed,,,,,, 
+Decimal coordinates not supplied,decimalCoordinatesNotSupplied,,,,,, 
+Coordinates converted from UTM,decimalLatLongCalculatedFromEastingNorthing,,,,,, 
+Latitude Longitude calculated from grid reference,decimalLatLongCalculatedFromGridReference,,,,,, 
+Coordinates derived from verbatim coordinates,decimalLatLongCalculatedFromVerbatim,,,,,, 
+Unable to convert UTM coordinates,decimalLatLongCalculationFromEastingNorthingFailed,,,,,, 
+Unparseable verbatim coordinates,decimalLatLongCalculationFromVerbatimFailed,,,,,, 
+Decimal latitude/longitude conversion failed,decimalLatLongConversionFailed,,,,,, 
+Coordinates converted to WGS84,decimalLatLongConverted,,,,,, 
+Depth value supplied in feet,depthInFeet,,,,,, 
+Depth value non-numeric,depthNonNumeric,,,,,, 
+Depth out of range,depthOutOfRange,,,,,, 
+Suspected outlier,detectedOutlier,,,,,, 
+Badly formed altitude,erroneousAltitude,,,,,, 
+First of the century,firstOfCentury,,,,,, 
+First of the month,firstOfMonth,,,,,, 
+First of the year,firstOfYear,,,,,, 
+Geodetic datum assumed WGS84,geodeticDatumAssumedWgs84,,,,,, 
+Georeferenced after occurrence date,georefPostDate,,,,,, 
+Geospatial issue,geospatialIssue,,geospatialIssue,Geospatial issue,geospatialIssue,Geospatial issue, 
+Habitat incorrect for species,habitatMismatch,,,,,, 
+Homonym issues with supplied name,homonymIssue,,,,,, 
+Taxon misidentified,identificationIncorrect,,,,,, 
+Identification date before occurrence date,idPreOccurrence,,,,,, 
+Incomplete collection date,incompleteCollectionDate,,,,,, 
+Possible duplicate record,inferredDuplicateRecord,,,,,, 
+Invalid collection date,invalidCollectionDate,,,,,, 
+Invalid geodetic datum,invalidGeodeticDatum,,,,,, 
+Image URL invalid,invalidImageUrl,,,,,, 
+Invalid scientific name,invalidScientificName,,,,,, 
+Coordinates are transposed,invertedCoordinates,,,,,, 
+Location not supplied,locationNotSupplied,,,,,, 
+Media unrepresentative,mediaRepresentative,,,,,, 
+media Unrepresentative,mediaUnrepresentative,,,,,, 
+Min and max altitude reversed,minMaxAltitudeReversed,,,,,, 
+Min and max depth reversed,minMaxDepthReversed,,,,,, 
+Basis of record not supplied,missingBasisOfRecord,,,,,, 
+Missing catalogue number,missingCatalogueNumber,,,,,, 
+No collection date supplied,missingCollectionDate,,,,,, 
+Missing coordinate precision,missingCoordinatePrecision,,,,,, 
+Missing identification date,missingDateIdentified,,,,,, 
+Missing geodetic datum,missingGeodeticDatum,,,,,, 
+Missing name of person who georeferenced the occurrence,missingGeorefencedBy,,,,,, 
+Missing georeference date,missingGeoreferenceDate,,,,,, 
+Missing georeferenced protocol,missingGeoreferenceProtocol,,,,,, 
+Missing georeferenced sources,missingGeoreferenceSources,,,,,, 
+Missing georeferenced verification status,missingGeoreferenceVerificationStatus,,,,,, 
+Missing an identification qualifier,missingIdentificationQualifier,,,,,, 
+Missing identification references,missingIdentificationReferences,,,,,, 
+Missing name of person who identified the specimen/observation,missingIdentifiedBy,,,,,, 
+Missing taxonomic rank,missingTaxonRank,,,,,, 
+Name not in national checklists,nameNotInNationalChecklists,,,,,, 
+Name not recognised,nameNotRecognised,,,,,, 
+Name not supplied,nameNotSupplied,,,,,, 
+Latitude is negated,negatedLatitude,,,,,, 
+Longitude is negated,negatedLongitude,,,,,, 
+Cultivated / escapee,occCultivatedEscapee,,,,,, 
+Precision / range mismatch,precisionRangeMismatch,,,,,, 
+processing Error,processingError,,,,,, 
+Collector name unparseable,recordedByUnparsable,,,,,, 
+Resource taxonomic scope mismatch,resourceTaxonomicScopeMismatch,,,,,, 
+Outside expert range for species,speciesOutsideExpertRange,,,,,, 
+Coordinates dont match supplied state,stateCoordinateMismatch,,,,,, 
+Taxonomic issue,taxonomicIssue,,,,,, 
+Temporal issue,temporalIssue,,,,,, 
+Coordinate precision and uncertainty transposed,uncertaintyInPrecision,,,,,, 
+Coordinate uncertainty not specified,uncertaintyNotSpecified,,,,,, 
+Coordinate uncertainty not valid,uncertaintyRangeMismatch,,,,,, 
+Supplied country not recognised,unknownCountry,,,,,, 
+Kingdom not recognised,unknownKingdom,,,,,, 
+Collection code not recognised,unrecognisedCollectionCode,,,,,, 
+Institution code not recognised,unrecognisedInstitutionCode,,,,,, 
+unrecognised Occurrence Status,unrecognisedOccurrenceStatus,,,,,, 
+Type status not recognised,unrecognisedTypeStatus,,,,,, 
+Unrecognized geodetic datum,unrecognizedGeodeticDatum,,,,,, 
+Record Verified,userVerified,,userVerified,Record Verified,userVerified,Record Verified, 
+Supplied coordinates are zero,zeroCoordinates,,,,,, 
+Zero latitude,zeroLatitude,,,,,, 
+Zero longitude,zeroLongitude,,,,,, 
+dataset_version_date,,,,,,Field from data provider that is not in use by ALA, 
+taxon_modification_date,,,,,,Field from data provider that is not in use by ALA, 
+site_modification_date,,,,,,Field from data provider that is not in use by ALA, 
+site_accuracy_km,,,,,,Field from data provider that is not in use by ALA, 
+VIC_LF,,,,,,Field from data provider that is not in use by ALA, 
+PROJECT_ID,,,,,,Field from data provider that is not in use by ALA, 
+NVIS_GF,,,,,,Field from data provider that is not in use by ALA, 
+COVERABUND,,,,,,Field from data provider that is not in use by ALA, 
+QUADID_ETC,,,,,,Field from data provider that is not in use by ALA, 
+submissionMethod,,,,,,Field from data provider that is not in use by ALA, 
+verbatimCoordinateUncertainty,,,,,,Field from data provider that is not in use by ALA, 
+verbatimEventDateAccuracy,,,,,,Field from data provider that is not in use by ALA, 
+projectID,,,,,,Field from data provider that is not in use by ALA, 
+parentEventID,,,,,,Field from data provider that is not in use by ALA, 
+siteCode,,,,,,Field from data provider that is not in use by ALA, 
+references,,,,,,Field from data provider that is not in use by ALA, 
+Northing,,,,,,Field from data provider that is not in use by ALA, 
+Easting,,,,,,Field from data provider that is not in use by ALA, 
+ObservationTypeCode,,,,,,Field from data provider that is not in use by ALA, 
+SourceCode,,,,,,Field from data provider that is not in use by ALA, 
+Zone,,,,,,Field from data provider that is not in use by ALA, 
+AbcdConcept1433,,,,,,Field from data provider that is not in use by ALA, 
+frequency,,,,,,Field from data provider that is not in use by ALA, 
+AbcdConcept0850,,,,,,Field from data provider that is not in use by ALA, 
+voucher,,,,,,Field from data provider that is not in use by ALA, 
+habit,,,,,,Field from data provider that is not in use by ALA, 
+vegetation,,,,,,Field from data provider that is not in use by ALA, 
+ibraSubregion,,,,,,Field from data provider that is not in use by ALA, 
+subclass,,,,,,Field from data provider that is not in use by ALA, 
+dcterms_license,,,,,,Field from data provider that is not in use by ALA, 
+dcterms_modified,,,,,,Field from data provider that is not in use by ALA, 
+datasetName,,,,,,Field from data provider that is not in use by ALA, 
+rightsHolder,,,,,,Field from data provider that is not in use by ALA, 
+CONSERVATION_SIGNIFICANCE_YN,,,,,,Field from data provider that is not in use by ALA, 
+RESERVATION_STATUS,,,,,,Field from data provider that is not in use by ALA, 
+LAST_UPDATE_USER_ID,,,,,,Field from data provider that is not in use by ALA, 
+CREATION_DATE,,,,,,Field from data provider that is not in use by ALA, 
+DATE_ACCURACY,,,,,,Field from data provider that is not in use by ALA, 
+REPORTED_DATE,,,,,,Field from data provider that is not in use by ALA, 
+FOREIGN_ID,,,,,,Field from data provider that is not in use by ALA, 
+REPORTER_TEXT,,,,,,Field from data provider that is not in use by ALA, 
+DATE_SUBMITTED,,,,,,Field from data provider that is not in use by ALA, 
+DATE_APPROVED,,,,,,Field from data provider that is not in use by ALA, 
+bibliographicCitation,,,,,,Field from data provider that is not in use by ALA, 
+surveyName,,,,,,Field from data provider that is not in use by ALA, 
+surveyLeader,,,,,,Field from data provider that is not in use by ALA, 
+speciesType,,,,,,Field from data provider that is not in use by ALA, 
+locationGridCell,,,,,,Field from data provider that is not in use by ALA, 
+photo1,,,,,,Field from data provider that is not in use by ALA, 
+locationConfidence,,,,,,Field from data provider that is not in use by ALA, 
+identificationConfidence,,,,,,Field from data provider that is not in use by ALA, 
+photo,,,,,,Field from data provider that is not in use by ALA, 
+VEG_NOTES,,,,,,Field from data provider that is not in use by ALA, 
+OriginalSeedQuantity,,,,,,Field from data provider that is not in use by ALA, 
+PlantForm,,,,,,Field from data provider that is not in use by ALA, 
+MethodSeedNumberDetermined,,,,,,Field from data provider that is not in use by ALA, 
+DateGermplasmReceived,,,,,,Field from data provider that is not in use by ALA, 
+AvgSeedPerFruit,,,,,,Field from data provider that is not in use by ALA, 
+Aspect,,,,,,Field from data provider that is not in use by ALA, 
+TestDiary_1_NumberTested,,,,,,Field from data provider that is not in use by ALA, 
+Donor,,,,,,Field from data provider that is not in use by ALA, 
+georeferenceMethod,,,,,,Field from data provider that is not in use by ALA, 
+ibra,,,,,,Field from data provider that is not in use by ALA, 
+DonorTypeFlag,,,,,,Field from data provider that is not in use by ALA, 
+distributionPolicy,,,,,,Field from data provider that is not in use by ALA, 
+CurrentSeedQuantity,,,,,,Field from data provider that is not in use by ALA, 
+accessionMaterialTypeFlag,,,,,,Field from data provider that is not in use by ALA, 
+TestDiary_1_TestType,,,,,,Field from data provider that is not in use by ALA, 
+TestDiary_1_StartDate,,,,,,Field from data provider that is not in use by ALA, 
+ViabilitySummary,,,,,,Field from data provider that is not in use by ALA, 
+CollectorIdentifier,,,,,,Field from data provider that is not in use by ALA, 
+PlantDescription,,,,,,Field from data provider that is not in use by ALA, 
+MonitoringPeriod,,,,,,Field from data provider that is not in use by ALA, 
+TestDiary_1_BestTestFlag,,,,,,Field from data provider that is not in use by ALA, 
+AdjustedSeedQuantity,,,,,,Field from data provider that is not in use by ALA, 
+AreaSampled,,,,,,Field from data provider that is not in use by ALA, 
+GatheringNotes,,,,,,Field from data provider that is not in use by ALA, 
+PercentagePopSeeding,,,,,,Field from data provider that is not in use by ALA, 
+TestDiary_1_NumberFilled,,,,,,Field from data provider that is not in use by ALA, 
+infraspecificRank,,,,,,Field from data provider that is not in use by ALA, 
+specificEpiphet,,,,,,Field from data provider that is not in use by ALA, 
+ProvenanceTypeCode,,,,,,Field from data provider that is not in use by ALA, 
+DateDonated,,,,,,Field from data provider that is not in use by ALA, 
+accessionStatus,,,,,,Field from data provider that is not in use by ALA, 
+ThousandSampleWeight,,,,,,Field from data provider that is not in use by ALA, 
+PlantHeight,,,,,,Field from data provider that is not in use by ALA, 
+DegreeOfPurity,,,,,,Field from data provider that is not in use by ALA, 
+SoilTexture,,,,,,Field from data provider that is not in use by ALA, 
+dcterms:rights,,,,,,Field from data provider that is not in use by ALA, 

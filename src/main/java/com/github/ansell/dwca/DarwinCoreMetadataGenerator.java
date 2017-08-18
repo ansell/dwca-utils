@@ -31,7 +31,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -81,6 +80,9 @@ import joptsimple.OptionSpec;
 public class DarwinCoreMetadataGenerator {
 
     public static final String METADATA_XML = "metadata.xml";
+    private static final String ALA_HEADING_DWC_NAME = "DwC Name";
+    private static final String ALA_HEADING_REQUESTED_FIELD = "Requested field";
+    private static final String ALA_HEADING_COLUMN_NAME = "Column name";
 
     /**
      * Private constructor for static only class
@@ -96,7 +98,14 @@ public class DarwinCoreMetadataGenerator {
                 .required().describedAs("The core input CSV file to be parsed.");
         final OptionSpec<File> overrideHeadersFile = parser.accepts("override-headers-file")
                 .withRequiredArg().ofType(File.class).describedAs(
-                        "A file whose first line contains the headers to use, to override those found in the core file.");
+                        "A file whose first line contains the headers to use, to override those found in the core file. Cannot be used with extensions.");
+        final OptionSpec<File> alaHeadersFile = parser.accepts("ala-headers-file")
+                .withRequiredArg().ofType(File.class).describedAs(
+                        "A headings.csv file from an ALA download zip file. Cannot be used with extensions.");
+        final OptionSpec<Integer> coreIDIndex = parser.accepts("core-id-index")
+                .withRequiredArg().ofType(Integer.class)
+                .describedAs("The 0-based index of the column containing the primary key to be used for the core id field index")
+                .defaultsTo(0);
         final OptionSpec<Integer> headerLineCount = parser.accepts("header-line-count")
                 .withRequiredArg().ofType(Integer.class)
                 .describedAs(
@@ -155,13 +164,54 @@ public class DarwinCoreMetadataGenerator {
         final boolean showDefaultsBoolean = showDefaults.value(options);
         final boolean debugBoolean = debug.value(options);
 
+        final Map<String, Map<String, List<IRI>>> vocabMap = getDefaultVocabularies();
+
         // Defaults to null, with any strings in the file overriding that
         final AtomicReference<List<String>> overrideHeadersList = new AtomicReference<>();
-        if (options.has(overrideHeadersFile)) {
+        
+        if (options.has(alaHeadersFile)) {
+            try (final BufferedReader newBufferedReader = Files
+                    .newBufferedReader(alaHeadersFile.value(options).toPath());) {
+            	final List<String> alaHeadingsHeader = new ArrayList<>();
+            	final List<String> alaOverrideHeadings = new ArrayList<>();
+                CSVStream.parse(newBufferedReader, h -> {
+                    alaHeadingsHeader.addAll(h);
+                }, (headerLine, line) -> {
+                	String nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_DWC_NAME));
+                	// Backup for when the above is empty
+                	if(nextHeadingDWCName.trim().isEmpty()) {
+                		nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_REQUESTED_FIELD));
+                	}
+                	// Another backup for when the above are both empty
+                	if(nextHeadingDWCName.trim().isEmpty()) {
+                		nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_COLUMN_NAME));
+                	}
+                	
+                	if(nextHeadingDWCName.trim().isEmpty()) {
+                		throw new RuntimeException("Found a field with empty '"+ALA_HEADING_DWC_NAME+"', '" +ALA_HEADING_REQUESTED_FIELD+"', '" +ALA_HEADING_COLUMN_NAME + " raw line was: " + line);
+                	}
+                	
+                	// ALA downloads prefix dcterms fields with "dcterms:", so replace with full URI
+                	if(nextHeadingDWCName.startsWith(DCTERMS.PREFIX)) {
+                    	System.err.println("Found dcterms prefix for " + nextHeadingDWCName + " " + alaOverrideHeadings.size());
+                		nextHeadingDWCName = DCTERMS.NAMESPACE + nextHeadingDWCName.substring(DCTERMS.PREFIX.length() + 1);
+                	}
+                	if (alaOverrideHeadings.contains(nextHeadingDWCName.intern())) {
+                    	System.err.println("Found duplicate header for " + nextHeadingDWCName + " " + alaOverrideHeadings.size());
+                		nextHeadingDWCName = "duplicate_field_" + nextHeadingDWCName;
+                	}
+                	alaOverrideHeadings.add(nextHeadingDWCName.intern());
+                	return line;
+                }, nextProcessedLine -> {
+                });
+                System.out.println(alaOverrideHeadings);
+            	overrideHeadersList.set(new ArrayList<>(alaOverrideHeadings));
+            }
+        } else if (options.has(overrideHeadersFile)) {
             try (final BufferedReader newBufferedReader = Files
                     .newBufferedReader(overrideHeadersFile.value(options).toPath());) {
                 CSVStream.parse(newBufferedReader, h -> {
-                    overrideHeadersList.set(h);
+                    overrideHeadersList.set(new ArrayList<>(h));
                 }, (h, l) -> {
                     return l;
                 }, l -> {
@@ -178,9 +228,7 @@ public class DarwinCoreMetadataGenerator {
                     debugBoolean, overrideHeadersList.get(), headerLineCountInt);
         }
 
-        final Map<String, Map<String, List<IRI>>> vocabMap = getDefaultVocabularies();
-
-        generateMetadata(inputPath, outputPath, extensionPaths, showDefaultsBoolean, vocabMap);
+        generateMetadata(inputPath, outputPath, extensionPaths, showDefaultsBoolean, vocabMap, overrideHeadersList.get(), coreIDIndex.value(options));
     }
 
     public static Map<String, Map<String, List<IRI>>> getDefaultVocabularies() throws IOException {
@@ -211,12 +259,12 @@ public class DarwinCoreMetadataGenerator {
 
     public static void generateMetadata(final Path inputPath, final Path outputPath,
             final List<Path> extensionPaths, final boolean showDefaults,
-            final Map<String, Map<String, List<IRI>>> vocabMap)
+            final Map<String, Map<String, List<IRI>>> vocabMap, final List<String> coreOverrideHeaders, final int coreIDIndex)
             throws IOException, XMLStreamException, SAXException {
         final DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
         final DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
         core.setRowType(DarwinCoreArchiveConstants.SIMPLE_DARWIN_RECORD);
-        core.setIdOrCoreId("0");
+        core.setIdOrCoreId(Integer.toString(coreIDIndex));
         core.setIgnoreHeaderLines(1);
         core.setLinesTerminatedBy("\n");
         core.setFieldsTerminatedBy(",");
@@ -226,8 +274,15 @@ public class DarwinCoreMetadataGenerator {
         result.getCore().setFiles(coreFile);
 
         List<String> coreHeaders = new ArrayList<>();
+        if (coreOverrideHeaders != null) {
+        	coreHeaders.addAll(coreOverrideHeaders);
+        }
         try (Reader inputStreamReader = Files.newBufferedReader(inputPath);) {
-            CSVStream.parse(inputStreamReader, h -> coreHeaders.addAll(h), (h, l) -> l, l -> {
+            CSVStream.parse(inputStreamReader, h -> {
+            	if (coreOverrideHeaders == null) {
+            		coreHeaders.addAll(h);
+            	}
+            } , (h, l) -> l, l -> {
             });
         }
 

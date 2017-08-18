@@ -61,6 +61,10 @@ public class DarwinCoreMetadataGeneratorTest {
 
 	private Path testExtension2;
 
+	private Path testALAHeaders;
+	
+	private Path testALAFile;
+	
 	@Before
 	public void setUp() throws Exception {
 		testTempDir = tempDir.newFolder("dwca-generator-temp").toPath();
@@ -68,9 +72,13 @@ public class DarwinCoreMetadataGeneratorTest {
 		testExtension = testTempDir.resolve("distribution.csv");
 		testExtension2 = testTempDir.resolve("specimens.csv");
 		testMetadataXml = testTempDir.resolve("metadata.xml");
+		testALAHeaders = testTempDir.resolve("headings.csv");
+		testALAFile = testTempDir.resolve("ala-test.csv");
 		Files.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"), testFile);
 		Files.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"), testExtension);
 		Files.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), testExtension2);
+		Files.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/headings.csv"), testALAHeaders);
+		Files.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/ala-test.csv"), testALAFile);
 	}
 
 	/**
@@ -150,6 +158,42 @@ public class DarwinCoreMetadataGeneratorTest {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
 			assertNotNull(archiveDocument);
 			assertEquals(2, archiveDocument.getExtensions().size());
+		}
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreMetadataGenerator#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainALAHeaders() throws Exception {
+		DarwinCoreMetadataGenerator.main("--input", testALAFile.toAbsolutePath().toString(), "--output",
+				testMetadataXml.toAbsolutePath().toString(), "--ala-headers-file", testALAHeaders.toAbsolutePath().toString());
+		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
+			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
+			assertNotNull(archiveDocument);
+			assertEquals(348, archiveDocument.getCore().getFields().size());
+			assertEquals(0, archiveDocument.getExtensions().size());
+		}
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreMetadataGenerator#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainALAHeadersDebug() throws Exception {
+		DarwinCoreMetadataGenerator.main("--input", testALAFile.toAbsolutePath().toString(), "--output",
+				testMetadataXml.toAbsolutePath().toString(), "--ala-headers-file", testALAHeaders.toAbsolutePath().toString() , "--debug", "true");
+		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
+			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
+			assertNotNull(archiveDocument);
+			assertEquals(348, archiveDocument.getCore().getFields().size());
+			assertEquals(0, archiveDocument.getExtensions().size());
 		}
 	}
 
