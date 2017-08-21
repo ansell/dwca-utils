@@ -215,7 +215,9 @@ public class DarwinCoreArchiveChecker {
         for (FileObject nextFile : children) {
             try (InputStream in = nextFile.getContent().getInputStream();) {
                 String baseName = nextFile.getName().getBaseName();
-                Path nextTempFile = tempDir.resolve(baseName);
+                String pathName = nextFile.getName().getPath();
+                Path nextTempFile = tempDir.resolve("./"+pathName).toAbsolutePath().normalize();
+                System.out.println("nextFile=" + nextFile.toString() + " baseName=" + baseName + " pathName=" + pathName + " nextTempFile=" + nextTempFile);
                 if (baseName.equalsIgnoreCase(METADATA_XML)
                         || baseName.equalsIgnoreCase(META_XML)) {
                     if (metadataPath != null) {

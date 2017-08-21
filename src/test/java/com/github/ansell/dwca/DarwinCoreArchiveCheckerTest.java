@@ -181,8 +181,9 @@ public class DarwinCoreArchiveCheckerTest {
                     out);
         }
         testMetadataXmlTsvFolder = tempDir.newFolder("dwca-check-unittest-tsv").toPath();
+        Files.createDirectories(testMetadataXmlTsvFolder.resolve("subdir"));
         testMetadataXmlTsv = testMetadataXmlTsvFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
-        testMetadataXmlSpecimensTsv = testMetadataXmlTsvFolder.resolve("specimens.tsv");
+        testMetadataXmlSpecimensTsv = testMetadataXmlTsvFolder.resolve("subdir").resolve("specimens.tsv");
         try (Writer out = Files.newBufferedWriter(testMetadataXmlTsv)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/tsvmetadata.xml"),
@@ -190,7 +191,7 @@ public class DarwinCoreArchiveCheckerTest {
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensTsv)) {
             IOUtils.copy(
-                    this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.tsv"),
+                    this.getClass().getResourceAsStream("/com/github/ansell/dwca/subdir/specimens.tsv"),
                     out);
         }
     }
