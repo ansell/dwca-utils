@@ -127,42 +127,53 @@ public class DarwinCoreArchiveMerger {
 
         try {
 
-            final Path inputMetadataPath;
-            if (inputPath.getFileName().toString().contains(".zip")) {
-                inputMetadataPath = DarwinCoreArchiveChecker.checkZip(inputPath, tempDir);
-                if (inputMetadataPath == null) {
-                    throw new IllegalStateException("Did not find a metadata file in the input ZIP file: "
-                            + inputPath.toAbsolutePath().toString());
-                }
-            } else {
-                inputMetadataPath = DarwinCoreArchiveChecker.checkFolder(inputPath);
-            }
+            final Path inputMetadataPath = openArchive(inputPath, tempDir);
+            final Path outputArchivePath = outputDirPath.resolve("first-archive");
+            Files.createDirectories(outputArchivePath);
+            final DarwinCoreArchiveDocument inputArchiveDocument = loadArchive(debug, outputArchivePath, inputMetadataPath);
+            System.out.println("Found an archive with " + inputArchiveDocument.getCore().getFields().size() + " core fields and " + inputArchiveDocument.getExtensions().size() + " extensions");
+            
 
-            final Path otherInputMetadataPath;
-            if (otherInputPath.getFileName().toString().contains(".zip")) {
-                otherInputMetadataPath = DarwinCoreArchiveChecker.checkZip(otherInputPath, tempDir);
-                if (otherInputMetadataPath == null) {
-                    throw new IllegalStateException("Did not find a metadata file in the other input ZIP file: "
-                            + otherInputPath.toAbsolutePath().toString());
-                }
-            } else {
-                otherInputMetadataPath = DarwinCoreArchiveChecker.checkFolder(otherInputPath);
-            }
-
-            DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(inputMetadataPath);
-            if (debug) {
-                System.out.println(archiveDocument.toString());
-            }
-
-            DarwinCoreCoreOrExtension core = archiveDocument.getCore();
-            DarwinCoreArchiveChecker.checkCoreOrExtension(core, inputMetadataPath, outputDirPath, true, debug);
-            for(DarwinCoreCoreOrExtension extension : archiveDocument.getExtensions()) {
-                DarwinCoreArchiveChecker.checkCoreOrExtension(extension, inputMetadataPath, outputDirPath, true, debug);
-            }
+            final Path otherInputMetadataPath = openArchive(otherInputPath, tempDir);
+            final Path otherOutputArchivePath = outputDirPath.resolve("other-archive");
+            Files.createDirectories(otherOutputArchivePath);
+            final DarwinCoreArchiveDocument otherInputArchiveDocument = loadArchive(debug, otherOutputArchivePath, otherInputMetadataPath);
+            System.out.println("Found another archive with " + otherInputArchiveDocument.getCore().getFields().size() + " core fields and " + otherInputArchiveDocument.getExtensions().size() + " extensions");
+            
         } finally {
             FileUtils.deleteQuietly(tempDir.toFile());
         }
     }
+
+	private static DarwinCoreArchiveDocument loadArchive(final boolean debug, final Path outputDirPath,
+			final Path inputMetadataPath) throws IOException, SAXException, IllegalStateException, CSVStreamException {
+		DarwinCoreArchiveDocument inputArchiveDocument = parseMetadataXml(inputMetadataPath);
+		if (debug) {
+		    System.out.println(inputArchiveDocument.toString());
+		}
+
+		DarwinCoreCoreOrExtension core = inputArchiveDocument.getCore();
+		DarwinCoreArchiveChecker.checkCoreOrExtension(core, inputMetadataPath, outputDirPath, true, debug);
+		for(DarwinCoreCoreOrExtension extension : inputArchiveDocument.getExtensions()) {
+		    DarwinCoreArchiveChecker.checkCoreOrExtension(extension, inputMetadataPath, outputDirPath, true, debug);
+		}
+		return inputArchiveDocument;
+	}
+
+	private static Path openArchive(final Path inputPath, final Path tempDir)
+			throws IOException, IllegalStateException {
+		final Path inputMetadataPath;
+		if (inputPath.getFileName().toString().contains(".zip")) {
+		    inputMetadataPath = DarwinCoreArchiveChecker.checkZip(inputPath, tempDir);
+		    if (inputMetadataPath == null) {
+		        throw new IllegalStateException("Did not find a metadata file in the input ZIP file: "
+		                + inputPath.toAbsolutePath().toString());
+		    }
+		} else {
+		    inputMetadataPath = DarwinCoreArchiveChecker.checkFolder(inputPath);
+		}
+		return inputMetadataPath;
+	}
 
     /**
      * @param coreOrExtension

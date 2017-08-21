@@ -244,7 +244,7 @@ public class DarwinCoreArchiveCheckerTest {
     @Test
     public final void testMainNoMetadata() throws Exception {
         thrown.expect(IllegalStateException.class);
-        thrown.expectMessage("Did not find a metadata file in the ZIP file");
+        thrown.expectMessage("Did not find a metadata file in ZIP file");
         DarwinCoreArchiveChecker.main("--input", testFileNoMetadata.toAbsolutePath().toString());
     }
 

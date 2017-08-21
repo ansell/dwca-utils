@@ -34,6 +34,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -197,6 +198,7 @@ public class DarwinCoreArchiveChecker {
      *         otherwise null.
      * @throws IOException
      *             If there is an input-output exception.
+     * @throws IllegalStateException If there is not exactly one file named either meta.xml or metadata.xml
      */
     public static Path checkZip(Path inputPath, Path tempDir) throws IOException {
         Path metadataPath = null;
@@ -217,7 +219,7 @@ public class DarwinCoreArchiveChecker {
                 if (baseName.equalsIgnoreCase(METADATA_XML)
                         || baseName.equalsIgnoreCase(META_XML)) {
                     if (metadataPath != null) {
-                        throw new RuntimeException("Duplicate metadata.xml files found: original="
+                        throw new IllegalStateException("Duplicate metadata.xml files found in ZIP file: first="
                                 + metadataPath + " duplicate=" + baseName);
                     }
                     metadataPath = nextTempFile;
@@ -228,7 +230,7 @@ public class DarwinCoreArchiveChecker {
         }
 
         if (metadataPath == null) {
-            throw new IllegalStateException("Did not find a metadata file in the ZIP file: "
+            throw new IllegalStateException("Did not find a metadata file in ZIP file: "
                     + inputPath.toAbsolutePath().toString());
         }
 
@@ -245,18 +247,19 @@ public class DarwinCoreArchiveChecker {
      *         otherwise null.
      * @throws IOException
      *             If there is an input-output exception.
+     * @throws IllegalStateException If there is not exactly one file named either meta.xml or metadata.xml
      */
     public static Path checkFolder(Path inputPath) throws IOException {
-        Path metadataPath = null;
-
-        // TODO: Implement me
+        List<Path> metadataFound = Files.walk(inputPath).filter(p -> p.getFileName().toString().equals(META_XML) || p.getFileName().toString().equals(METADATA_XML)).collect(Collectors.toList());
         
-        if (metadataPath == null) {
-            throw new IllegalStateException("Did not find a metadata file in the ZIP file: "
+        if (metadataFound.isEmpty()) {
+            throw new IllegalStateException("Did not find a metadata file in folder: "
                     + inputPath.toAbsolutePath().toString());
+        } else if (metadataFound.size() > 1) {
+        	throw new IllegalStateException("Duplicate metadata files found in folder: first=" + metadataFound.get(0) + " duplicate=" + metadataFound.get(1));
         }
 
-        return metadataPath;
+        return metadataFound.get(0);
     }
 
     /**
