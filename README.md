@@ -45,6 +45,9 @@ Run csv2dwca with --help to get usage details:
 
 # Changelog
 
+## 2017-08-21
+* Parse ALA headings.csv files into Darwin Core Text Guide metadata XML files
+
 ## 2017-06-07
 * Check extension files when using dwcacheck
 * Pass quote/field separator/line ending information from metadata.xml through to CSV parser
