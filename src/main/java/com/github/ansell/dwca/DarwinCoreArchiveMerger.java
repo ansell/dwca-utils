@@ -140,14 +140,21 @@ public class DarwinCoreArchiveMerger {
             final DarwinCoreArchiveDocument otherInputArchiveDocument = loadArchive(debug, otherOutputArchivePath, otherInputMetadataPath);
             System.out.println("Found another archive with " + otherInputArchiveDocument.getCore().getFields().size() + " core fields and " + otherInputArchiveDocument.getExtensions().size() + " extensions");
             
+            canArchivesBeMergedDirectly(inputArchiveDocument, otherInputArchiveDocument);
+            
         } finally {
             FileUtils.deleteQuietly(tempDir.toFile());
         }
     }
 
+	private static void canArchivesBeMergedDirectly(DarwinCoreArchiveDocument inputArchiveDocument,
+			DarwinCoreArchiveDocument otherInputArchiveDocument) {
+		System.out.println("coreId: input=" + inputArchiveDocument.getCore().getIdOrCoreId() + " other=" + otherInputArchiveDocument.getCore().getIdOrCoreId());
+	}
+
 	private static DarwinCoreArchiveDocument loadArchive(final boolean debug, final Path outputDirPath,
 			final Path inputMetadataPath) throws IOException, SAXException, IllegalStateException, CSVStreamException {
-		DarwinCoreArchiveDocument inputArchiveDocument = parseMetadataXml(inputMetadataPath);
+		DarwinCoreArchiveDocument inputArchiveDocument = DarwinCoreArchiveChecker.parseMetadataXml(inputMetadataPath);
 		if (debug) {
 		    System.out.println(inputArchiveDocument.toString());
 		}
@@ -214,29 +221,6 @@ public class DarwinCoreArchiveMerger {
                 }, (h, l) -> l, l -> {
                 }, coreOrExtensionFields, headerLineCount, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
             }
-        }
-    }
-
-    /**
-     * Parses the metadata.xml file.
-     * 
-     * @param metadataPath
-     *            The path to the metadata.xml file to parse.
-     * @return An instance of {@link DarwinCoreArchiveDocument} representing the
-     *         parsed document.
-     * @throws IOException
-     *             If there is an input-output exception.
-     * @throws SAXException
-     *             If there is an exception parsing the XML document.
-     * @throws IllegalStateException
-     *             If there is an exception interpreting the context of parts of
-     *             the document that violate the state assumptions in the
-     *             specification.
-     */
-    public static DarwinCoreArchiveDocument parseMetadataXml(Path metadataPath)
-            throws IOException, SAXException, IllegalStateException {
-        try (Reader input = Files.newBufferedReader(metadataPath);) {
-            return DarwinCoreMetadataSaxParser.parse(input);
         }
     }
 
