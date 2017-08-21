@@ -127,15 +127,15 @@ public class DarwinCoreArchiveMerger {
 
         try {
 
-            final Path inputMetadataPath = openArchive(inputPath, tempDir);
             final Path outputArchivePath = outputDirPath.resolve("first-archive");
+            final Path inputMetadataPath = openArchive(inputPath, outputArchivePath);
             Files.createDirectories(outputArchivePath);
             final DarwinCoreArchiveDocument inputArchiveDocument = loadArchive(debug, outputArchivePath, inputMetadataPath);
             System.out.println("Found an archive with " + inputArchiveDocument.getCore().getFields().size() + " core fields and " + inputArchiveDocument.getExtensions().size() + " extensions");
             
 
-            final Path otherInputMetadataPath = openArchive(otherInputPath, tempDir);
             final Path otherOutputArchivePath = outputDirPath.resolve("other-archive");
+            final Path otherInputMetadataPath = openArchive(otherInputPath, otherOutputArchivePath);
             Files.createDirectories(otherOutputArchivePath);
             final DarwinCoreArchiveDocument otherInputArchiveDocument = loadArchive(debug, otherOutputArchivePath, otherInputMetadataPath);
             System.out.println("Found another archive with " + otherInputArchiveDocument.getCore().getFields().size() + " core fields and " + otherInputArchiveDocument.getExtensions().size() + " extensions");

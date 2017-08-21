@@ -213,7 +213,7 @@ public class DarwinCoreArchiveMergerTest {
      */
     @Test
     public final void testMain() throws Exception {
-    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString());
+    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", testFile2.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
     }
 
     /**
@@ -223,7 +223,7 @@ public class DarwinCoreArchiveMergerTest {
      */
     @Test
     public final void testMainDebug() throws Exception {
-    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--debug",
+    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", testFile2.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString(), "--debug",
                 "true");
     }
 
@@ -234,7 +234,7 @@ public class DarwinCoreArchiveMergerTest {
      */
     @Test
     public final void testMainAlternate() throws Exception {
-    	DarwinCoreArchiveMerger.main("--input", testFile2.toAbsolutePath().toString());
+    	DarwinCoreArchiveMerger.main("--input", testFile2.toAbsolutePath().toString(), "--other-input", testFile.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
     }
 
     /**
@@ -246,75 +246,7 @@ public class DarwinCoreArchiveMergerTest {
     public final void testMainNoMetadata() throws Exception {
         thrown.expect(IllegalStateException.class);
         thrown.expectMessage("Did not find a metadata file in ZIP file");
-        DarwinCoreArchiveMerger.main("--input", testFileNoMetadata.toAbsolutePath().toString());
-    }
-
-    /**
-     * Test method for
-     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
-     * .
-     */
-    @Test
-    public final void testMainBasicMetadata() throws Exception {
-    	DarwinCoreArchiveMerger.main("--input", testMetadataXml.toAbsolutePath().toString());
-    }
-
-    /**
-     * Test method for
-     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
-     * .
-     */
-    @Test
-    public final void testMainBasicMetadataWithExtension() throws Exception {
-    	DarwinCoreArchiveMerger.main("--input",
-                testMetadataXmlWithExtension.toAbsolutePath().toString());
-    }
-
-    /**
-     * Test method for
-     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
-     * .
-     */
-    @Test
-    public final void testMainBasicMetadataWithOutput() throws Exception {
-        Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
-        DarwinCoreArchiveMerger.main("--input", testMetadataXml.toAbsolutePath().toString(), "--output",
-                testOutput.toAbsolutePath().toString());
-        assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.csv")));
-        assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.csv")));
-    }
-
-    /**
-     * Test method for
-     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
-     * .
-     */
-    @Test
-    public final void testMainBasicMetadataWithExtensionWithOutput() throws Exception {
-        Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
-        DarwinCoreArchiveMerger.main("--input",
-                testMetadataXmlWithExtension.toAbsolutePath().toString(), "--output",
-                testOutput.toAbsolutePath().toString());
-        assertTrue(Files.exists(testOutput.resolve("Statistics-distribution.csv")));
-        assertTrue(Files.exists(testOutput.resolve("Mapping-distribution.csv")));
-        assertTrue(Files.exists(testOutput.resolve("Statistics-types.csv")));
-        assertTrue(Files.exists(testOutput.resolve("Mapping-types.csv")));
-        assertTrue(Files.exists(testOutput.resolve("Statistics-whales.txt")));
-        assertTrue(Files.exists(testOutput.resolve("Mapping-whales.txt")));
-    }
-
-    /**
-     * Test method for
-     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
-     * .
-     */
-    @Test
-    public final void testMainTsvMetadataWithOutput() throws Exception {
-        Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
-        DarwinCoreArchiveMerger.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--output",
-                testOutput.toAbsolutePath().toString());
-        assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv"))); 
-        assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.tsv")));
+        DarwinCoreArchiveMerger.main("--input", testFileNoMetadata.toAbsolutePath().toString(), "--other-input", testFile.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
     }
 
 }

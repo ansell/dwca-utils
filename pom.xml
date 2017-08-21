@@ -294,6 +294,10 @@
 							<mainClass>com.github.ansell.dwca.DarwinCoreMetadataGenerator</mainClass>
 							<id>csv2dwca</id>
 						</program>
+						<program>
+							<mainClass>com.github.ansell.dwca.DarwinCoreArchiveMerger</mainClass>
+							<id>dwcamerge</id>
+						</program>
 					</programs>
 				</configuration>
 			</plugin>

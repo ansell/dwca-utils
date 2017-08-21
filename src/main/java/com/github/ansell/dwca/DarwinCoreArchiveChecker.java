@@ -227,6 +227,7 @@ public class DarwinCoreArchiveChecker {
                     metadataPath = nextTempFile;
                 }
 
+                Files.createDirectories(nextTempFile.getParent());
                 Files.copy(in, nextTempFile);
             }
         }
