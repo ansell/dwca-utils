@@ -123,7 +123,7 @@ public class DarwinCoreArchiveMerger {
                             + outputDirPath.toString());
         }
 
-        final Path tempDir = Files.createTempDirectory("dwca-check-");
+        final Path tempDir = Files.createTempDirectory("dwca-merge-");
 
         try {
 
