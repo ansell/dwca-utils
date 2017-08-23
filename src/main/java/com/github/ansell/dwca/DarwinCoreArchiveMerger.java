@@ -169,6 +169,12 @@ public class DarwinCoreArchiveMerger {
 						+ inputCoreIDField + " " + otherInputCoreIDField);
 			}
 
+			if (!inputArchiveDocument.getCore().getRowType().equals(otherInputArchiveDocument.getCore().getRowType())) {
+				throw new IllegalStateException("Can only merge archives where the core row types are equal: "
+						+ inputArchiveDocument.getCore().getRowType() + " "
+						+ otherInputArchiveDocument.getCore().getRowType());
+			}
+
 		} catch (NumberFormatException e) {
 			throw new IllegalStateException("Core id must be an integer", e);
 		}
