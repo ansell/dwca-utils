@@ -223,7 +223,41 @@ public class DarwinCoreArchiveMergerTest {
      */
     @Test
     public final void testMainDebug() throws Exception {
-    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", testFile2.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString(), "--debug",
+    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", testFile2.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString(), "--debug", "true");
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainReverse() throws Exception {
+    	DarwinCoreArchiveMerger.main("--input", testFile2.toAbsolutePath().toString(), "--other-input", testFile.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainCoreIDDoNotMatch() throws Exception {
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("Core id field terms must match for archives to be merged");
+    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", testMetadataXmlWithExtensionFolder.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainCoreIDDoNotMatchDebug() throws Exception {
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("Core id field terms must match for archives to be merged");
+    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", testMetadataXmlWithExtensionFolder.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString(), "--debug",
                 "true");
     }
 
@@ -233,8 +267,10 @@ public class DarwinCoreArchiveMergerTest {
      * .
      */
     @Test
-    public final void testMainAlternate() throws Exception {
-    	DarwinCoreArchiveMerger.main("--input", testFile2.toAbsolutePath().toString(), "--other-input", testFile.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
+    public final void testMainCoreIDDoNotMatchReverse() throws Exception {
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("Core id field terms must match for archives to be merged");
+    	DarwinCoreArchiveMerger.main("--input", testMetadataXmlWithExtensionFolder.toAbsolutePath().toString(), "--other-input", testFile.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
     }
 
     /**
