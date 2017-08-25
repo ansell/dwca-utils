@@ -164,35 +164,76 @@ public class DarwinCoreArchiveChecker {
 	 * @throws CSVStreamException
 	 *             If there are CSV syntax errors.
 	 */
-	public static void checkCoreOrExtension(DarwinCoreCoreOrExtension coreOrExtension, final Path metadataPath,
-			final Path outputDirPath, boolean hasOutput, final boolean debug) throws IOException, CSVStreamException {
-		int headerLineCount = coreOrExtension.getIgnoreHeaderLines();
-		List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
+	public static void checkCoreOrExtension(final DarwinCoreCoreOrExtension coreOrExtension, final Path metadataPath,
+			final Path outputDirPath, final boolean hasOutput, final boolean debug)
+			throws IOException, CSVStreamException {
+		final Consumer<Reader> summariseFunction = createSummariseFunction(coreOrExtension, metadataPath, outputDirPath,
+				debug);
+		final Consumer<Reader> parseFunction = createParseFunction(coreOrExtension);
+		// Parse the core or extension, either using the summarise or parse
+		// function as necessary to generate output or otherwise
+		parseCoreOrExtension(coreOrExtension, metadataPath, hasOutput ? summariseFunction : parseFunction);
+	}
+
+	/**
+	 * Creates a summarising function, processing all of the lines to validate
+	 * the CSV syntax and summarise the field contents.
+	 * 
+	 * @param coreOrExtension
+	 *            The {@link DarwinCoreCoreOrExtension} to parse and summarise.
+	 * @param metadataPath
+	 *            The path to the metadata file, to resolve the location and
+	 *            file name of the extension files, to create names for the
+	 *            statistics files.
+	 * @param outputDirPath
+	 *            The path to contain the output.
+	 * @param debug
+	 *            Whether to emit debugging statements.
+	 * @return A {@link Consumer} that can accept a Reader containing the CSV
+	 *         file to parse the content of the given core or extension.
+	 */
+	private static Consumer<Reader> createSummariseFunction(final DarwinCoreCoreOrExtension coreOrExtension,
+			final Path metadataPath, final Path outputDirPath, final boolean debug) {
+		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
-		// TODO: Only support a single file currently
-		String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
-		Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
-				.toAbsolutePath();
-		Consumer<Reader> summariseFunction = Unchecked.consumer(inputReader -> {
-			try (Writer summaryWriter = Files.newBufferedWriter(
+		return Unchecked.consumer(inputReader -> {
+			// TODO: Only support a single file currently
+			final String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
+			final Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
+					.toAbsolutePath();
+			try (final Writer summaryWriter = Files.newBufferedWriter(
 					outputDirPath.resolve("Statistics-" + coreOrExtensionFilePath.getFileName().toString()),
 					coreOrExtension.getEncoding());
-					Writer mappingWriter = Files.newBufferedWriter(
+					final Writer mappingWriter = Files.newBufferedWriter(
 							outputDirPath.resolve("Mapping-" + coreOrExtensionFilePath.getFileName().toString()),
 							coreOrExtension.getEncoding());) {
 				// Summarise the core document
 				CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema(),
-						summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields, headerLineCount);
+						summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields,
+						coreOrExtension.getIgnoreHeaderLines());
 			}
 		});
-		Consumer<Reader> parseFunction = Unchecked.consumer(inputReader -> {
+	}
+
+	/**
+	 * Creates a pure parse function, without processing any of the lines, in
+	 * order to validate the CSV syntax, but not the content, apart from
+	 * checking that line lengths are consistent.
+	 * 
+	 * @param coreOrExtension
+	 *            The {@link DarwinCoreCoreOrExtension} to parse.
+	 * @return A {@link Consumer} that can accept a Reader containing the CSV
+	 *         file to parse the content of the given core or extension.
+	 */
+	private static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension) {
+		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
+				.collect(Collectors.toList());
+		return Unchecked.consumer(inputReader -> {
 			CSVStream.parse(inputReader, h -> {
 			}, (h, l) -> l, l -> {
-			}, coreOrExtensionFields, headerLineCount, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
+			}, coreOrExtensionFields, coreOrExtension.getIgnoreHeaderLines(), CSVStream.defaultMapper(),
+					coreOrExtension.getCsvSchema());
 		});
-		// Parse the core or extension, either using the summarise or parse
-		// function as necessary to generate output or otherwise
-		parseCoreOrExtension(coreOrExtension, metadataPath, hasOutput ? summariseFunction : parseFunction);
 	}
 
 	/**
@@ -210,15 +251,14 @@ public class DarwinCoreArchiveChecker {
 	 * @throws IOException
 	 *             If there are issues accessing or reading the files.
 	 */
-	public static void parseCoreOrExtension(DarwinCoreCoreOrExtension coreOrExtension, Path metadataPath,
-			Consumer<Reader> parseFunction) throws IOException {
-		List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
-				.collect(Collectors.toList());
+	public static void parseCoreOrExtension(final DarwinCoreCoreOrExtension coreOrExtension, final Path metadataPath,
+			final Consumer<Reader> parseFunction) throws IOException {
 		// TODO: Only support a single file currently
-		String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
-		Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
+		final String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
+		final Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
 				.toAbsolutePath();
-		try (Reader inputReader = Files.newBufferedReader(coreOrExtensionFilePath, coreOrExtension.getEncoding());) {
+		try (final Reader inputReader = Files.newBufferedReader(coreOrExtensionFilePath,
+				coreOrExtension.getEncoding());) {
 			parseFunction.accept(inputReader);
 		}
 	}
