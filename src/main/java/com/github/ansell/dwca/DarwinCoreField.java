@@ -65,6 +65,10 @@ public class DarwinCoreField {
 			builder.append("vocabulary=");
 			builder.append(vocabulary);
 		}
+		if (delimitedBy != null) {
+			builder.append("delimitedBy=");
+			builder.append(delimitedBy);
+		}
 		builder.append("]");
 		return builder.toString();
 	}
@@ -73,6 +77,7 @@ public class DarwinCoreField {
 	private String term;
 	private String defaultValue;
 	private String vocabulary;
+	private String delimitedBy;
 
 	public Integer getIndex() {
 		return index;
@@ -121,6 +126,17 @@ public class DarwinCoreField {
 		this.vocabulary = vocabularyUri;
 	}
 
+	public String getDelimitedBy() {
+		return delimitedBy;
+	}
+
+	public void setDelimitedBy(String delimitedBy) {
+		if (this.delimitedBy != null && !this.delimitedBy.equals(delimitedBy)) {
+			throw new IllegalStateException("Cannot specify multiple delimitedBy values for a field.");
+		}
+		this.delimitedBy = delimitedBy;
+	}
+
 	public static DarwinCoreField fromAttributes(Attributes attributes) {
 		DarwinCoreField result = new DarwinCoreField();
 		for (int i = 0; i < attributes.getLength(); i++) {
@@ -134,6 +150,8 @@ public class DarwinCoreField {
 				result.setDefault(attributes.getValue(i));
 			} else if (DarwinCoreArchiveConstants.VOCABULARY.equals(localName)) {
 				result.setVocabulary(attributes.getValue(i));
+			} else if (DarwinCoreArchiveConstants.DELIMITED_BY.equals(localName)) {
+				result.setDelimitedBy(attributes.getValue(i));
 			} else {
 				System.out.println("Found unrecognised Darwin Core attribute for field " + " : " + localName);
 			}

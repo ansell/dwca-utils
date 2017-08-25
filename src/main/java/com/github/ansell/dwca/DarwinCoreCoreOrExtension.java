@@ -409,6 +409,9 @@ public class DarwinCoreCoreOrExtension {
 			if (nextField.getVocabulary() != null) {
 				writer.writeAttribute(DarwinCoreArchiveConstants.VOCABULARY, nextField.getVocabulary());
 			}
+			if (nextField.getDelimitedBy() != null) {
+				writer.writeAttribute(DarwinCoreArchiveConstants.DELIMITED_BY, nextField.getDelimitedBy());
+			}
 			// end field
 			writer.writeEndElement();
 		}
