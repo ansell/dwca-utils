@@ -96,6 +96,10 @@
 			<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
 			<artifactId>schema-generator</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.github.ansell.concurrent</groupId>
+			<artifactId>jparallel</artifactId>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
@@ -224,6 +228,11 @@
 						<artifactId>jsr173-ri</artifactId>
 					</exclusion>
 				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ansell.concurrent</groupId>
+				<artifactId>jparallel</artifactId>
+				<version>0.0.2-SNAPSHOT</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

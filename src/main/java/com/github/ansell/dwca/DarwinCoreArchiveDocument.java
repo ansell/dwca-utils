@@ -31,16 +31,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import com.github.ansell.concurrent.jparallel.JParallel;
+import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
 
 import javanet.staxutils.IndentingXMLStreamWriter;
 
 /**
- * Represents an entire Darwin Core Archive metadata.xml file as parsed into memory.
+ * Represents an entire Darwin Core Archive metadata.xml file as parsed into
+ * memory.
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
@@ -179,13 +189,86 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 							"Fields that do not have indexes must have default values set: " + field.getTerm());
 				}
 			}
-        }
-    }
+		}
+	}
 
 	@Override
-	public Iterator<DarwinCoreRecord> iterator() {
-		// TODO Auto-generated method stub
-		return null;
+	public CloseableIterator<DarwinCoreRecord> iterator() {
+		DarwinCoreRecord sentinel = (DarwinCoreRecord) new Object();
+		BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(10);
+		DarwinCoreArchiveDocument document = this;
+		JParallel<List<String>, DarwinCoreRecord> parallel = JParallel.forFunctions(line -> new DarwinCoreRecord() {
+
+			@Override
+			public List<String> getValues() {
+				// FIXME: Merge the other files fields together
+				return line;
+			}
+
+			@Override
+			public List<DarwinCoreField> getFields() {
+				// FIXME: Merge the other fields together
+				return getDocument().getCore().getFields();
+			}
+
+			@Override
+			public DarwinCoreArchiveDocument getDocument() {
+				return document;
+			}
+		}, record -> pendingResults.offer(record));
+		
+		return new CloseableIterator<DarwinCoreRecord>() {
+
+			private final AtomicBoolean closed = new AtomicBoolean(false);
+			private volatile DarwinCoreRecord nextItem;
+
+			@Override
+			public void close() {
+				if(closed.compareAndSet(false, true)) {
+					try {
+						while(!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
+							pendingResults.clear();
+						}
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						return;
+					}
+				}
+			}
+
+			@Override
+			public DarwinCoreRecord next() {
+				if(!closed.get()) {
+					return nextItem;
+				}
+				throw new NoSuchElementException("No other records found");
+			}
+
+			@Override
+			public boolean hasNext() {
+				try {
+					if(closed.get()) {
+						return false;
+					}
+					if(Thread.currentThread().isInterrupted()) {
+						close();
+						return false;
+					}
+					DarwinCoreRecord poll = pendingResults.take();
+					if(poll == sentinel) {
+						close();
+						return false;
+					} else {
+						nextItem = poll;
+						return true;
+					}
+				} catch (InterruptedException e) {
+					close();
+					Thread.currentThread().interrupt();
+					return false;
+				}
+			}
+		};
 	}
 
 }

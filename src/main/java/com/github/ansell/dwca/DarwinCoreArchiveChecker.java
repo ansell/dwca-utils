@@ -35,12 +35,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
+import org.jooq.lambda.Unchecked;
 import org.xml.sax.SAXException;
 
 import com.github.ansell.csv.stream.CSVStream;
@@ -60,232 +62,273 @@ import joptsimple.OptionSpec;
  */
 public class DarwinCoreArchiveChecker {
 
-    public static final String METADATA_XML = "metadata.xml";
-    public static final String META_XML = "meta.xml";
+	public static final String METADATA_XML = "metadata.xml";
+	public static final String META_XML = "meta.xml";
 
-    /**
-     * Private constructor for static only class
-     */
-    private DarwinCoreArchiveChecker() {
-    }
+	/**
+	 * Private constructor for static only class
+	 */
+	private DarwinCoreArchiveChecker() {
+	}
 
-    public static void main(String... args) throws Exception {
-        final OptionParser parser = new OptionParser();
+	public static void main(String... args) throws Exception {
+		final OptionParser parser = new OptionParser();
 
-        final OptionSpec<Void> help = parser.accepts("help").forHelp();
-        final OptionSpec<File> input = parser.accepts("input").withRequiredArg().ofType(File.class)
-                .required()
-                .describedAs("The input Darwin Core Archive file or metadata file to be checked.");
-        final OptionSpec<File> output = parser.accepts("output").withRequiredArg()
-                .ofType(File.class).describedAs(
-                        "A directory to output summary and other files to. If this is not set, no output will be preserved.");
-        final OptionSpec<Boolean> debugOption = parser.accepts("debug").withRequiredArg()
-                .ofType(Boolean.class).defaultsTo(Boolean.FALSE)
-                .describedAs("Set to true to debug.");
+		final OptionSpec<Void> help = parser.accepts("help").forHelp();
+		final OptionSpec<File> input = parser.accepts("input").withRequiredArg().ofType(File.class).required()
+				.describedAs("The input Darwin Core Archive file or metadata file to be checked.");
+		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).describedAs(
+				"A directory to output summary and other files to. If this is not set, no output will be preserved.");
+		final OptionSpec<Boolean> debugOption = parser.accepts("debug").withRequiredArg().ofType(Boolean.class)
+				.defaultsTo(Boolean.FALSE).describedAs("Set to true to debug.");
 
-        OptionSet options = null;
+		OptionSet options = null;
 
-        try {
-            options = parser.parse(args);
-        } catch (final OptionException e) {
-            System.out.println(e.getMessage());
-            parser.printHelpOn(System.out);
-            throw e;
-        }
+		try {
+			options = parser.parse(args);
+		} catch (final OptionException e) {
+			System.out.println(e.getMessage());
+			parser.printHelpOn(System.out);
+			throw e;
+		}
 
-        if (options.has(help)) {
-            parser.printHelpOn(System.out);
-            return;
-        }
+		if (options.has(help)) {
+			parser.printHelpOn(System.out);
+			return;
+		}
 
-        final boolean debug = debugOption.value(options);
+		final boolean debug = debugOption.value(options);
 
-        final Path inputPath = input.value(options).toPath();
-        if (!Files.exists(inputPath)) {
-            throw new FileNotFoundException(
-                    "Could not find input Darwin Core Archive file or metadata file: "
-                            + inputPath.toString());
-        }
+		final Path inputPath = input.value(options).toPath();
+		if (!Files.exists(inputPath)) {
+			throw new FileNotFoundException(
+					"Could not find input Darwin Core Archive file or metadata file: " + inputPath.toString());
+		}
 
-        final Path tempDir = Files.createTempDirectory("dwca-check-");
+		final Path tempDir = Files.createTempDirectory("dwca-check-");
 
-        try {
-            final Path outputDirPath;
-            boolean hasOutput = options.has(output);
-            if (hasOutput) {
-                outputDirPath = output.value(options).toPath();
-            } else {
-                outputDirPath = tempDir;
-            }
+		try {
+			final Path outputDirPath;
+			boolean hasOutput = options.has(output);
+			if (hasOutput) {
+				outputDirPath = output.value(options).toPath();
+			} else {
+				outputDirPath = tempDir;
+			}
 
-            final Path metadataPath;
-            if (inputPath.getFileName().toString().contains(".zip")) {
-                metadataPath = checkZip(inputPath, tempDir);
-                if (metadataPath == null) {
-                    throw new IllegalStateException("Did not find a metadata file in the ZIP file: "
-                            + inputPath.toAbsolutePath().toString());
-                }
-            } else {
-                metadataPath = inputPath;
-            }
+			final Path metadataPath;
+			if (inputPath.getFileName().toString().contains(".zip")) {
+				metadataPath = checkZip(inputPath, tempDir);
+				if (metadataPath == null) {
+					throw new IllegalStateException(
+							"Did not find a metadata file in the ZIP file: " + inputPath.toAbsolutePath().toString());
+				}
+			} else {
+				metadataPath = inputPath;
+			}
 
-            DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(metadataPath);
-            if (debug) {
-                System.out.println(archiveDocument.toString());
-            }
+			DarwinCoreArchiveDocument archiveDocument = parseMetadataXml(metadataPath);
+			if (debug) {
+				System.out.println(archiveDocument.toString());
+			}
 
-            DarwinCoreCoreOrExtension core = archiveDocument.getCore();
-            checkCoreOrExtension(core, metadataPath, outputDirPath, hasOutput, debug);
-            for(DarwinCoreCoreOrExtension extension : archiveDocument.getExtensions()) {
-                checkCoreOrExtension(extension, metadataPath, outputDirPath, hasOutput, debug);
-            }
-        } finally {
-            FileUtils.deleteQuietly(tempDir.toFile());
-        }
-    }
+			DarwinCoreCoreOrExtension core = archiveDocument.getCore();
+			checkCoreOrExtension(core, metadataPath, outputDirPath, hasOutput, debug);
+			for (DarwinCoreCoreOrExtension extension : archiveDocument.getExtensions()) {
+				checkCoreOrExtension(extension, metadataPath, outputDirPath, hasOutput, debug);
+			}
+		} finally {
+			FileUtils.deleteQuietly(tempDir.toFile());
+		}
+	}
 
-    /**
-     * @param coreOrExtension
-     * @param metadataPath
-     * @param outputDirPath
-     * @param hasOutput
-     * @param debug
-     * @throws IOException
-     * @throws CSVStreamException
-     */
-    public static void checkCoreOrExtension(DarwinCoreCoreOrExtension coreOrExtension,
-            final Path metadataPath, final Path outputDirPath, boolean hasOutput,
-            final boolean debug) throws IOException, CSVStreamException {
-        int headerLineCount = coreOrExtension.getIgnoreHeaderLines();
-        List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
-                .collect(Collectors.toList());
-        // TODO: Only support a single file currently
-        String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
-        Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
-                .toAbsolutePath();
-        try (Reader inputReader = Files.newBufferedReader(coreOrExtensionFilePath, coreOrExtension.getEncoding());) {
-            if (hasOutput) {
-                try (Writer summaryWriter = Files.newBufferedWriter(
-                        outputDirPath
-                                .resolve("Statistics-" + coreOrExtensionFilePath.getFileName().toString()),
-                        coreOrExtension.getEncoding());
-                        Writer mappingWriter = Files.newBufferedWriter(
-                                outputDirPath.resolve(
-                                        "Mapping-" + coreOrExtensionFilePath.getFileName().toString()),
-                                coreOrExtension.getEncoding());) {
-                    // Summarise the core document
-                    CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(),
-                            coreOrExtension.getCsvSchema(), summaryWriter, mappingWriter, 20, true, debug,
-                            coreOrExtensionFields, headerLineCount);
-                }
-            } else {
-                CSVStream.parse(inputReader, h -> {
-                }, (h, l) -> l, l -> {
-                }, coreOrExtensionFields, headerLineCount, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
-            }
-        }
-    }
+	/**
+	 * Parses and summarises, if output is required, the files for a
+	 * {@link DarwinCoreCoreOrExtension}.
+	 * 
+	 * @param coreOrExtension
+	 *            The core or extension to parse
+	 * @param metadataPath
+	 *            The path to the metadata, which is used to relatively resolve
+	 *            the data file locations.
+	 * @param outputDirPath
+	 *            The output directory path if output is required
+	 * @param hasOutput
+	 *            True to generate statistical output and false to simply
+	 *            attempt to parse the file to determine if it is syntactically
+	 *            valid.
+	 * @param debug
+	 *            True to emit debug messages
+	 * @throws IOException
+	 *             If there are issues accessing or reading the files.
+	 * @throws CSVStreamException
+	 *             If there are CSV syntax errors.
+	 */
+	public static void checkCoreOrExtension(DarwinCoreCoreOrExtension coreOrExtension, final Path metadataPath,
+			final Path outputDirPath, boolean hasOutput, final boolean debug) throws IOException, CSVStreamException {
+		int headerLineCount = coreOrExtension.getIgnoreHeaderLines();
+		List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
+				.collect(Collectors.toList());
+		// TODO: Only support a single file currently
+		String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
+		Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
+				.toAbsolutePath();
+		Consumer<Reader> summariseFunction = Unchecked.consumer(inputReader -> {
+			try (Writer summaryWriter = Files.newBufferedWriter(
+					outputDirPath.resolve("Statistics-" + coreOrExtensionFilePath.getFileName().toString()),
+					coreOrExtension.getEncoding());
+					Writer mappingWriter = Files.newBufferedWriter(
+							outputDirPath.resolve("Mapping-" + coreOrExtensionFilePath.getFileName().toString()),
+							coreOrExtension.getEncoding());) {
+				// Summarise the core document
+				CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema(),
+						summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields, headerLineCount);
+			}
+		});
+		Consumer<Reader> parseFunction = Unchecked.consumer(inputReader -> {
+			CSVStream.parse(inputReader, h -> {
+			}, (h, l) -> l, l -> {
+			}, coreOrExtensionFields, headerLineCount, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
+		});
+		// Parse the core or extension, either using the summarise or parse
+		// function as necessary to generate output or otherwise
+		parseCoreOrExtension(coreOrExtension, metadataPath, hasOutput ? summariseFunction : parseFunction);
+	}
 
-    /**
-     * Checks that the zip file given in inputPath contains a valid structure
-     * for a Darwin Core Archive zip file, while extracting it to tempDir.
-     * 
-     * @param inputPath
-     *            The Darwin Core Archive zip file.
-     * @param tempDir
-     *            The temporary directory to extract the zip file to.
-     * @return The path to the extracted metadata.xml file, if it existed,
-     *         otherwise null.
-     * @throws IOException
-     *             If there is an input-output exception.
-     * @throws IllegalStateException If there is not exactly one file named either meta.xml or metadata.xml
-     */
-    public static Path checkZip(Path inputPath, Path tempDir) throws IOException {
-        Path metadataPath = null;
+	/**
+	 * Parses and summarises, if output is required, the files for a
+	 * {@link DarwinCoreCoreOrExtension}.
+	 * 
+	 * @param coreOrExtension
+	 *            The core or extension to parse
+	 * @param metadataPath
+	 *            The path to the metadata, which is used to relatively resolve
+	 *            the data file locations.
+	 * @param parseFunction
+	 *            The {@link Consumer} which is used to parse the core or
+	 *            extension.
+	 * @throws IOException
+	 *             If there are issues accessing or reading the files.
+	 */
+	public static void parseCoreOrExtension(DarwinCoreCoreOrExtension coreOrExtension, Path metadataPath,
+			Consumer<Reader> parseFunction) throws IOException {
+		List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
+				.collect(Collectors.toList());
+		// TODO: Only support a single file currently
+		String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
+		Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
+				.toAbsolutePath();
+		try (Reader inputReader = Files.newBufferedReader(coreOrExtensionFilePath, coreOrExtension.getEncoding());) {
+			parseFunction.accept(inputReader);
+		}
+	}
 
-        final FileSystemManager fsManager = VFS.getManager();
-        final FileObject zipFile = fsManager
-                .resolveFile("zip:" + inputPath.toAbsolutePath().toString());
+	/**
+	 * Checks that the zip file given in inputPath contains a valid structure
+	 * for a Darwin Core Archive zip file, while extracting it to tempDir.
+	 * 
+	 * @param inputPath
+	 *            The Darwin Core Archive zip file.
+	 * @param tempDir
+	 *            The temporary directory to extract the zip file to.
+	 * @return The path to the extracted metadata.xml file, if it existed,
+	 *         otherwise null.
+	 * @throws IOException
+	 *             If there is an input-output exception.
+	 * @throws IllegalStateException
+	 *             If there is not exactly one file named either meta.xml or
+	 *             metadata.xml
+	 */
+	public static Path checkZip(Path inputPath, Path tempDir) throws IOException {
+		Path metadataPath = null;
 
-        final FileObject[] children = zipFile.getChildren();
-        if (children.length == 0) {
-            throw new RuntimeException("No files in zip file: " + inputPath);
-        }
+		final FileSystemManager fsManager = VFS.getManager();
+		final FileObject zipFile = fsManager.resolveFile("zip:" + inputPath.toAbsolutePath().toString());
 
-        for (FileObject nextFile : children) {
-            try (InputStream in = nextFile.getContent().getInputStream();) {
-                String baseName = nextFile.getName().getBaseName();
-                String pathName = nextFile.getName().getPath();
-                Path nextTempFile = tempDir.resolve("./"+pathName).toAbsolutePath().normalize();
-                System.out.println("nextFile=" + nextFile.toString() + " baseName=" + baseName + " pathName=" + pathName + " nextTempFile=" + nextTempFile);
-                if (baseName.equalsIgnoreCase(METADATA_XML)
-                        || baseName.equalsIgnoreCase(META_XML)) {
-                    if (metadataPath != null) {
-                        throw new IllegalStateException("Duplicate metadata.xml files found in ZIP file: first="
-                                + metadataPath + " duplicate=" + baseName);
-                    }
-                    metadataPath = nextTempFile;
-                }
+		final FileObject[] children = zipFile.getChildren();
+		if (children.length == 0) {
+			throw new RuntimeException("No files in zip file: " + inputPath);
+		}
 
-                Files.createDirectories(nextTempFile.getParent());
-                Files.copy(in, nextTempFile);
-            }
-        }
+		for (FileObject nextFile : children) {
+			try (InputStream in = nextFile.getContent().getInputStream();) {
+				String baseName = nextFile.getName().getBaseName();
+				String pathName = nextFile.getName().getPath();
+				Path nextTempFile = tempDir.resolve("./" + pathName).toAbsolutePath().normalize();
+				System.out.println("nextFile=" + nextFile.toString() + " baseName=" + baseName + " pathName=" + pathName
+						+ " nextTempFile=" + nextTempFile);
+				if (baseName.equalsIgnoreCase(METADATA_XML) || baseName.equalsIgnoreCase(META_XML)) {
+					if (metadataPath != null) {
+						throw new IllegalStateException("Duplicate metadata.xml files found in ZIP file: first="
+								+ metadataPath + " duplicate=" + baseName);
+					}
+					metadataPath = nextTempFile;
+				}
 
-        if (metadataPath == null) {
-            throw new IllegalStateException("Did not find a metadata file in ZIP file: "
-                    + inputPath.toAbsolutePath().toString());
-        }
+				Files.createDirectories(nextTempFile.getParent());
+				Files.copy(in, nextTempFile);
+			}
+		}
 
-        return metadataPath;
-    }
+		if (metadataPath == null) {
+			throw new IllegalStateException(
+					"Did not find a metadata file in ZIP file: " + inputPath.toAbsolutePath().toString());
+		}
 
-    /**
-     * Checks that the folder given in inputPath contains a valid structure
-     * for a Darwin Core Archive folder.
-     * 
-     * @param inputPath
-     *            The Darwin Core Archive zip file.
-     * @return The path to the archive metadata.xml file, if it existed,
-     *         otherwise null.
-     * @throws IOException
-     *             If there is an input-output exception.
-     * @throws IllegalStateException If there is not exactly one file named either meta.xml or metadata.xml
-     */
-    public static Path checkFolder(Path inputPath) throws IOException {
-        List<Path> metadataFound = Files.walk(inputPath).filter(p -> p.getFileName().toString().equals(META_XML) || p.getFileName().toString().equals(METADATA_XML)).collect(Collectors.toList());
-        
-        if (metadataFound.isEmpty()) {
-            throw new IllegalStateException("Did not find a metadata file in folder: "
-                    + inputPath.toAbsolutePath().toString());
-        } else if (metadataFound.size() > 1) {
-        	throw new IllegalStateException("Duplicate metadata files found in folder: first=" + metadataFound.get(0) + " duplicate=" + metadataFound.get(1));
-        }
+		return metadataPath;
+	}
 
-        return metadataFound.get(0);
-    }
+	/**
+	 * Checks that the folder given in inputPath contains a valid structure for
+	 * a Darwin Core Archive folder.
+	 * 
+	 * @param inputPath
+	 *            The Darwin Core Archive zip file.
+	 * @return The path to the archive metadata.xml file, if it existed,
+	 *         otherwise null.
+	 * @throws IOException
+	 *             If there is an input-output exception.
+	 * @throws IllegalStateException
+	 *             If there is not exactly one file named either meta.xml or
+	 *             metadata.xml
+	 */
+	public static Path checkFolder(Path inputPath) throws IOException {
+		List<Path> metadataFound = Files.walk(inputPath).filter(
+				p -> p.getFileName().toString().equals(META_XML) || p.getFileName().toString().equals(METADATA_XML))
+				.collect(Collectors.toList());
 
-    /**
-     * Parses the metadata.xml file.
-     * 
-     * @param metadataPath
-     *            The path to the metadata.xml file to parse.
-     * @return An instance of {@link DarwinCoreArchiveDocument} representing the
-     *         parsed document.
-     * @throws IOException
-     *             If there is an input-output exception.
-     * @throws SAXException
-     *             If there is an exception parsing the XML document.
-     * @throws IllegalStateException
-     *             If there is an exception interpreting the context of parts of
-     *             the document that violate the state assumptions in the
-     *             specification.
-     */
-    public static DarwinCoreArchiveDocument parseMetadataXml(Path metadataPath)
-            throws IOException, SAXException, IllegalStateException {
-        try (Reader input = Files.newBufferedReader(metadataPath);) {
-            return DarwinCoreMetadataSaxParser.parse(input);
-        }
-    }
+		if (metadataFound.isEmpty()) {
+			throw new IllegalStateException(
+					"Did not find a metadata file in folder: " + inputPath.toAbsolutePath().toString());
+		} else if (metadataFound.size() > 1) {
+			throw new IllegalStateException("Duplicate metadata files found in folder: first=" + metadataFound.get(0)
+					+ " duplicate=" + metadataFound.get(1));
+		}
+
+		return metadataFound.get(0);
+	}
+
+	/**
+	 * Parses the metadata.xml file.
+	 * 
+	 * @param metadataPath
+	 *            The path to the metadata.xml file to parse.
+	 * @return An instance of {@link DarwinCoreArchiveDocument} representing the
+	 *         parsed document.
+	 * @throws IOException
+	 *             If there is an input-output exception.
+	 * @throws SAXException
+	 *             If there is an exception parsing the XML document.
+	 * @throws IllegalStateException
+	 *             If there is an exception interpreting the context of parts of
+	 *             the document that violate the state assumptions in the
+	 *             specification.
+	 */
+	public static DarwinCoreArchiveDocument parseMetadataXml(Path metadataPath)
+			throws IOException, SAXException, IllegalStateException {
+		try (Reader input = Files.newBufferedReader(metadataPath);) {
+			return DarwinCoreMetadataSaxParser.parse(input);
+		}
+	}
 
 }
