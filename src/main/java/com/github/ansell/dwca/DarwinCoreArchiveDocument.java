@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -45,7 +46,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public class DarwinCoreArchiveDocument {
+public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 
 	@Override
 	public String toString() {
@@ -180,5 +181,11 @@ public class DarwinCoreArchiveDocument {
 			}
         }
     }
+
+	@Override
+	public Iterator<DarwinCoreRecord> iterator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
