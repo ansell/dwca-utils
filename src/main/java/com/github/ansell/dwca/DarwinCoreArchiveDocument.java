@@ -26,21 +26,32 @@
 package com.github.ansell.dwca;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+
+import org.jooq.lambda.Unchecked;
 
 import com.github.ansell.concurrent.jparallel.JParallel;
 import com.github.ansell.csv.stream.CSVStream;
@@ -113,6 +124,16 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 	private DarwinCoreCoreOrExtension core;
 
 	private final List<DarwinCoreCoreOrExtension> extensions = new ArrayList<>();
+
+	/**
+	 * The Path to the meta.xml file that this object represents, or null if it
+	 * was created in memory.
+	 */
+	private Path metadataXMLPath;
+
+	public Optional<Path> getMetadataXMLPath() {
+		return Optional.ofNullable(metadataXMLPath);
+	}
 
 	public DarwinCoreCoreOrExtension getCore() {
 		if (core == null) {
@@ -197,49 +218,87 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 		DarwinCoreRecord sentinel = (DarwinCoreRecord) new Object();
 		BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(10);
 		DarwinCoreArchiveDocument document = this;
-		JParallel<List<String>, DarwinCoreRecord> parallel = JParallel.forFunctions(line -> new DarwinCoreRecord() {
+		JParallel<List<String>, DarwinCoreRecord> parallelBuilder = JParallel
+				.forFunctions(line -> new DarwinCoreRecord() {
 
-			@Override
-			public List<String> getValues() {
-				// FIXME: Merge the other files fields together
-				return line;
-			}
+					@Override
+					public List<String> getValues() {
+						// FIXME: Merge the other files fields together
+						return line;
+					}
 
-			@Override
-			public List<DarwinCoreField> getFields() {
-				// FIXME: Merge the other fields together
-				return getDocument().getCore().getFields();
-			}
+					@Override
+					public List<DarwinCoreField> getFields() {
+						// FIXME: Merge the other fields together
+						return getDocument().getCore().getFields();
+					}
 
-			@Override
-			public DarwinCoreArchiveDocument getDocument() {
-				return document;
-			}
-		}, record -> pendingResults.offer(record));
-		
+					@Override
+					public DarwinCoreArchiveDocument getDocument() {
+						return document;
+					}
+				}, record -> pendingResults.offer(record));
+
+		JParallel<List<String>, DarwinCoreRecord> startedParallel = parallelBuilder.inputProcessors(1)
+				.outputConsumers(1).start();
+
+		// Create a parse function
+		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(core, h -> {
+		}, (h, l) -> l, l -> startedParallel.add(l));
+
 		return new CloseableIterator<DarwinCoreRecord>() {
 
+			private final AtomicBoolean started = new AtomicBoolean(false);
+			private final CountDownLatch startCompleted = new CountDownLatch(1);
 			private final AtomicBoolean closed = new AtomicBoolean(false);
 			private volatile DarwinCoreRecord nextItem;
+			private final ExecutorService executor = Executors.newFixedThreadPool(1);
+			private final AtomicReference<Future<?>> runningJob = new AtomicReference<>();
+
+			private void checkStart() {
+				if (started.compareAndSet(false, true)) {
+					try {
+						runningJob.getAndSet(executor.submit(Unchecked
+								.runnable(() -> DarwinCoreArchiveChecker.parseCoreOrExtension(document.getCore(),
+										document.getMetadataXMLPath().orElse(null), parseFunction))));
+					} finally {
+						startCompleted.countDown();
+					}
+				}
+			}
 
 			@Override
 			public void close() {
-				if(closed.compareAndSet(false, true)) {
+				if (closed.compareAndSet(false, true)) {
 					try {
-						while(!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
+						checkStart();
+						startCompleted.await();
+						while (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
 							pendingResults.clear();
+						}
+						Future<?> future = runningJob.get();
+						if (future != null && !future.isDone()) {
+							future.cancel(true);
 						}
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
-						return;
+						e.printStackTrace();
+					} finally {
+						startedParallel.close();
 					}
 				}
 			}
 
 			@Override
 			public DarwinCoreRecord next() {
-				if(!closed.get()) {
-					return nextItem;
+				if (!closed.get()) {
+					try {
+						checkStart();
+						startCompleted.await();
+						return nextItem;
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
 				}
 				throw new NoSuchElementException("No other records found");
 			}
@@ -247,15 +306,17 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 			@Override
 			public boolean hasNext() {
 				try {
-					if(closed.get()) {
+					if (closed.get()) {
 						return false;
 					}
-					if(Thread.currentThread().isInterrupted()) {
+					if (Thread.currentThread().isInterrupted()) {
 						close();
 						return false;
 					}
+					checkStart();
+					startCompleted.await();
 					DarwinCoreRecord poll = pendingResults.take();
-					if(poll == sentinel) {
+					if (poll == sentinel) {
 						close();
 						return false;
 					} else {

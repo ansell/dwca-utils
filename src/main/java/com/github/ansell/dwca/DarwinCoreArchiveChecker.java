@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -225,14 +226,35 @@ public class DarwinCoreArchiveChecker {
 	 * @return A {@link Consumer} that can accept a Reader containing the CSV
 	 *         file to parse the content of the given core or extension.
 	 */
-	private static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension) {
+	public static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension) {
+		// Null implementations of the three CSVStream.parse functions to just
+		// validate the syntax and line lengths
+		Consumer<List<String>> headersValidator = h -> {
+		};
+		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
+		Consumer<List<String>> resultConsumer = l -> {
+		};
+		return createParseFunction(coreOrExtension, headersValidator, lineConverter, resultConsumer);
+	}
+
+	/**
+	 * Creates a pure parse function, without processing any of the lines, in
+	 * order to validate the CSV syntax, but not the content, apart from
+	 * checking that line lengths are consistent.
+	 * 
+	 * @param coreOrExtension
+	 *            The {@link DarwinCoreCoreOrExtension} to parse.
+	 * @return A {@link Consumer} that can accept a Reader containing the CSV
+	 *         file to parse the content of the given core or extension.
+	 */
+	public static <T> Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension,
+			final Consumer<List<String>> headersValidator,
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer) {
 		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
 		return Unchecked.consumer(inputReader -> {
-			CSVStream.parse(inputReader, h -> {
-			}, (h, l) -> l, l -> {
-			}, coreOrExtensionFields, coreOrExtension.getIgnoreHeaderLines(), CSVStream.defaultMapper(),
-					coreOrExtension.getCsvSchema());
+			CSVStream.parse(inputReader, headersValidator, lineConverter, resultConsumer, coreOrExtensionFields,
+					coreOrExtension.getIgnoreHeaderLines(), CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
 		});
 	}
 
