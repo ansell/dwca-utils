@@ -44,6 +44,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -219,43 +220,63 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 
 	@Override
 	public CloseableIterator<DarwinCoreRecord> iterator() {
-		final DarwinCoreRecord sentinel = (DarwinCoreRecord) new Object();
-		final BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(10);
+		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
+			@Override
+			public List<String> getValues() {
+				return null;
+			}
+
+			@Override
+			public List<DarwinCoreField> getFields() {
+				return null;
+			}
+
+			@Override
+			public DarwinCoreArchiveDocument getDocument() {
+				return null;
+			}
+		};
+		final BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(1);
 		final DarwinCoreArchiveDocument document = this;
-		final JParallel<List<String>, DarwinCoreRecord> parallelBuilder = JParallel
-				.forFunctions(line -> new DarwinCoreRecord() {
-
-					@Override
-					public List<String> getValues() {
-						// FIXME: Merge the other files fields together
-						return line;
-					}
-
-					@Override
-					public List<DarwinCoreField> getFields() {
-						// FIXME: Merge the other fields together
-						return getDocument().getCore().getFields();
-					}
-
-					@Override
-					public DarwinCoreArchiveDocument getDocument() {
-						return document;
-					}
-				}, record -> pendingResults.offer(record));
-
-		final JParallel<List<String>, DarwinCoreRecord> startedParallel = parallelBuilder.inputProcessors(1)
-				.outputConsumers(1).inputBuffer(10).outputBuffer(10).start();
 
 		// Create a parse function
-		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(core, h -> {
-		}, (h, l) -> {
+		BiFunction<List<String>, List<String>, DarwinCoreRecord> lineConverter = (h, l) -> {
 			// Enable interruption to fail the parse before it completes
 			if (Thread.currentThread().isInterrupted()) {
 				throw new IllegalStateException("Interruption occurred during parse");
-			} else {
-				return l;
 			}
-		}, l -> startedParallel.add(l));
+			return new DarwinCoreRecord() {
+
+				@Override
+				public List<String> getValues() {
+					// FIXME: Merge the other files fields together
+					return l;
+				}
+
+				@Override
+				public List<DarwinCoreField> getFields() {
+					// FIXME: Merge the other fields together
+					return getDocument().getCore().getFields();
+				}
+
+				@Override
+				public DarwinCoreArchiveDocument getDocument() {
+					return document;
+				}
+			};
+		};
+
+		Consumer<DarwinCoreRecord> resultConsumer = l -> {
+			try {
+				pendingResults.put(l);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				e.printStackTrace();
+			}
+		};
+		
+		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(core, h -> {
+		}, lineConverter, resultConsumer);
 
 		return new CloseableIterator<DarwinCoreRecord>() {
 
@@ -272,14 +293,32 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 						Path nextMetadataPath = document.getMetadataXMLPath()
 								.orElseThrow(() -> new IllegalStateException(
 										"Metadata XML Path was null, not able to iterate due to a lack of a file reference point."));
-						Future<?> previousJob = runningJob
-								.getAndSet(executor.submit(Unchecked.runnable(() -> DarwinCoreArchiveChecker
-										.parseCoreOrExtension(document.getCore(), nextMetadataPath, parseFunction))));
+						Future<?> previousJob = runningJob.getAndSet(executor.submit(Unchecked.runnable(() -> {
+							try {
+								DarwinCoreArchiveChecker.parseCoreOrExtension(document.getCore(), nextMetadataPath,
+										parseFunction);
+							} finally {
+
+								// Add the sentinel after the parse operation
+								// above completes
+								int waitCount = 0;
+								long waitTime = 10;
+								while (pendingResults.size() > 0 && waitCount < 10) {
+									Thread.sleep(waitTime);
+									waitCount--;
+								}
+								pendingResults.offer(sentinel);
+							}
+						})));
+						// Only one job goes through this executor
+						executor.shutdown();
 
 						// Should not have been more than one job due to setup
 						// here, but avoiding the possibility that one could
 						// leak in future
 						if (previousJob != null) {
+							System.out.println(
+									"Found previous running parse for this CloseableIteration, attempting to cancel it...");
 							previousJob.cancel(true);
 						}
 					} finally {
@@ -295,26 +334,27 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 						try {
 							doStart();
 							startCompleted.await();
-							// If the sentinel could not be added in 10 seconds,
-							// we attempt to clear the queue and try again until
-							// space is available
-							while (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
-								pendingResults.clear();
-							}
 						} finally {
 							try {
-								Future<?> future = runningJob.get();
-								if (future != null && !future.isDone()) {
-									future.cancel(true);
+								// If the sentinel could not be added in
+								// 10 seconds,
+								// we attempt to clear the queue and try
+								// again until
+								// space is available
+								while (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
+									pendingResults.clear();
 								}
 							} finally {
 								try {
-									startedParallel.close();
-								} finally {
 									executor.shutdown();
-									executor.awaitTermination(5, TimeUnit.SECONDS);
+									executor.awaitTermination(1, TimeUnit.MINUTES);
 									if (!executor.isTerminated()) {
 										executor.shutdownNow();
+									}
+								} finally {
+									Future<?> future = runningJob.get();
+									if (future != null && !future.isDone()) {
+										future.cancel(true);
 									}
 								}
 							}
@@ -333,7 +373,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 						doStart();
 						startCompleted.await();
 						DarwinCoreRecord result = nextItem;
-						if(result == null) {
+						if (result == null) {
 							hasNext();
 							result = nextItem;
 						}
