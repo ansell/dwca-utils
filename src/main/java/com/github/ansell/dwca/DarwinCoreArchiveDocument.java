@@ -274,7 +274,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 				e.printStackTrace();
 			}
 		};
-		
+
 		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(core, h -> {
 		}, lineConverter, resultConsumer);
 
@@ -298,16 +298,15 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 								DarwinCoreArchiveChecker.parseCoreOrExtension(document.getCore(), nextMetadataPath,
 										parseFunction);
 							} finally {
-
-								// Add the sentinel after the parse operation
-								// above completes
+								// Add a delay for adding the sentinel while the
+								// queue is not yet empty
 								int waitCount = 0;
 								long waitTime = 10;
 								while (pendingResults.size() > 0 && waitCount < 10) {
 									Thread.sleep(waitTime);
 									waitCount--;
 								}
-								pendingResults.offer(sentinel);
+								pendingResults.offer(sentinel, 10, TimeUnit.SECONDS);
 							}
 						})));
 						// Only one job goes through this executor
@@ -332,15 +331,17 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 				if (closed.compareAndSet(false, true)) {
 					try {
 						try {
+							// Even if start wasn't called, need to be
+							// consistent given there is no synchronisation or
+							// locking involved other than
+							// AtomicBoolean.compareAndSet, so start anyway here
 							doStart();
 							startCompleted.await();
 						} finally {
 							try {
-								// If the sentinel could not be added in
-								// 10 seconds,
-								// we attempt to clear the queue and try
-								// again until
-								// space is available
+								// If the sentinel could not be added in 10
+								// seconds, attempt to clear the queue and try
+								// again until space is available
 								while (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
 									pendingResults.clear();
 								}
@@ -352,7 +353,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 										executor.shutdownNow();
 									}
 								} finally {
-									Future<?> future = runningJob.get();
+									Future<?> future = runningJob.getAndSet(null);
 									if (future != null && !future.isDone()) {
 										future.cancel(true);
 									}
