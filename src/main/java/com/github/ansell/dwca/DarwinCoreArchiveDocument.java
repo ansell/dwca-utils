@@ -31,9 +31,9 @@ import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -45,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -54,7 +53,6 @@ import javax.xml.stream.XMLStreamWriter;
 import org.jooq.lambda.Unchecked;
 
 import com.github.ansell.concurrent.jparallel.JParallel;
-import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
 
 import javanet.staxutils.IndentingXMLStreamWriter;
@@ -74,6 +72,8 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 		final int maxLen = 10;
 		StringBuilder builder = new StringBuilder();
 		builder.append("DarwinCoreArchiveDocument [\n");
+		builder.append("metadataXMLPath=");
+		builder.append(metadataXMLPath);
 		builder.append("core=");
 		builder.append(core);
 		builder.append(", \n");
@@ -111,7 +111,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 		writer.writeNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 		writer.writeNamespace("xs", "http://www.w3.org/2001/XMLSchema");
 		writer.writeAttribute("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation",
-				"http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd");
+				DarwinCoreArchiveConstants.DWC + " http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd");
 		core.toXML(writer, showDefaults);
 		for (DarwinCoreCoreOrExtension extension : extensions) {
 			extension.toXML(writer, showDefaults);
@@ -133,6 +133,10 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 
 	public Optional<Path> getMetadataXMLPath() {
 		return Optional.ofNullable(metadataXMLPath);
+	}
+
+	public void setMetadataXMLPath(Path metadataXMLPath) {
+		this.metadataXMLPath = Objects.requireNonNull(metadataXMLPath, "Metadata XML Path cannot be set to null");
 	}
 
 	public DarwinCoreCoreOrExtension getCore() {
@@ -215,10 +219,10 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 
 	@Override
 	public CloseableIterator<DarwinCoreRecord> iterator() {
-		DarwinCoreRecord sentinel = (DarwinCoreRecord) new Object();
-		BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(10);
-		DarwinCoreArchiveDocument document = this;
-		JParallel<List<String>, DarwinCoreRecord> parallelBuilder = JParallel
+		final DarwinCoreRecord sentinel = (DarwinCoreRecord) new Object();
+		final BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(10);
+		final DarwinCoreArchiveDocument document = this;
+		final JParallel<List<String>, DarwinCoreRecord> parallelBuilder = JParallel
 				.forFunctions(line -> new DarwinCoreRecord() {
 
 					@Override
@@ -239,12 +243,19 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 					}
 				}, record -> pendingResults.offer(record));
 
-		JParallel<List<String>, DarwinCoreRecord> startedParallel = parallelBuilder.inputProcessors(1)
-				.outputConsumers(1).start();
+		final JParallel<List<String>, DarwinCoreRecord> startedParallel = parallelBuilder.inputProcessors(1)
+				.outputConsumers(1).inputBuffer(10).outputBuffer(10).start();
 
 		// Create a parse function
 		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(core, h -> {
-		}, (h, l) -> l, l -> startedParallel.add(l));
+		}, (h, l) -> {
+			// Enable interruption to fail the parse before it completes
+			if (Thread.currentThread().isInterrupted()) {
+				throw new IllegalStateException("Interruption occurred during parse");
+			} else {
+				return l;
+			}
+		}, l -> startedParallel.add(l));
 
 		return new CloseableIterator<DarwinCoreRecord>() {
 
@@ -255,12 +266,22 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 			private final ExecutorService executor = Executors.newFixedThreadPool(1);
 			private final AtomicReference<Future<?>> runningJob = new AtomicReference<>();
 
-			private void checkStart() {
+			private void doStart() {
 				if (started.compareAndSet(false, true)) {
 					try {
-						runningJob.getAndSet(executor.submit(Unchecked
-								.runnable(() -> DarwinCoreArchiveChecker.parseCoreOrExtension(document.getCore(),
-										document.getMetadataXMLPath().orElse(null), parseFunction))));
+						Path nextMetadataPath = document.getMetadataXMLPath()
+								.orElseThrow(() -> new IllegalStateException(
+										"Metadata XML Path was null, not able to iterate due to a lack of a file reference point."));
+						Future<?> previousJob = runningJob
+								.getAndSet(executor.submit(Unchecked.runnable(() -> DarwinCoreArchiveChecker
+										.parseCoreOrExtension(document.getCore(), nextMetadataPath, parseFunction))));
+
+						// Should not have been more than one job due to setup
+						// here, but avoiding the possibility that one could
+						// leak in future
+						if (previousJob != null) {
+							previousJob.cancel(true);
+						}
 					} finally {
 						startCompleted.countDown();
 					}
@@ -271,20 +292,36 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 			public void close() {
 				if (closed.compareAndSet(false, true)) {
 					try {
-						checkStart();
-						startCompleted.await();
-						while (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
-							pendingResults.clear();
-						}
-						Future<?> future = runningJob.get();
-						if (future != null && !future.isDone()) {
-							future.cancel(true);
+						try {
+							doStart();
+							startCompleted.await();
+							// If the sentinel could not be added in 10 seconds,
+							// we attempt to clear the queue and try again until
+							// space is available
+							while (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
+								pendingResults.clear();
+							}
+						} finally {
+							try {
+								Future<?> future = runningJob.get();
+								if (future != null && !future.isDone()) {
+									future.cancel(true);
+								}
+							} finally {
+								try {
+									startedParallel.close();
+								} finally {
+									executor.shutdown();
+									executor.awaitTermination(5, TimeUnit.SECONDS);
+									if (!executor.isTerminated()) {
+										executor.shutdownNow();
+									}
+								}
+							}
 						}
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 						e.printStackTrace();
-					} finally {
-						startedParallel.close();
 					}
 				}
 			}
@@ -293,9 +330,15 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 			public DarwinCoreRecord next() {
 				if (!closed.get()) {
 					try {
-						checkStart();
+						doStart();
 						startCompleted.await();
-						return nextItem;
+						DarwinCoreRecord result = nextItem;
+						if(result == null) {
+							hasNext();
+							result = nextItem;
+						}
+						nextItem = null;
+						return result;
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
@@ -313,10 +356,13 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 						close();
 						return false;
 					}
-					checkStart();
+					doStart();
 					startCompleted.await();
+					if (nextItem != null) {
+						return true;
+					}
 					DarwinCoreRecord poll = pendingResults.take();
-					if (poll == sentinel) {
+					if (poll == sentinel || poll == null) {
 						close();
 						return false;
 					} else {
