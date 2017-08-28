@@ -51,7 +51,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema.Builder;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public class DarwinCoreCoreOrExtension {
+public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 
 	public static final DateTimeFormatter DEFAULT_DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -432,5 +432,21 @@ public class DarwinCoreCoreOrExtension {
 		// them completely here
 		result.disableEscapeChar();
 		return result.build();
+	}
+
+	@Override
+	public void checkConstraints() {
+		if (getType() == CoreOrExtension.EXTENSION && getIdOrCoreId() == null) {
+			throw new IllegalStateException("Extensions must have coreId set.");
+		}
+		if (getFields().isEmpty()) {
+			throw new IllegalStateException("Extension must have fields.");
+		}
+		if (getFiles() == null) {
+			throw new IllegalStateException("Extension must have files set.");
+		}
+		for (DarwinCoreField field : getFields()) {
+			field.checkConstraints();
+		}
 	}
 }

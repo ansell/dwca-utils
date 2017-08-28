@@ -66,7 +66,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
+public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, ConstraintChecked {
 
 	@Override
 	public String toString() {
@@ -176,45 +176,14 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord> {
 	 *             If semantic constraints are not enforced.
 	 */
 	public void checkConstraints() throws IllegalStateException {
-		if (core.getFields().isEmpty()) {
-			throw new IllegalStateException("Core must have fields.");
-		}
-		if (core.getFiles() == null) {
-			throw new IllegalStateException("Core must have files set.");
-		}
-		for (DarwinCoreField field : core.getFields()) {
-			if (field.getTerm() == null) {
-				throw new IllegalStateException("All fields must have term set");
-			}
-			if (field.getIndex() == null && field.getDefault() == null) {
-				throw new IllegalStateException(
-						"Fields that do not have indexes must have default values set: " + field.getTerm());
-			}
-		}
+		core.checkConstraints();
 
 		if (!this.getExtensions().isEmpty() && this.getCore().getIdOrCoreId() == null) {
 			throw new IllegalStateException("Core must have id set if there are extensions present.");
 		}
 
 		for (DarwinCoreCoreOrExtension extension : getExtensions()) {
-			if (extension.getIdOrCoreId() == null) {
-				throw new IllegalStateException("Extensions must have coreId set.");
-			}
-			if (extension.getFields().isEmpty()) {
-				throw new IllegalStateException("Extension must have fields.");
-			}
-			if (extension.getFiles() == null) {
-				throw new IllegalStateException("Extension must have files set.");
-			}
-			for (DarwinCoreField field : extension.getFields()) {
-				if (field.getTerm() == null) {
-					throw new IllegalStateException("All extension fields must have term set");
-				}
-				if (field.getIndex() == null && field.getDefault() == null) {
-					throw new IllegalStateException(
-							"Fields that do not have indexes must have default values set: " + field.getTerm());
-				}
-			}
+			extension.checkConstraints();
 		}
 	}
 

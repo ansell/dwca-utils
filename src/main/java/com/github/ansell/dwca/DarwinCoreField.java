@@ -35,7 +35,7 @@ import org.xml.sax.Attributes;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public class DarwinCoreField {
+public class DarwinCoreField implements ConstraintChecked {
 
 	/*
 	 * (non-Javadoc)
@@ -157,6 +157,17 @@ public class DarwinCoreField {
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public void checkConstraints() {
+		if (getTerm() == null) {
+			throw new IllegalStateException("All fields must have term set");
+		}
+		if (getIndex() == null && getDefault() == null) {
+			throw new IllegalStateException(
+					"Fields that do not have indexes must have default values set: " + getTerm());
+		}
 	}
 
 }
