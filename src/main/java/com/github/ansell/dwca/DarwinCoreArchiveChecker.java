@@ -259,6 +259,20 @@ public class DarwinCoreArchiveChecker {
 	}
 
 	/**
+	 * Create a parse function to parse an entire document.
+	 * 
+	 * @param document
+	 *            The {@link DarwinCoreArchiveDocument} to parse.
+	 * @return A {@link Consumer} that can accept a Reader containing the merged
+	 *         CSV file to parse the content of the document as a whole.
+	 */
+	public static <T> Consumer<Reader> createParseFunction(final DarwinCoreArchiveDocument document,
+			final Consumer<List<String>> headersValidator,
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer) {
+		throw new UnsupportedOperationException("TODO: Implement me after merging is implemented");
+	}
+
+	/**
 	 * Parses and summarises, if output is required, the files for a
 	 * {@link DarwinCoreCoreOrExtension}.
 	 * 

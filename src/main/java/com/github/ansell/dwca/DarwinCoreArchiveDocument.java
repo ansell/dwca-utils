@@ -189,6 +189,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 
 	@Override
 	public CloseableIterator<DarwinCoreRecord> iterator() {
+		// Dummy sentinel to signal when iteration is complete
 		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
 			@Override
 			public List<String> getValues() {
