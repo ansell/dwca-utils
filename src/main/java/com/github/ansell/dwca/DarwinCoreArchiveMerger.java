@@ -145,8 +145,14 @@ public class DarwinCoreArchiveMerger {
 			final Path mergedOutputArchivePath = outputDirPath.resolve("merged-archive");
 			final Path mergedOutputMetadataPath = mergedOutputArchivePath.resolve(DarwinCoreArchiveChecker.META_XML);
 			Files.createDirectories(mergedOutputArchivePath);
-			DarwinCoreArchiveDocument mergedArchiveDocument = mergeFieldSets(inputArchiveDocument,
+			final DarwinCoreArchiveDocument mergedArchiveDocument = mergeFieldSets(inputArchiveDocument,
 					otherInputArchiveDocument);
+			DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
+			mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
+			final Path mergedOutputCorePath = mergedOutputMetadataPath
+					.resolveSibling(inputArchiveDocument.getCore().getFiles().getLocations().get(0));
+			mergedOutputCoreDarwinCoreFile
+					.addLocation(mergedOutputCorePath.relativize(mergedOutputMetadataPath).toString());
 			mergedArchiveDocument.setMetadataXMLPath(mergedOutputMetadataPath);
 			try (final Writer mergedMetadataWriter = Files.newBufferedWriter(mergedOutputMetadataPath,
 					StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);) {
@@ -170,9 +176,7 @@ public class DarwinCoreArchiveMerger {
 
 			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument.iterator();
 					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument.iterator();
-					final Writer outputCoreWriter = Files.newBufferedWriter(
-							mergedOutputMetadataPath
-									.resolveSibling(mergedArchiveDocument.getCore().getFiles().getLocations().get(0)),
+					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
 							StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
 					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
 							mergedArchiveDocument.getCore().getCsvSchema())) {
@@ -481,7 +485,11 @@ public class DarwinCoreArchiveMerger {
 			}
 			boolean alreadyInList = false;
 			for (DarwinCoreField nextAssignedResultField : resultCore.getFields()) {
-				if (nextAssignedResultField.getTerm().equals(nextField.getTerm())) {
+				// TODO: Merge fields without terms (What does this mean??)
+				if (!nextAssignedResultField.hasTerm()) {
+					continue;
+				}
+				if (nextField.hasTerm() && nextAssignedResultField.getTerm().equals(nextField.getTerm())) {
 					// Add in vocabulary/default/delimitedBy from the other
 					// archive if it was missing in the reference
 					if (nextAssignedResultField.getVocabulary() == null && nextField.getVocabulary() != null) {

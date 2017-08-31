@@ -90,6 +90,10 @@ public class DarwinCoreField implements ConstraintChecked {
 		this.index = index;
 	}
 
+	public boolean hasTerm() {
+		return this.term != null;
+	}
+	
 	public String getTerm() {
 		if (this.term == null) {
 			throw new IllegalStateException("Term was required for field, but was not set.");
