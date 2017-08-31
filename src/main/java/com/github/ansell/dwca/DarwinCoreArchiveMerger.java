@@ -33,7 +33,10 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -135,12 +138,366 @@ public class DarwinCoreArchiveMerger {
 
 			canArchivesBeMergedDirectly(inputArchiveDocument, otherInputArchiveDocument);
 
-			CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument.iterator();
-			CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument.iterator();
-			// TODO: Merge the two iterators!
+			// This is the list of fields that will be in the final document,
+			// the indexes represent the final document indexes, not the indexes
+			// in the original fields
+			final Path mergedOutputArchivePath = outputDirPath.resolve("merged-archive");
+			final Path mergedOutputMetadataPath = mergedOutputArchivePath.resolve(DarwinCoreArchiveChecker.META_XML);
+			Files.createDirectories(mergedOutputArchivePath);
+			DarwinCoreArchiveDocument mergedArchiveDocument = mergeFieldSets(inputArchiveDocument,
+					otherInputArchiveDocument);
+			mergedArchiveDocument.setMetadataXMLPath(mergedOutputMetadataPath);
+			try (final Writer mergedMetadataWriter = Files.newBufferedWriter(mergedOutputMetadataPath,
+					StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);) {
+				mergedArchiveDocument.toXML(mergedMetadataWriter, true);
+			}
+
+			int originalCoreIDField = Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId());
+			int otherOriginalCoreIDField = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId());
+			int mergedCoreIDField = Integer.parseInt(mergedArchiveDocument.getCore().getIdOrCoreId());
+			DarwinCoreField mergedCoreIndexField = null;
+			for (DarwinCoreField nextMergedField : mergedArchiveDocument.getCore().getFields()) {
+				if (nextMergedField.getIndex() == mergedCoreIDField) {
+					mergedCoreIndexField = nextMergedField;
+					break;
+				}
+			}
+			if (mergedCoreIndexField == null) {
+				throw new IllegalStateException(
+						"Did not find the id field for the merged document using its index: " + mergedCoreIDField);
+			}
+
+			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument.iterator();
+					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument.iterator();
+					final Writer outputCoreWriter = Files.newBufferedWriter(
+							mergedOutputMetadataPath
+									.resolveSibling(mergedArchiveDocument.getCore().getFiles().getLocations().get(0)),
+							StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);) {
+				DarwinCoreRecord nextInputRecord = inputIterator.next();
+				DarwinCoreRecord nextOtherInputRecord = null;
+				// Merge the two iterators before exhausting the other iterator
+				// if it didn't match
+				// Note, both iterators must represent commonly sorted sets in
+				// terms of the id field values
+				// The specific sort order does not matter as long as it is
+				// common to both
+				while (inputIterator.hasNext()) {
+					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+							mergedArchiveDocument.getCore().getFields());
+					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
+					// If we matched last time, we replace the "other" input
+					// record with a new copy this time, otherwise leave it as
+					// it is to be matched later
+					if (nextOtherInputRecord == null) {
+						if (otherInputIterator.hasNext()) {
+							nextOtherInputRecord = otherInputIterator.next();
+						}
+					}
+
+					// Find the two key values to check if they are the same
+					// before determining what to do next
+					String nextInputKey = null;
+					String nextOtherInputKey = null;
+
+					for (int i = 0; i < nextInputRecord.getFields().size(); i++) {
+						DarwinCoreField nextInputField = nextInputRecord.getFields().get(i);
+						if (nextInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+							// The values must be ordered in the same way as the
+							// fields, so reuse the index to find the next key
+							// value
+							nextInputKey = nextInputRecord.getValues().get(i);
+							break;
+						}
+					}
+					if (nextInputKey == null) {
+						throw new IllegalStateException("Did not find a value for the id field in the input record");
+					}
+
+					if (nextOtherInputRecord != null) {
+						for (int i = 0; i < nextOtherInputRecord.getFields().size(); i++) {
+							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(i);
+							if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+								// The values must be ordered in the same way as
+								// the fields, so reuse the index to find the
+								// next key value
+								nextOtherInputKey = nextOtherInputRecord.getValues().get(i);
+							}
+						}
+						if (nextOtherInputKey == null) {
+							throw new IllegalStateException(
+									"Did not find a value for the id field in the other input record");
+						}
+					}
+
+					if (nextInputKey.equals(nextOtherInputKey)) {
+						// Found a match, merge the other record into this one!
+						for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
+							String nextMergedValue = null;
+							for (int j = 0; j < nextInputRecord.getFields().size(); j++) {
+								DarwinCoreField nextInputField = nextInputRecord.getFields().get(j);
+								if (nextInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+									// The values must be ordered in the same
+									// way as the
+									// fields, so reuse the index to find the
+									// next key
+									// value
+									nextMergedValue = nextInputRecord.getValues().get(i);
+									break;
+								}
+							}
+							// If the original record didn't have a value, check
+							// the other record
+							if (nextMergedValue == null) {
+								for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
+									DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
+									if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+										// The values must be ordered in the
+										// same way as the
+										// fields, so reuse the index to find
+										// the next key
+										// value
+										nextMergedValue = nextOtherInputRecord.getValues().get(i);
+										break;
+									}
+								}
+							}
+							if (nextMergedValue == null) {
+								// Use empty string as a substitute for null in
+								// the result
+								nextMergedValues.set(i, "");
+							} else {
+								nextMergedValues.set(i, nextMergedValue);
+							}
+						}
+						// Indicate that we should pull another record from the
+						// other iterator after this loop
+						nextOtherInputRecord = null;
+					} else {
+						// Else emit the nextInputRecord as the results for this
+						for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
+							String nextMergedValue = null;
+							for (int j = 0; j < nextInputRecord.getFields().size(); j++) {
+								DarwinCoreField nextInputField = nextInputRecord.getFields().get(j);
+								if (nextInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+									// The values must be ordered in the same
+									// way as the
+									// fields, so reuse the index to find the
+									// next key
+									// value
+									nextMergedValue = nextInputRecord.getValues().get(i);
+									break;
+								}
+							}
+							if (nextMergedValue == null) {
+								// Use empty string as a substitute for null in
+								// the result
+								nextMergedValues.set(i, "");
+							} else {
+								nextMergedValues.set(i, nextMergedValue);
+							}
+						}
+					}
+
+					nextMergedRecord.setValues(nextMergedValues);
+				}
+				// Emit an unmatched record from the loop above if applicable,
+				// and then go through the rest of the other input iterator
+				if (nextOtherInputRecord != null) {
+					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+							mergedArchiveDocument.getCore().getFields());
+					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
+					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
+						String nextMergedValue = null;
+						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
+							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
+							if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+								// The values must be ordered in the same way as
+								// the
+								// fields, so reuse the index to find the next
+								// key
+								// value
+								nextMergedValue = nextOtherInputRecord.getValues().get(i);
+								break;
+							}
+						}
+						if (nextMergedValue == null) {
+							// Use empty string as a substitute for null in the
+							// result
+							nextMergedValues.set(i, "");
+						} else {
+							nextMergedValues.set(i, nextMergedValue);
+						}
+					}
+				}
+				// Deal with any records that were not matched during the loop
+				// above by simply adding them to the result
+				while (otherInputIterator.hasNext()) {
+					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+							mergedArchiveDocument.getCore().getFields());
+					nextOtherInputRecord = otherInputIterator.next();
+					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
+					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
+						String nextMergedValue = null;
+						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
+							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
+							if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+								// The values must be ordered in the same way as
+								// the
+								// fields, so reuse the index to find the next
+								// key
+								// value
+								nextMergedValue = nextOtherInputRecord.getValues().get(i);
+								break;
+							}
+						}
+						if (nextMergedValue == null) {
+							// Use empty string as a substitute for null in the
+							// result
+							nextMergedValues.set(i, "");
+						} else {
+							nextMergedValues.set(i, nextMergedValue);
+						}
+					}
+				}
+
+			}
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
 		}
+	}
+
+	/**
+	 * Merge the descriptions of two documents and create a description of a new
+	 * merged document, where the field indexes in the new document reflect
+	 * those in the merged document. <br>
+	 * IMPORTANT:
+	 * {@link #canArchivesBeMergedDirectly(DarwinCoreArchiveDocument, DarwinCoreArchiveDocument)}
+	 * must be called without error before calling this method
+	 * 
+	 * @param inputArchiveDocument
+	 *            The reference archive to merge.
+	 * @param otherInputArchiveDocument
+	 *            The archive to merge into the reference archive.
+	 * @return A merged description of a document that has merged the field sets
+	 *         from both documents.
+	 */
+	private static DarwinCoreArchiveDocument mergeFieldSets(DarwinCoreArchiveDocument inputArchiveDocument,
+			DarwinCoreArchiveDocument otherInputArchiveDocument) {
+		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
+
+		DarwinCoreCoreOrExtension resultCore = DarwinCoreCoreOrExtension.newCore();
+		// First check the ID field, as it is common for it not to be in the
+		// list of fields (who doesn't define the name for the id field?!?!,
+		// Anyway, its common so have to deal with it), and we will need to add
+		// it manually otherwise
+		DarwinCoreField originalIDField = null;
+		int inputCoreID = Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId());
+		for (DarwinCoreField nextField : inputArchiveDocument.getCore().getFields()) {
+			if (nextField.getIndex() != null && nextField.getIndex().equals(inputCoreID)) {
+				originalIDField = nextField;
+				break;
+			}
+		}
+		DarwinCoreField originalOtherIDField = null;
+		int otherInputCoreID = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId());
+		for (DarwinCoreField nextField : otherInputArchiveDocument.getCore().getFields()) {
+			if (nextField.getIndex() != null && nextField.getIndex().equals(otherInputCoreID)) {
+				originalOtherIDField = nextField;
+				break;
+			}
+		}
+		DarwinCoreField resultCoreField = new DarwinCoreField();
+		// Always put the coreID field in index 0 in the result for everyones
+		// sanity
+		resultCoreField.setIndex(0);
+		if (originalIDField == null) {
+			if (originalOtherIDField != null) {
+				// If the other document had the term specified for its id
+				// field, then use it instead
+				resultCoreField.setTerm(originalOtherIDField.getTerm());
+			} else {
+				// Discourage people from using this bad practice by creating a
+				// large field name....
+				resultCoreField.setTerm("dwcaUtilsAutomaticallyAssignedCoreIDField");
+			}
+		} else {
+			resultCoreField.setTerm(originalIDField.getTerm());
+			resultCoreField.setVocabulary(originalIDField.getVocabulary());
+			resultCoreField.setDefault(originalIDField.getDefault());
+			resultCoreField.setDelimitedBy(originalIDField.getDelimitedBy());
+		}
+		// Even if they don't define the id field in the list, we do, its
+		// smarter this way
+		resultCore.addField(resultCoreField);
+
+		// Go back through the list adding the other fields in order
+		int nextResultCoreFieldIndex = 1;
+		for (DarwinCoreField nextField : inputArchiveDocument.getCore().getFields()) {
+			if (nextField.getIndex() != null && nextField.getIndex().equals(inputCoreID)) {
+				// Skip the coreID field this time through
+				continue;
+			}
+
+			DarwinCoreField nextResultField = new DarwinCoreField();
+			// Map the index to what would be in a merged result
+			nextResultField.setIndex(nextResultCoreFieldIndex);
+			resultCoreField.setTerm(originalIDField.getTerm());
+			resultCoreField.setVocabulary(originalIDField.getVocabulary());
+			resultCoreField.setDefault(originalIDField.getDefault());
+			resultCoreField.setDelimitedBy(originalIDField.getDelimitedBy());
+			resultCore.addField(nextResultField);
+
+			nextResultCoreFieldIndex++;
+		}
+
+		// Go through the other input archive document adding fields to the
+		// result core
+		for (DarwinCoreField nextField : otherInputArchiveDocument.getCore().getFields()) {
+			if (nextField.getIndex() != null && nextField.getIndex().equals(otherInputCoreID)) {
+				// Skip the other documents coreID field
+				continue;
+			}
+			boolean alreadyInList = false;
+			for (DarwinCoreField nextAssignedResultField : resultCore.getFields()) {
+				if (nextAssignedResultField.getTerm().equals(nextField.getTerm())) {
+					// Add in vocabulary/default/delimitedBy from the other
+					// archive if it was missing in the reference
+					if (nextAssignedResultField.getVocabulary() == null && nextField.getVocabulary() != null) {
+						nextField.setVocabulary(nextAssignedResultField.getVocabulary());
+					}
+					if (nextAssignedResultField.getDefault() == null && nextField.getDefault() != null) {
+						nextField.setDefault(nextAssignedResultField.getDefault());
+					}
+					if (nextAssignedResultField.getDelimitedBy() == null && nextField.getDelimitedBy() != null) {
+						nextField.setDelimitedBy(nextAssignedResultField.getDelimitedBy());
+					}
+					alreadyInList = true;
+					break;
+				}
+			}
+			if (!alreadyInList) {
+				DarwinCoreField nextResultField = new DarwinCoreField();
+				// Map the index to what would be in a merged result
+				nextResultField.setIndex(nextResultCoreFieldIndex);
+				resultCoreField.setTerm(originalIDField.getTerm());
+				resultCoreField.setVocabulary(originalIDField.getVocabulary());
+				resultCoreField.setDefault(originalIDField.getDefault());
+				resultCoreField.setDelimitedBy(originalIDField.getDelimitedBy());
+				resultCore.addField(nextResultField);
+
+				nextResultCoreFieldIndex++;
+			}
+		}
+
+		if (nextResultCoreFieldIndex != resultCore.getFields().size()) {
+			throw new IllegalStateException(
+					"Result core does not contain the expected number of merged fields, expected: "
+							+ nextResultCoreFieldIndex + ", found: " + resultCore.getFields().size());
+		}
+
+		result.setCore(resultCore);
+
+		return result;
 	}
 
 	/**
@@ -189,6 +546,9 @@ public class DarwinCoreArchiveMerger {
 						+ inputArchiveDocument.getCore().getRowType() + " "
 						+ otherInputArchiveDocument.getCore().getRowType());
 			}
+
+			// TODO: Check that the default values do not conflict, and fail
+			// early if they do
 
 		} catch (NumberFormatException e) {
 			throw new IllegalStateException("Core id must be an integer", e);
