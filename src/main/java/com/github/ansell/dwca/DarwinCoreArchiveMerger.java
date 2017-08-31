@@ -150,7 +150,8 @@ public class DarwinCoreArchiveMerger {
 			DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
 			mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
 			final Path mergedOutputCorePath = mergedOutputArchivePath
-					.resolve(inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize().toAbsolutePath();
+					.resolve(inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize()
+					.toAbsolutePath();
 			mergedOutputCoreDarwinCoreFile
 					.addLocation(mergedOutputArchivePath.relativize(mergedOutputCorePath).toString());
 			mergedArchiveDocument.setMetadataXMLPath(mergedOutputMetadataPath);
@@ -175,12 +176,19 @@ public class DarwinCoreArchiveMerger {
 						"Did not find the id field for the merged document using its index: " + mergedCoreIDField);
 			}
 
+			try (final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath, StandardCharsets.UTF_8,
+					StandardOpenOption.CREATE_NEW);
+					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
+							mergedArchiveDocument.getCore().getCsvSchema());) {
+				outputCoreCsvWriter.write(mergedArchiveDocument.getCore().getFields().stream()
+						.map(DarwinCoreField::getTerm).collect(Collectors.toList()));
+			}
 			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument.iterator();
 					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument.iterator();
 					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
-							StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
+							StandardCharsets.UTF_8, StandardOpenOption.APPEND);
 					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
-							mergedArchiveDocument.getCore().getCsvSchema())) {
+							mergedArchiveDocument.getCore().getCsvSchema());) {
 				DarwinCoreRecord nextOtherInputRecord = null;
 				// Merge the two iterators before exhausting the other iterator
 				// if it didn't match
@@ -388,6 +396,9 @@ public class DarwinCoreArchiveMerger {
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 			}
+			System.out.println("Merged output:");
+			Files.readAllLines(mergedOutputCorePath, StandardCharsets.UTF_8).stream().forEachOrdered(System.out::println);
+			System.out.println("End of merged output");
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
 		}
@@ -414,6 +425,7 @@ public class DarwinCoreArchiveMerger {
 
 		DarwinCoreCoreOrExtension resultCore = DarwinCoreCoreOrExtension.newCore();
 		resultCore.setRowType(inputArchiveDocument.getCore().getRowType());
+		resultCore.setDateFormat(inputArchiveDocument.getCore().getDateFormat());
 		// First check the ID field, as it is common for it not to be in the
 		// list of fields (who doesn't define the name for the id field?!?!,
 		// Anyway, its common so have to deal with it), and we will need to add
