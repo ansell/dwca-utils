@@ -265,7 +265,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 										"Metadata XML Path was null, not able to iterate due to a lack of a file reference point."));
 						Future<?> previousJob = runningJob.getAndSet(executor.submit(Unchecked.runnable(() -> {
 							try {
-								DarwinCoreArchiveChecker.parseCoreOrExtension(document.getCore(), nextMetadataPath,
+								DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(document.getCore(), nextMetadataPath,
 										parseFunction);
 							} finally {
 								// Add a delay for adding the sentinel while the

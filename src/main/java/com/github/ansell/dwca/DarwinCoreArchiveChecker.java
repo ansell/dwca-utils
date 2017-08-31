@@ -46,6 +46,7 @@ import org.apache.commons.vfs2.VFS;
 import org.jooq.lambda.Unchecked;
 import org.xml.sax.SAXException;
 
+import com.github.ansell.csv.sort.CSVSorter;
 import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.stream.CSVStreamException;
 import com.github.ansell.csv.sum.CSVSummariser;
@@ -294,6 +295,43 @@ public class DarwinCoreArchiveChecker {
 		final Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
 				.toAbsolutePath();
 		try (final Reader inputReader = Files.newBufferedReader(coreOrExtensionFilePath,
+				coreOrExtension.getEncoding());) {
+			parseFunction.accept(inputReader);
+		}
+	}
+
+	/**
+	 * Parses and summarises, if output is required, the files for a
+	 * {@link DarwinCoreCoreOrExtension}, after sorting the input.
+	 * 
+	 * @param coreOrExtension
+	 *            The core or extension to parse
+	 * @param metadataPath
+	 *            The path to the metadata, which is used to relatively resolve
+	 *            the data file locations.
+	 * @param parseFunction
+	 *            The {@link Consumer} which is used to parse the core or
+	 *            extension.
+	 * @throws IOException
+	 *             If there are issues accessing or reading the files.
+	 */
+	public static void parseCoreOrExtensionSorted(final DarwinCoreCoreOrExtension coreOrExtension,
+			final Path metadataPath, final Consumer<Reader> parseFunction) throws IOException {
+		// TODO: Only support a single file currently
+		final String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
+		final Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
+				.toAbsolutePath();
+		final Path sortedCoreOrExtensionFilePath = coreOrExtensionFilePath
+				.resolveSibling("sorted-" + coreOrExtensionFilePath.getFileName().toString());
+
+		try (final Reader otherInputReader = Files.newBufferedReader(coreOrExtensionFilePath,
+				coreOrExtension.getEncoding())) {
+			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath, CSVStream.defaultMapper(),
+					coreOrExtension.getCsvSchema(),
+					CSVSorter.getComparator(Integer.parseInt(coreOrExtension.getIdOrCoreId())));
+		}
+
+		try (final Reader inputReader = Files.newBufferedReader(sortedCoreOrExtensionFilePath,
 				coreOrExtension.getEncoding());) {
 			parseFunction.accept(inputReader);
 		}
