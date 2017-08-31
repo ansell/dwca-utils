@@ -41,6 +41,7 @@ import org.xml.sax.SAXException;
 import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.stream.CSVStreamException;
 import com.github.ansell.csv.sum.CSVSummariser;
+import com.github.ansell.csv.sort.CSVSorter;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -133,6 +134,15 @@ public class DarwinCoreArchiveMerger {
 
 			canArchivesBeMergedDirectly(inputArchiveDocument, otherInputArchiveDocument);
 
+			Path coreFile0 = inputArchiveDocument.getMetadataXMLPath().get()
+					.resolveSibling(inputArchiveDocument.getCore().getFiles().getLocations().get(0));
+			try (final Reader inputReader = Files.newBufferedReader(coreFile0,
+					inputArchiveDocument.getCore().getEncoding())) {
+				CSVSorter.runSorter(inputReader,
+						outputArchivePath.resolve("sorted-" + coreFile0.getFileName().toString()),
+						CSVStream.defaultMapper(), inputArchiveDocument.getCore().getCsvSchema(),
+						CSVSorter.getComparator(Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId())));
+			}
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
 		}
