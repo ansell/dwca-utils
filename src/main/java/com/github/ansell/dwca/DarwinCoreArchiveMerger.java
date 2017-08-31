@@ -154,6 +154,7 @@ public class DarwinCoreArchiveMerger {
 			mergedOutputCoreDarwinCoreFile
 					.addLocation(mergedOutputCorePath.relativize(mergedOutputMetadataPath).toString());
 			mergedArchiveDocument.setMetadataXMLPath(mergedOutputMetadataPath);
+			mergedArchiveDocument.getCore().setIgnoreHeaderLines(1);
 			try (final Writer mergedMetadataWriter = Files.newBufferedWriter(mergedOutputMetadataPath,
 					StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);) {
 				mergedArchiveDocument.toXML(mergedMetadataWriter, true);
@@ -412,6 +413,7 @@ public class DarwinCoreArchiveMerger {
 		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 
 		DarwinCoreCoreOrExtension resultCore = DarwinCoreCoreOrExtension.newCore();
+		resultCore.setRowType(inputArchiveDocument.getCore().getRowType());
 		// First check the ID field, as it is common for it not to be in the
 		// list of fields (who doesn't define the name for the id field?!?!,
 		// Anyway, its common so have to deal with it), and we will need to add
@@ -436,11 +438,15 @@ public class DarwinCoreArchiveMerger {
 		// Always put the coreID field in index 0 in the result for everyones
 		// sanity
 		resultCoreField.setIndex(0);
+		resultCore.setIdOrCoreId("0");
 		if (originalIDField == null) {
 			if (originalOtherIDField != null) {
 				// If the other document had the term specified for its id
 				// field, then use it instead
 				resultCoreField.setTerm(originalOtherIDField.getTerm());
+				resultCoreField.setVocabulary(originalOtherIDField.getVocabulary());
+				resultCoreField.setDefault(originalOtherIDField.getDefault());
+				resultCoreField.setDelimitedBy(originalOtherIDField.getDelimitedBy());
 			} else {
 				// Discourage people from using this bad practice by creating a
 				// large field name....
@@ -467,10 +473,10 @@ public class DarwinCoreArchiveMerger {
 			DarwinCoreField nextResultField = new DarwinCoreField();
 			// Map the index to what would be in a merged result
 			nextResultField.setIndex(nextResultCoreFieldIndex);
-			resultCoreField.setTerm(originalIDField.getTerm());
-			resultCoreField.setVocabulary(originalIDField.getVocabulary());
-			resultCoreField.setDefault(originalIDField.getDefault());
-			resultCoreField.setDelimitedBy(originalIDField.getDelimitedBy());
+			nextResultField.setTerm(nextField.getTerm());
+			nextResultField.setVocabulary(nextField.getVocabulary());
+			nextResultField.setDefault(nextField.getDefault());
+			nextResultField.setDelimitedBy(nextField.getDelimitedBy());
 			resultCore.addField(nextResultField);
 
 			nextResultCoreFieldIndex++;
