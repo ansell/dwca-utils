@@ -196,7 +196,7 @@ public class DarwinCoreArchiveMerger {
 					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
 						// Setup all of the initial merged values to the empty
 						// string
-						nextMergedValues.set(initialSetup, "");
+						nextMergedValues.add("");
 					}
 					// If we matched last time, we replace the "other" input
 					// record with a new copy this time, otherwise leave it as
@@ -323,7 +323,7 @@ public class DarwinCoreArchiveMerger {
 					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
 						// Setup all of the initial merged values to the empty
 						// string
-						nextMergedValues.set(initialSetup, "");
+						nextMergedValues.add("");
 					}
 					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
 						String nextMergedValue = null;
@@ -360,7 +360,7 @@ public class DarwinCoreArchiveMerger {
 					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
 						// Setup all of the initial merged values to the empty
 						// string
-						nextMergedValues.set(initialSetup, "");
+						nextMergedValues.add("");
 					}
 					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
 						String nextMergedValue = null;
