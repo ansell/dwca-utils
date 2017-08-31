@@ -149,10 +149,10 @@ public class DarwinCoreArchiveMerger {
 					otherInputArchiveDocument);
 			DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
 			mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
-			final Path mergedOutputCorePath = mergedOutputMetadataPath
-					.resolveSibling(inputArchiveDocument.getCore().getFiles().getLocations().get(0));
+			final Path mergedOutputCorePath = mergedOutputArchivePath
+					.resolve(inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize().toAbsolutePath();
 			mergedOutputCoreDarwinCoreFile
-					.addLocation(mergedOutputCorePath.relativize(mergedOutputMetadataPath).toString());
+					.addLocation(mergedOutputArchivePath.relativize(mergedOutputCorePath).toString());
 			mergedArchiveDocument.setMetadataXMLPath(mergedOutputMetadataPath);
 			mergedArchiveDocument.getCore().setIgnoreHeaderLines(1);
 			try (final Writer mergedMetadataWriter = Files.newBufferedWriter(mergedOutputMetadataPath,
