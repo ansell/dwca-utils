@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -135,19 +136,57 @@ public class DarwinCoreArchiveMerger {
 			canArchivesBeMergedDirectly(inputArchiveDocument, otherInputArchiveDocument);
 
 			Path coreFile0 = inputArchiveDocument.getMetadataXMLPath().get()
-					.resolveSibling(inputArchiveDocument.getCore().getFiles().getLocations().get(0));
+					.resolveSibling(inputArchiveDocument.getCore().getFiles().getLocations().get(0)).toAbsolutePath()
+					.normalize();
+			Path inputCoreSortedPath = outputArchivePath.resolve("sorted-" + coreFile0.getFileName().toString());
 			try (final Reader inputReader = Files.newBufferedReader(coreFile0,
 					inputArchiveDocument.getCore().getEncoding())) {
-				CSVSorter.runSorter(inputReader,
-						outputArchivePath.resolve("sorted-" + coreFile0.getFileName().toString()),
-						CSVStream.defaultMapper(), inputArchiveDocument.getCore().getCsvSchema(),
+				CSVSorter.runSorter(inputReader, inputCoreSortedPath, CSVStream.defaultMapper(),
+						inputArchiveDocument.getCore().getCsvSchema(),
 						CSVSorter.getComparator(Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId())));
 			}
+
+			// All sorted files are written back to disk using UTF-8, which
+			// should not be an issue as they were represented in memory as
+			// UTF-16 strings, although they were read out of the original file
+			// using its stated charset
+			System.out.println("Verification that input core file was sorted");
+			Files.readAllLines(inputCoreSortedPath, StandardCharsets.UTF_8).stream()
+					.forEachOrdered(System.out::println);
+			
+			Path otherCoreFile0 = otherInputArchiveDocument.getMetadataXMLPath().get()
+					.resolveSibling(otherInputArchiveDocument.getCore().getFiles().getLocations().get(0)).toAbsolutePath()
+					.normalize();
+			Path otherInputCoreSortedPath = otherOutputArchivePath.resolve("sorted-" + otherCoreFile0.getFileName().toString());
+			try (final Reader otherInputReader = Files.newBufferedReader(otherCoreFile0,
+					otherInputArchiveDocument.getCore().getEncoding())) {
+				CSVSorter.runSorter(otherInputReader, otherInputCoreSortedPath, CSVStream.defaultMapper(),
+						otherInputArchiveDocument.getCore().getCsvSchema(),
+						CSVSorter.getComparator(Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId())));
+			}
+
+			// All sorted files are written back to disk using UTF-8, which
+			// should not be an issue as they were represented in memory as
+			// UTF-16 strings, although they were read out of the original file
+			// using its stated charset
+			System.out.println("Verification that other input core file was sorted");
+			Files.readAllLines(otherInputCoreSortedPath, StandardCharsets.UTF_8).stream()
+					.forEachOrdered(System.out::println);
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
 		}
 	}
 
+	/**
+	 * Check to ensure that we are only allowing trivial merges that won't cause
+	 * data loss or other unexpected effects. In future this method may be
+	 * trimmed down when other features are added.
+	 * 
+	 * @param inputArchiveDocument
+	 *            The first input document
+	 * @param otherInputArchiveDocument
+	 *            The other input document
+	 */
 	private static void canArchivesBeMergedDirectly(DarwinCoreArchiveDocument inputArchiveDocument,
 			DarwinCoreArchiveDocument otherInputArchiveDocument) {
 		System.out.println("coreId: input=" + inputArchiveDocument.getCore().getIdOrCoreId() + " other="

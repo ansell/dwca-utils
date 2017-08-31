@@ -117,10 +117,12 @@ public class DarwinCoreArchiveMergerTest {
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"),
                     zipOut);
             zipOut.closeEntry();
+            
             ZipEntry specimensCsv = new ZipEntry("specimens.csv");
             zipOut.putNextEntry(specimensCsv);
+            // Copy a different specimens.csv file into this archive, to check for mergeability of simple files
             IOUtils.copy(
-                    this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"),
+                    this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens-to-merge.csv"),
                     zipOut);
             zipOut.flush();
             zipOut.closeEntry();
