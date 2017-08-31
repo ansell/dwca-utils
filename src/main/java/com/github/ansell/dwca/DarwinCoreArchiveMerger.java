@@ -45,6 +45,7 @@ import org.xml.sax.SAXException;
 import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.stream.CSVStreamException;
 import com.github.ansell.csv.sum.CSVSummariser;
+import com.fasterxml.jackson.databind.SequenceWriter;
 import com.github.ansell.csv.sort.CSVSorter;
 
 import joptsimple.OptionException;
@@ -172,7 +173,9 @@ public class DarwinCoreArchiveMerger {
 					final Writer outputCoreWriter = Files.newBufferedWriter(
 							mergedOutputMetadataPath
 									.resolveSibling(mergedArchiveDocument.getCore().getFiles().getLocations().get(0)),
-							StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);) {
+							StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
+					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
+							mergedArchiveDocument.getCore().getCsvSchema())) {
 				DarwinCoreRecord nextInputRecord = inputIterator.next();
 				DarwinCoreRecord nextOtherInputRecord = null;
 				// Merge the two iterators before exhausting the other iterator
@@ -185,6 +188,11 @@ public class DarwinCoreArchiveMerger {
 					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
 							mergedArchiveDocument.getCore().getFields());
 					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
+					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
+						// Setup all of the initial merged values to the empty
+						// string
+						nextMergedValues.set(initialSetup, "");
+					}
 					// If we matched last time, we replace the "other" input
 					// record with a new copy this time, otherwise leave it as
 					// it is to be matched later
@@ -299,6 +307,7 @@ public class DarwinCoreArchiveMerger {
 					}
 
 					nextMergedRecord.setValues(nextMergedValues);
+					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Emit an unmatched record from the loop above if applicable,
 				// and then go through the rest of the other input iterator
@@ -306,6 +315,11 @@ public class DarwinCoreArchiveMerger {
 					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
 							mergedArchiveDocument.getCore().getFields());
 					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
+					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
+						// Setup all of the initial merged values to the empty
+						// string
+						nextMergedValues.set(initialSetup, "");
+					}
 					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
 						String nextMergedValue = null;
 						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
@@ -328,6 +342,8 @@ public class DarwinCoreArchiveMerger {
 							nextMergedValues.set(i, nextMergedValue);
 						}
 					}
+					nextMergedRecord.setValues(nextMergedValues);
+					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Deal with any records that were not matched during the loop
 				// above by simply adding them to the result
@@ -336,6 +352,11 @@ public class DarwinCoreArchiveMerger {
 							mergedArchiveDocument.getCore().getFields());
 					nextOtherInputRecord = otherInputIterator.next();
 					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
+					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
+						// Setup all of the initial merged values to the empty
+						// string
+						nextMergedValues.set(initialSetup, "");
+					}
 					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
 						String nextMergedValue = null;
 						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
@@ -358,8 +379,9 @@ public class DarwinCoreArchiveMerger {
 							nextMergedValues.set(i, nextMergedValue);
 						}
 					}
+					nextMergedRecord.setValues(nextMergedValues);
+					outputCoreCsvWriter.write(nextMergedValues);
 				}
-
 			}
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
