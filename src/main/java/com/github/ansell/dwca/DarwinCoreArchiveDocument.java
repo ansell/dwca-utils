@@ -318,7 +318,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 							} finally {
 								try {
 									executor.shutdown();
-									executor.awaitTermination(1, TimeUnit.MINUTES);
+									executor.awaitTermination(10, TimeUnit.SECONDS);
 									if (!executor.isTerminated()) {
 										executor.shutdownNow();
 									}

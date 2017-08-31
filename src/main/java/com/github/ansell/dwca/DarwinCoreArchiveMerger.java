@@ -181,7 +181,6 @@ public class DarwinCoreArchiveMerger {
 							StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
 					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
 							mergedArchiveDocument.getCore().getCsvSchema())) {
-				DarwinCoreRecord nextInputRecord = inputIterator.next();
 				DarwinCoreRecord nextOtherInputRecord = null;
 				// Merge the two iterators before exhausting the other iterator
 				// if it didn't match
@@ -190,6 +189,7 @@ public class DarwinCoreArchiveMerger {
 				// The specific sort order does not matter as long as it is
 				// common to both
 				while (inputIterator.hasNext()) {
+					DarwinCoreRecord nextInputRecord = inputIterator.next();
 					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
 							mergedArchiveDocument.getCore().getFields());
 					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
