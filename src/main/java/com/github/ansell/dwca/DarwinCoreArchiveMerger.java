@@ -495,17 +495,15 @@ public class DarwinCoreArchiveMerger {
 		// Go through the other input archive document adding fields to the
 		// result core
 		for (DarwinCoreField nextField : otherInputArchiveDocument.getCore().getFields()) {
+			System.out.println("Merging other input field: " + nextField.toString());
 			if (nextField.getIndex() != null && nextField.getIndex().equals(otherInputCoreID)) {
-				// Skip the other documents coreID field
+				// Skip the other documents coreID field, which will be represented in the original core ID for this field
+				System.out.println("Skipping coreID field from other document as it is merged into original input");
 				continue;
 			}
 			boolean alreadyInList = false;
 			for (DarwinCoreField nextAssignedResultField : resultCore.getFields()) {
-				// TODO: Merge fields without terms (What does this mean??)
-				if (!nextAssignedResultField.hasTerm()) {
-					continue;
-				}
-				if (nextField.hasTerm() && nextAssignedResultField.getTerm().equals(nextField.getTerm())) {
+				if (nextAssignedResultField.getTerm().equals(nextField.getTerm())) {
 					// Add in vocabulary/default/delimitedBy from the other
 					// archive if it was missing in the reference
 					if (nextAssignedResultField.getVocabulary() == null && nextField.getVocabulary() != null) {
@@ -522,13 +520,14 @@ public class DarwinCoreArchiveMerger {
 				}
 			}
 			if (!alreadyInList) {
+				System.out.println("Found a field not in the list already: " + nextField);
 				DarwinCoreField nextResultField = new DarwinCoreField();
 				// Map the index to what would be in a merged result
 				nextResultField.setIndex(nextResultCoreFieldIndex);
-				resultCoreField.setTerm(originalIDField.getTerm());
-				resultCoreField.setVocabulary(originalIDField.getVocabulary());
-				resultCoreField.setDefault(originalIDField.getDefault());
-				resultCoreField.setDelimitedBy(originalIDField.getDelimitedBy());
+				nextResultField.setTerm(nextField.getTerm());
+				nextResultField.setVocabulary(nextField.getVocabulary());
+				nextResultField.setDefault(nextField.getDefault());
+				nextResultField.setDelimitedBy(nextField.getDelimitedBy());
 				resultCore.addField(nextResultField);
 
 				nextResultCoreFieldIndex++;
