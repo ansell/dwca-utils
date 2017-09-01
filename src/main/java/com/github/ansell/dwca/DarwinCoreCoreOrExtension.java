@@ -398,6 +398,7 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 			writer.writeEndElement();
 		}
 		for (DarwinCoreField nextField : this.getFields()) {
+			System.out.println("Serialising field: " + nextField.toString());
 			writer.writeStartElement(DarwinCoreArchiveConstants.FIELD);
 			if (nextField.getIndex() != null) {
 				writer.writeAttribute(DarwinCoreArchiveConstants.INDEX, nextField.getIndex().toString());
