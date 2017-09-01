@@ -33,10 +33,12 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -48,6 +50,7 @@ import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.github.ansell.csv.sort.CSVSorter;
+import com.github.ansell.csv.sort.StringList;
 import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.stream.CSVStreamException;
 import com.github.ansell.csv.sum.CSVSummariser;
@@ -318,6 +321,32 @@ public class DarwinCoreArchiveChecker {
 	 */
 	public static void parseCoreOrExtensionSorted(final DarwinCoreCoreOrExtension coreOrExtension,
 			final Path metadataPath, final Consumer<Reader> parseFunction) throws IOException {
+		Function<DarwinCoreCoreOrExtension, Comparator<StringList>> comparator = core -> CSVSorter
+				.getComparator(Integer.parseInt(core.getIdOrCoreId()));
+		parseCoreOrExtensionSorted(coreOrExtension, metadataPath, parseFunction, comparator);
+	}
+
+	/**
+	 * Parses and summarises, if output is required, the files for a
+	 * {@link DarwinCoreCoreOrExtension}, after sorting the input.
+	 * 
+	 * @param coreOrExtension
+	 *            The core or extension to parse
+	 * @param metadataPath
+	 *            The path to the metadata, which is used to relatively resolve
+	 *            the data file locations.
+	 * @param parseFunction
+	 *            The {@link Consumer} which is used to parse the core or
+	 *            extension.
+	 * @param comparator
+	 *            Function to generate a {@link Comparator} which is used to
+	 *            compare primary keys.
+	 * @throws IOException
+	 *             If there are issues accessing or reading the files.
+	 */
+	public static void parseCoreOrExtensionSorted(final DarwinCoreCoreOrExtension coreOrExtension,
+			final Path metadataPath, final Consumer<Reader> parseFunction,
+			Function<DarwinCoreCoreOrExtension, Comparator<StringList>> comparator) throws IOException {
 		// TODO: Only support a single file currently
 		final String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
 		final Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
@@ -332,8 +361,7 @@ public class DarwinCoreArchiveChecker {
 				coreOrExtension.getEncoding())) {
 			CsvSchema csvSchema = coreOrExtension.getCsvSchema();
 			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath, CSVSorter.getSafeSortingMapper(),
-					coreOrExtension.getIgnoreHeaderLines(), csvSchema,
-					CSVSorter.getComparator(Integer.parseInt(coreOrExtension.getIdOrCoreId())));
+					coreOrExtension.getIgnoreHeaderLines(), csvSchema, comparator.apply(coreOrExtension));
 		}
 
 		try (final Reader inputReader = Files.newBufferedReader(sortedCoreOrExtensionFilePath,
