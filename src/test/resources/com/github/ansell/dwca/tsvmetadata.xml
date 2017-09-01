@@ -6,7 +6,7 @@
   <core rowType="http://rs.tdwg.org/dwc/xsd/simpledarwincore/SimpleDarwinRecord" ignoreHeaderLines="1" 
             fieldsTerminatedBy="\t" linesTerminatedBy="\r\n" fieldsEnclosedBy="'">
     <files>
-      <location>./specimens.tsv</location>
+      <location>./subdir/specimens.tsv</location>
     </files>
     <field index="0" term="http://rs.tdwg.org/dwc/terms/catalogNumber" />
     <field index="1" term="http://rs.tdwg.org/dwc/terms/scientificName" />

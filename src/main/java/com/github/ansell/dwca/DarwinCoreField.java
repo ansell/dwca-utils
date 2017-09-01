@@ -35,7 +35,7 @@ import org.xml.sax.Attributes;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public class DarwinCoreField {
+public class DarwinCoreField implements ConstraintChecked {
 
 	/*
 	 * (non-Javadoc)
@@ -65,6 +65,10 @@ public class DarwinCoreField {
 			builder.append("vocabulary=");
 			builder.append(vocabulary);
 		}
+		if (delimitedBy != null) {
+			builder.append("delimitedBy=");
+			builder.append(delimitedBy);
+		}
 		builder.append("]");
 		return builder.toString();
 	}
@@ -73,6 +77,7 @@ public class DarwinCoreField {
 	private String term;
 	private String defaultValue;
 	private String vocabulary;
+	private String delimitedBy;
 
 	public Integer getIndex() {
 		return index;
@@ -85,6 +90,10 @@ public class DarwinCoreField {
 		this.index = index;
 	}
 
+	public boolean hasTerm() {
+		return this.term != null;
+	}
+	
 	public String getTerm() {
 		if (this.term == null) {
 			throw new IllegalStateException("Term was required for field, but was not set.");
@@ -121,6 +130,17 @@ public class DarwinCoreField {
 		this.vocabulary = vocabularyUri;
 	}
 
+	public String getDelimitedBy() {
+		return delimitedBy;
+	}
+
+	public void setDelimitedBy(String delimitedBy) {
+		if (this.delimitedBy != null && !this.delimitedBy.equals(delimitedBy)) {
+			throw new IllegalStateException("Cannot specify multiple delimitedBy values for a field.");
+		}
+		this.delimitedBy = delimitedBy;
+	}
+
 	public static DarwinCoreField fromAttributes(Attributes attributes) {
 		DarwinCoreField result = new DarwinCoreField();
 		for (int i = 0; i < attributes.getLength(); i++) {
@@ -134,11 +154,24 @@ public class DarwinCoreField {
 				result.setDefault(attributes.getValue(i));
 			} else if (DarwinCoreArchiveConstants.VOCABULARY.equals(localName)) {
 				result.setVocabulary(attributes.getValue(i));
+			} else if (DarwinCoreArchiveConstants.DELIMITED_BY.equals(localName)) {
+				result.setDelimitedBy(attributes.getValue(i));
 			} else {
 				System.out.println("Found unrecognised Darwin Core attribute for field " + " : " + localName);
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public void checkConstraints() {
+		if (getTerm() == null) {
+			throw new IllegalStateException("All fields must have term set");
+		}
+		if (getIndex() == null && getDefault() == null) {
+			throw new IllegalStateException(
+					"Fields that do not have indexes must have default values set: " + getTerm());
+		}
 	}
 
 }

@@ -1,1 +1,2 @@
-taxonID,modified,scientificName,acceptedNameUsageID,parentNameUsageID,originalNameUsageID
+taxonID	modified	scientificName	acceptedNameUsageID	parentNameUsageID	originalNameUsageID
+ABC123	2017-08-23	"Tasmacetus shepherdi"	"urn:lsid:biodiversity.org.au:afd.name:389042"	"urn:lsid:biodiversity.org.au:afd.name:263837"	"urn:lsid:biodiversity.org.au:afd.taxon:02473b88-51f4-4c89-9052-ab854f1c254e"

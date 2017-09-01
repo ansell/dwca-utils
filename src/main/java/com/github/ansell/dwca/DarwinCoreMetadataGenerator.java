@@ -257,7 +257,7 @@ public class DarwinCoreMetadataGenerator {
         return vocabMap;
     }
 
-    public static void generateMetadata(final Path inputPath, final Path outputPath,
+    public static DarwinCoreArchiveDocument generateMetadata(final Path inputPath, final Path outputPath,
             final List<Path> extensionPaths, final boolean showDefaults,
             final Map<String, Map<String, List<IRI>>> vocabMap, final List<String> coreOverrideHeaders, final int coreIDIndex)
             throws IOException, XMLStreamException, SAXException {
@@ -322,6 +322,8 @@ public class DarwinCoreMetadataGenerator {
         final DarwinCoreArchiveDocument archiveDocument = DarwinCoreArchiveChecker
                 .parseMetadataXml(outputPath);
         archiveDocument.checkConstraints();
+        
+        return result;
     }
 
     /**
