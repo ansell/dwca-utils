@@ -142,7 +142,7 @@ public class DarwinCoreArchiveMerger {
 			// This is the list of fields that will be in the final document,
 			// the indexes represent the final document indexes, not the indexes
 			// in the original fields
-			final Path mergedOutputArchivePath = outputDirPath.resolve("merged-archive");
+			final Path mergedOutputArchivePath = outputDirPath.resolve("merged-archive").normalize().toAbsolutePath();
 			final Path mergedOutputMetadataPath = mergedOutputArchivePath.resolve(DarwinCoreArchiveChecker.META_XML);
 			Files.createDirectories(mergedOutputArchivePath);
 			final DarwinCoreArchiveDocument mergedArchiveDocument = mergeFieldSets(inputArchiveDocument,
