@@ -46,6 +46,7 @@ import org.apache.commons.vfs2.VFS;
 import org.jooq.lambda.Unchecked;
 import org.xml.sax.SAXException;
 
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.github.ansell.csv.sort.CSVSorter;
 import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.stream.CSVStreamException;
@@ -326,8 +327,9 @@ public class DarwinCoreArchiveChecker {
 
 		try (final Reader otherInputReader = Files.newBufferedReader(coreOrExtensionFilePath,
 				coreOrExtension.getEncoding())) {
+			CsvSchema csvSchema = coreOrExtension.getCsvSchema();
 			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath, CSVStream.defaultMapper(),
-					coreOrExtension.getCsvSchema(),
+					coreOrExtension.getIgnoreHeaderLines(), csvSchema,
 					CSVSorter.getComparator(Integer.parseInt(coreOrExtension.getIdOrCoreId())));
 		}
 

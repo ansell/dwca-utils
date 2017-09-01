@@ -366,20 +366,20 @@ public class DarwinCoreArchiveCheckerTest {
 			assertTrue(field.getTerm().trim().length() > 0);
 		}
 
-		for (int replicaIterations = 0; replicaIterations < 100; replicaIterations++) {
-			// System.out.println("Replica #" + replicaIterations);
+		for (int replicaIterations = 1; replicaIterations < 100; replicaIterations++) {
+			System.out.println("Replica #" + replicaIterations);
 			int recordCount = 0;
 			try (CloseableIterator<DarwinCoreRecord> iterator = testDocument.iterator()) {
 				while (iterator.hasNext()) {
 					DarwinCoreRecord nextRecord = iterator.next();
 					recordCount++;
-					// System.out.println(nextRecord.getFields());
-					// System.out.println(nextRecord.getValues());
+					System.out.println(nextRecord.getFields());
+					System.out.println(nextRecord.getValues());
 				}
 			}
 			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
 					recordCount);
-			// System.out.println();
+			System.out.println();
 		}
 	}
 }

@@ -375,11 +375,9 @@ public class DarwinCoreArchiveMerger {
 						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
 							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
 							if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
-								// The values must be ordered in the same way as
-								// the
+								// The values must be ordered in the same way as the
 								// fields, so reuse the index to find the next
-								// key
-								// value
+								// key value
 								nextMergedValue = nextOtherInputRecord.getValues().get(i);
 								break;
 							}

@@ -424,6 +424,7 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 		// CsvSchema does not support numeric numbers of lines being skipped
 		// Hence, headers are dealt with separately by CSVStream using its
 		// headerLineCount and substituteHeaders parameters, and this is false
+		//result.setUseHeader(getIgnoreHeaderLines() > 0);
 		result.setUseHeader(false);
 		result.setLineSeparator(getLinesTerminatedBy());
 		result.setQuoteChar(getFieldsEnclosedBy().charAt(0));
