@@ -85,7 +85,7 @@ public class DarwinCoreField implements ConstraintChecked {
 
 	public void setIndex(Integer index) {
 		if (this.index != null) {
-			throw new IllegalStateException("Cannot specify multiple indexes for a field.");
+			throw new IllegalStateException("Cannot specify multiple indexes for a field: " + this.toString());
 		}
 		this.index = index;
 	}
@@ -96,14 +96,14 @@ public class DarwinCoreField implements ConstraintChecked {
 	
 	public String getTerm() {
 		if (this.term == null) {
-			throw new IllegalStateException("Term was required for field, but was not set.");
+			throw new IllegalStateException("Term was required for field, but was not set: " + this.toString());
 		}
 		return term;
 	}
 
 	public void setTerm(String term) {
 		if (this.term != null && !this.term.equals(term)) {
-			throw new IllegalStateException("Cannot specify multiple terms for a field.");
+			throw new IllegalStateException("Cannot specify multiple terms for a field: " + this.toString());
 		}
 		this.term = term;
 	}
@@ -114,7 +114,7 @@ public class DarwinCoreField implements ConstraintChecked {
 
 	public void setDefault(String defaultValue) {
 		if (this.defaultValue != null && !this.defaultValue.equals(defaultValue)) {
-			throw new IllegalStateException("Cannot specify multiple default values for a field.");
+			throw new IllegalStateException("Cannot specify multiple default values for a field: " + this.toString());
 		}
 		this.defaultValue = defaultValue;
 	}
@@ -125,7 +125,7 @@ public class DarwinCoreField implements ConstraintChecked {
 
 	public void setVocabulary(String vocabularyUri) {
 		if (this.vocabulary != null && !this.vocabulary.equals(vocabularyUri)) {
-			throw new IllegalStateException("Cannot specify multiple vocabularies for a field.");
+			throw new IllegalStateException("Cannot specify multiple vocabularies for a field: " + this.toString());
 		}
 		this.vocabulary = vocabularyUri;
 	}
@@ -136,7 +136,7 @@ public class DarwinCoreField implements ConstraintChecked {
 
 	public void setDelimitedBy(String delimitedBy) {
 		if (this.delimitedBy != null && !this.delimitedBy.equals(delimitedBy)) {
-			throw new IllegalStateException("Cannot specify multiple delimitedBy values for a field.");
+			throw new IllegalStateException("Cannot specify multiple delimitedBy values for a field: " + this.toString());
 		}
 		this.delimitedBy = delimitedBy;
 	}
@@ -157,7 +157,7 @@ public class DarwinCoreField implements ConstraintChecked {
 			} else if (DarwinCoreArchiveConstants.DELIMITED_BY.equals(localName)) {
 				result.setDelimitedBy(attributes.getValue(i));
 			} else {
-				System.out.println("Found unrecognised Darwin Core attribute for field " + " : " + localName);
+				System.out.println("Found unrecognised Darwin Core attribute for field, skipping : " + localName);
 			}
 		}
 		return result;
@@ -166,11 +166,11 @@ public class DarwinCoreField implements ConstraintChecked {
 	@Override
 	public void checkConstraints() {
 		if (getTerm() == null) {
-			throw new IllegalStateException("All fields must have term set");
+			throw new IllegalStateException("All fields must have term set: " + this.toString());
 		}
 		if (getIndex() == null && getDefault() == null) {
 			throw new IllegalStateException(
-					"Fields that do not have indexes must have default values set: " + getTerm());
+					"Fields that do not have indexes must have default values set: " + this.toString());
 		}
 	}
 
