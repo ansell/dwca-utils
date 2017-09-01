@@ -267,6 +267,8 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 							try {
 								DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(document.getCore(), nextMetadataPath,
 										parseFunction);
+							} catch (Exception e) { 
+								e.printStackTrace();
 							} finally {
 								// Add a delay for adding the sentinel while the
 								// queue is not yet empty

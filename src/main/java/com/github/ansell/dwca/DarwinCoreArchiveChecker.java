@@ -325,10 +325,13 @@ public class DarwinCoreArchiveChecker {
 		final Path sortedCoreOrExtensionFilePath = coreOrExtensionFilePath
 				.resolveSibling("sorted-" + coreOrExtensionFilePath.getFileName().toString());
 
+		// Delete the sorted file if it exists and recreate it
+		Files.deleteIfExists(sortedCoreOrExtensionFilePath);
+
 		try (final Reader otherInputReader = Files.newBufferedReader(coreOrExtensionFilePath,
 				coreOrExtension.getEncoding())) {
 			CsvSchema csvSchema = coreOrExtension.getCsvSchema();
-			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath, CSVStream.defaultMapper(),
+			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath, CSVSorter.getSafeSortingMapper(),
 					coreOrExtension.getIgnoreHeaderLines(), csvSchema,
 					CSVSorter.getComparator(Integer.parseInt(coreOrExtension.getIdOrCoreId())));
 		}
