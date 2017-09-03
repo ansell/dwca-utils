@@ -305,7 +305,7 @@ public class DarwinCoreArchiveMerger {
 									// fields, so reuse the index to find the
 									// next key
 									// value
-									nextMergedValue = nextInputRecord.getValues().get(i);
+									nextMergedValue = nextInputRecord.getValues().get(j);
 									break;
 								}
 							}
@@ -343,7 +343,7 @@ public class DarwinCoreArchiveMerger {
 								// fields, so reuse the index to find the next
 								// key
 								// value
-								nextMergedValue = nextOtherInputRecord.getValues().get(i);
+								nextMergedValue = nextOtherInputRecord.getValues().get(j);
 								break;
 							}
 						}
@@ -378,7 +378,7 @@ public class DarwinCoreArchiveMerger {
 								// The values must be ordered in the same way as the
 								// fields, so reuse the index to find the next
 								// key value
-								nextMergedValue = nextOtherInputRecord.getValues().get(i);
+								nextMergedValue = nextOtherInputRecord.getValues().get(j);
 								break;
 							}
 						}
@@ -500,6 +500,8 @@ public class DarwinCoreArchiveMerger {
 				// Skip the other documents coreID field, which will be represented in the original core ID for this field
 				System.out.println("Skipping coreID field from other document as it is merged into original input");
 				continue;
+			} else if (nextField.getIndex() == null && nextField.getDefault() != null) {
+				System.out.println("Found field with no index but has a default: " + nextField);
 			}
 			boolean alreadyInList = false;
 			for (DarwinCoreField nextAssignedResultField : resultCore.getFields()) {
@@ -507,13 +509,13 @@ public class DarwinCoreArchiveMerger {
 					// Add in vocabulary/default/delimitedBy from the other
 					// archive if it was missing in the reference
 					if (nextAssignedResultField.getVocabulary() == null && nextField.getVocabulary() != null) {
-						nextField.setVocabulary(nextAssignedResultField.getVocabulary());
+						nextAssignedResultField.setVocabulary(nextField.getVocabulary());
 					}
 					if (nextAssignedResultField.getDefault() == null && nextField.getDefault() != null) {
-						nextField.setDefault(nextAssignedResultField.getDefault());
+						nextAssignedResultField.setDefault(nextField.getDefault());
 					}
 					if (nextAssignedResultField.getDelimitedBy() == null && nextField.getDelimitedBy() != null) {
-						nextField.setDelimitedBy(nextAssignedResultField.getDelimitedBy());
+						nextAssignedResultField.setDelimitedBy(nextField.getDelimitedBy());
 					}
 					alreadyInList = true;
 					break;

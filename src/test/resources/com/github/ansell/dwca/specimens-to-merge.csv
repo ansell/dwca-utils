@@ -1,3 +1,3 @@
-ID,Species,Count,DatasetID
-101,Cryptantha muricata,1,A2
-99,Buxbaumia tasmanica,3,A2
+ID,Species,Count,DatasetID,eventDate
+101,Cryptantha muricata,1,A2,2016-07-30
+99,Buxbaumia tasmanica,3,A2,2015-09-04
