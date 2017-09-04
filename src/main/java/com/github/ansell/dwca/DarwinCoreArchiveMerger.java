@@ -82,6 +82,9 @@ public class DarwinCoreArchiveMerger {
 				.describedAs("A directory to output summary and other files to.");
 		final OptionSpec<Boolean> debugOption = parser.accepts("debug").withRequiredArg().ofType(Boolean.class)
 				.defaultsTo(Boolean.FALSE).describedAs("Set to true to debug.");
+		final OptionSpec<Boolean> filterNonVocabularyTermsOption = parser.accepts("remove-non-vocabulary-terms")
+				.withRequiredArg().ofType(Boolean.class).defaultsTo(Boolean.FALSE)
+				.describedAs("Remove terms that do not match vocabularies when merging.");
 
 		OptionSet options = null;
 
@@ -99,6 +102,8 @@ public class DarwinCoreArchiveMerger {
 		}
 
 		final boolean debug = debugOption.value(options);
+
+		final boolean filterNonVocabularyTerms = filterNonVocabularyTermsOption.value(options);
 
 		final Path inputPath = input.value(options).toPath();
 		if (!Files.exists(inputPath)) {
@@ -151,7 +156,7 @@ public class DarwinCoreArchiveMerger {
 			final Path mergedOutputMetadataPath = mergedOutputArchivePath.resolve(DarwinCoreArchiveChecker.META_XML);
 			Files.createDirectories(mergedOutputArchivePath);
 			final DarwinCoreArchiveDocument mergedArchiveDocument = mergeFieldSets(inputArchiveDocument,
-					otherInputArchiveDocument, debug);
+					otherInputArchiveDocument, filterNonVocabularyTerms, debug);
 			DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
 			mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
 			Path mergedOutputCorePath = mergedOutputArchivePath
@@ -419,13 +424,16 @@ public class DarwinCoreArchiveMerger {
 	 *            The reference archive to merge.
 	 * @param otherInputArchiveDocument
 	 *            The archive to merge into the reference archive.
+	 * @param filterNonVocabularyTerms
+	 *            True to filter out non vocabulary terms or false to keep terms
+	 *            even if they never matched vocabulary terms.
 	 * @param debug
-	 *            True to verbosely debug and false otherwise
+	 *            True to verbosely debug and false otherwise.
 	 * @return A merged description of a document that has merged the field sets
 	 *         from both documents.
 	 */
 	private static DarwinCoreArchiveDocument mergeFieldSets(DarwinCoreArchiveDocument inputArchiveDocument,
-			DarwinCoreArchiveDocument otherInputArchiveDocument, boolean debug) {
+			DarwinCoreArchiveDocument otherInputArchiveDocument, boolean filterNonVocabularyTerms, boolean debug) {
 		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 
 		DarwinCoreCoreOrExtension resultCore = DarwinCoreCoreOrExtension.newCore();
@@ -487,6 +495,12 @@ public class DarwinCoreArchiveMerger {
 				continue;
 			}
 
+			if (filterNonVocabularyTerms && nextField.getVocabulary() == null) {
+				// If the vocabulary is missing and they want to filter it out,
+				// then ignore it at this point
+				continue;
+			}
+
 			DarwinCoreField nextResultField = new DarwinCoreField();
 			// Map the index to what would be in a merged result
 			nextResultField.setIndex(nextResultCoreFieldIndex);
@@ -512,11 +526,20 @@ public class DarwinCoreArchiveMerger {
 					System.out.println("Skipping coreID field from other document as it is merged into original input");
 				}
 				continue;
-			} else if (nextField.getIndex() == null && nextField.getDefault() != null) {
+			}
+
+			if (nextField.getIndex() == null && nextField.getDefault() != null) {
 				if (debug) {
 					System.out.println("Found field with no index but has a default: " + nextField);
 				}
 			}
+
+			if (filterNonVocabularyTerms && nextField.getVocabulary() == null) {
+				// If the vocabulary is missing and they want to filter it out,
+				// then ignore it at this point
+				continue;
+			}
+
 			boolean alreadyInList = false;
 			for (DarwinCoreField nextAssignedResultField : resultCore.getFields()) {
 				if (nextAssignedResultField.getTerm().equals(nextField.getTerm())) {
