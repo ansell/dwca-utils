@@ -155,7 +155,7 @@ public class DarwinCoreArchiveMerger {
 			DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
 			mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
 			final Path mergedOutputCorePath = mergedOutputArchivePath
-					.resolve(inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize()
+					.resolve("Merged-" + inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize()
 					.toAbsolutePath();
 			mergedOutputCoreDarwinCoreFile
 					.addLocation(mergedOutputArchivePath.relativize(mergedOutputCorePath).toString());
