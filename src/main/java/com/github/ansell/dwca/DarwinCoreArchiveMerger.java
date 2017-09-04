@@ -126,16 +126,21 @@ public class DarwinCoreArchiveMerger {
 			Files.createDirectories(outputArchivePath);
 			final DarwinCoreArchiveDocument inputArchiveDocument = loadArchive(debug, outputArchivePath,
 					inputMetadataPath);
-			System.out.println("Found an archive with " + inputArchiveDocument.getCore().getFields().size()
-					+ " core fields and " + inputArchiveDocument.getExtensions().size() + " extensions");
+			if (debug) {
+				System.out.println("Found an archive with " + inputArchiveDocument.getCore().getFields().size()
+						+ " core fields and " + inputArchiveDocument.getExtensions().size() + " extensions");
+			}
 
 			final Path otherOutputArchivePath = outputDirPath.resolve("other-archive");
 			final Path otherInputMetadataPath = openArchive(otherInputPath, otherOutputArchivePath);
 			Files.createDirectories(otherOutputArchivePath);
 			final DarwinCoreArchiveDocument otherInputArchiveDocument = loadArchive(debug, otherOutputArchivePath,
 					otherInputMetadataPath);
-			System.out.println("Found another archive with " + otherInputArchiveDocument.getCore().getFields().size()
-					+ " core fields and " + otherInputArchiveDocument.getExtensions().size() + " extensions");
+			if (debug) {
+				System.out.println("Found another archive with "
+						+ otherInputArchiveDocument.getCore().getFields().size() + " core fields and "
+						+ otherInputArchiveDocument.getExtensions().size() + " extensions");
+			}
 
 			canArchivesBeMergedDirectly(inputArchiveDocument, otherInputArchiveDocument);
 
@@ -375,7 +380,8 @@ public class DarwinCoreArchiveMerger {
 						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
 							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
 							if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
-								// The values must be ordered in the same way as the
+								// The values must be ordered in the same way as
+								// the
 								// fields, so reuse the index to find the next
 								// key value
 								nextMergedValue = nextOtherInputRecord.getValues().get(j);
@@ -394,9 +400,12 @@ public class DarwinCoreArchiveMerger {
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 			}
-			System.out.println("Merged output:");
-			Files.readAllLines(mergedOutputCorePath, StandardCharsets.UTF_8).stream().forEachOrdered(System.out::println);
-			System.out.println("End of merged output");
+			if (debug) {
+				System.out.println("Merged output:");
+				Files.readAllLines(mergedOutputCorePath, StandardCharsets.UTF_8).stream()
+						.forEachOrdered(System.out::println);
+				System.out.println("End of merged output");
+			}
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
 		}
@@ -497,7 +506,8 @@ public class DarwinCoreArchiveMerger {
 		for (DarwinCoreField nextField : otherInputArchiveDocument.getCore().getFields()) {
 			System.out.println("Merging other input field: " + nextField.toString());
 			if (nextField.getIndex() != null && nextField.getIndex().equals(otherInputCoreID)) {
-				// Skip the other documents coreID field, which will be represented in the original core ID for this field
+				// Skip the other documents coreID field, which will be
+				// represented in the original core ID for this field
 				System.out.println("Skipping coreID field from other document as it is merged into original input");
 				continue;
 			} else if (nextField.getIndex() == null && nextField.getDefault() != null) {
