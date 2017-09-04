@@ -154,9 +154,17 @@ public class DarwinCoreArchiveMerger {
 					otherInputArchiveDocument);
 			DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
 			mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
-			final Path mergedOutputCorePath = mergedOutputArchivePath
-					.resolve("Merged-" + inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize()
+			Path mergedOutputCorePath = mergedOutputArchivePath
+					.resolve(inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize()
 					.toAbsolutePath();
+			// Second stage to rename the file with "Merged-" in front
+			// Does not work if done above as the normalize needs to occur first
+			// to ensure we get the final path segment renamed
+			mergedOutputCorePath = mergedOutputCorePath
+					.resolveSibling("Merged-" + mergedOutputCorePath.getFileName().toString()).toAbsolutePath();
+			// Ensure that if there are new subdirectories in the merged path
+			// that we create them
+			Files.createDirectories(mergedOutputCorePath.getParent());
 			mergedOutputCoreDarwinCoreFile
 					.addLocation(mergedOutputArchivePath.relativize(mergedOutputCorePath).toString());
 			mergedArchiveDocument.setMetadataXMLPath(mergedOutputMetadataPath);
