@@ -266,7 +266,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 						Future<?> previousJob = runningJob.getAndSet(executor.submit(Unchecked.runnable(() -> {
 							try {
 								DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(document.getCore(), nextMetadataPath,
-										parseFunction);
+										parseFunction, false);
 							} catch (Exception e) { 
 								e.printStackTrace();
 							} finally {

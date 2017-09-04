@@ -320,10 +320,10 @@ public class DarwinCoreArchiveChecker {
 	 *             If there are issues accessing or reading the files.
 	 */
 	public static void parseCoreOrExtensionSorted(final DarwinCoreCoreOrExtension coreOrExtension,
-			final Path metadataPath, final Consumer<Reader> parseFunction) throws IOException {
+			final Path metadataPath, final Consumer<Reader> parseFunction, boolean debug) throws IOException {
 		Function<DarwinCoreCoreOrExtension, Comparator<StringList>> comparator = core -> CSVSorter
 				.getComparator(Integer.parseInt(core.getIdOrCoreId()));
-		parseCoreOrExtensionSorted(coreOrExtension, metadataPath, parseFunction, comparator);
+		parseCoreOrExtensionSorted(coreOrExtension, metadataPath, parseFunction, comparator, debug);
 	}
 
 	/**
@@ -346,7 +346,7 @@ public class DarwinCoreArchiveChecker {
 	 */
 	public static void parseCoreOrExtensionSorted(final DarwinCoreCoreOrExtension coreOrExtension,
 			final Path metadataPath, final Consumer<Reader> parseFunction,
-			Function<DarwinCoreCoreOrExtension, Comparator<StringList>> comparator) throws IOException {
+			Function<DarwinCoreCoreOrExtension, Comparator<StringList>> comparator, boolean debug) throws IOException {
 		// TODO: Only support a single file currently
 		final String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
 		final Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
@@ -361,7 +361,7 @@ public class DarwinCoreArchiveChecker {
 				coreOrExtension.getEncoding())) {
 			CsvSchema csvSchema = coreOrExtension.getCsvSchema();
 			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath, CSVSorter.getSafeSortingMapper(),
-					coreOrExtension.getIgnoreHeaderLines(), csvSchema, comparator.apply(coreOrExtension));
+					coreOrExtension.getIgnoreHeaderLines(), csvSchema, comparator.apply(coreOrExtension), debug);
 		}
 
 		try (final Reader inputReader = Files.newBufferedReader(sortedCoreOrExtensionFilePath,
