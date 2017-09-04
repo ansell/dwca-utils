@@ -279,7 +279,7 @@ public class DarwinCoreArchiveMerger {
 							}
 							// If the original record didn't have a value, check
 							// the other record
-							if (nextMergedValue == null) {
+							if (nextMergedValue == null || nextMergedValue.isEmpty()) {
 								if (nextOtherInputRecord != null) {
 									for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
 										DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
