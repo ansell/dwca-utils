@@ -211,14 +211,6 @@ public class DarwinCoreArchiveMerger {
 				// common to both
 				while (inputIterator.hasNext()) {
 					DarwinCoreRecord nextInputRecord = inputIterator.next();
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields());
-					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
-					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
-						// Setup all of the initial merged values to the empty
-						// string
-						nextMergedValues.add("");
-					}
 					// If we matched last time, we replace the "other" input
 					// record with a new copy this time, otherwise leave it as
 					// it is to be matched later
@@ -227,6 +219,10 @@ public class DarwinCoreArchiveMerger {
 							nextOtherInputRecord = otherInputIterator.next();
 						}
 					}
+
+					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+							mergedArchiveDocument.getCore().getFields());
+					List<String> nextMergedValues = getNewValuesList(nextMergedRecord);
 
 					// Find the two key values to check if they are the same
 					// before determining what to do next
@@ -255,6 +251,7 @@ public class DarwinCoreArchiveMerger {
 								// the fields, so reuse the index to find the
 								// next key value
 								nextOtherInputKey = nextOtherInputRecord.getValues().get(i);
+								break;
 							}
 						}
 						if (nextOtherInputKey == null) {
@@ -266,32 +263,25 @@ public class DarwinCoreArchiveMerger {
 					if (nextInputKey.equals(nextOtherInputKey)) {
 						// Found a match, merge the other record into this one!
 						for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
+							String nextMergedRecordTerm = nextMergedRecord.getFields().get(i).getTerm();
 							String nextMergedValue = null;
 							for (int j = 0; j < nextInputRecord.getFields().size(); j++) {
 								DarwinCoreField nextInputField = nextInputRecord.getFields().get(j);
-								if (nextInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
-									// The values must be ordered in the same
-									// way as the
-									// fields, so reuse the index to find the
-									// next key
-									// value
-									nextMergedValue = nextInputRecord.getValues().get(i);
+								if (nextInputField.getTerm().equals(nextMergedRecordTerm)) {
+									nextMergedValue = nextInputRecord.getValues().get(j);
 									break;
 								}
 							}
 							// If the original record didn't have a value, check
 							// the other record
 							if (nextMergedValue == null) {
-								for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
-									DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
-									if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
-										// The values must be ordered in the
-										// same way as the
-										// fields, so reuse the index to find
-										// the next key
-										// value
-										nextMergedValue = nextOtherInputRecord.getValues().get(i);
-										break;
+								if (nextOtherInputRecord != null) {
+									for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
+										DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
+										if (nextOtherInputField.getTerm().equals(nextMergedRecordTerm)) {
+											nextMergedValue = nextOtherInputRecord.getValues().get(j);
+											break;
+										}
 									}
 								}
 							}
@@ -303,16 +293,14 @@ public class DarwinCoreArchiveMerger {
 								nextMergedValues.set(i, nextMergedValue);
 							}
 						}
-						// Indicate that we should pull another record from the
-						// other iterator after this loop
-						nextOtherInputRecord = null;
 					} else {
 						// Else emit the nextInputRecord as the results for this
 						for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
+							String nextMergedRecordTerm = nextMergedRecord.getFields().get(i).getTerm();
 							String nextMergedValue = null;
 							for (int j = 0; j < nextInputRecord.getFields().size(); j++) {
 								DarwinCoreField nextInputField = nextInputRecord.getFields().get(j);
-								if (nextInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+								if (nextInputField.getTerm().equals(nextMergedRecordTerm)) {
 									// The values must be ordered in the same
 									// way as the
 									// fields, so reuse the index to find the
@@ -340,22 +328,16 @@ public class DarwinCoreArchiveMerger {
 				if (nextOtherInputRecord != null) {
 					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
 							mergedArchiveDocument.getCore().getFields());
-					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
-					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
-						// Setup all of the initial merged values to the empty
-						// string
-						nextMergedValues.add("");
-					}
+					List<String> nextMergedValues = getNewValuesList(nextMergedRecord);
 					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
+						String nextMergedRecordTerm = nextMergedRecord.getFields().get(i).getTerm();
 						String nextMergedValue = null;
 						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
 							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
-							if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+							if (nextOtherInputField.getTerm().equals(nextMergedRecordTerm)) {
 								// The values must be ordered in the same way as
-								// the
-								// fields, so reuse the index to find the next
-								// key
-								// value
+								// the fields, so reuse the index to find the
+								// next key value
 								nextMergedValue = nextOtherInputRecord.getValues().get(j);
 								break;
 							}
@@ -377,17 +359,13 @@ public class DarwinCoreArchiveMerger {
 					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
 							mergedArchiveDocument.getCore().getFields());
 					nextOtherInputRecord = otherInputIterator.next();
-					List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
-					for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
-						// Setup all of the initial merged values to the empty
-						// string
-						nextMergedValues.add("");
-					}
+					List<String> nextMergedValues = getNewValuesList(nextMergedRecord);
 					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
+						String nextMergedRecordTerm = nextMergedRecord.getFields().get(i).getTerm();
 						String nextMergedValue = null;
 						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
 							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
-							if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
+							if (nextOtherInputField.getTerm().equals(nextMergedRecordTerm)) {
 								// The values must be ordered in the same way as
 								// the
 								// fields, so reuse the index to find the next
@@ -417,6 +395,16 @@ public class DarwinCoreArchiveMerger {
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
 		}
+	}
+
+	private static List<String> getNewValuesList(DarwinCoreRecordImpl nextMergedRecord) {
+		List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
+		for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
+			// Setup all of the initial merged values to the empty
+			// string
+			nextMergedValues.add("");
+		}
+		return nextMergedValues;
 	}
 
 	/**
