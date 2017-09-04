@@ -151,7 +151,7 @@ public class DarwinCoreArchiveMerger {
 			final Path mergedOutputMetadataPath = mergedOutputArchivePath.resolve(DarwinCoreArchiveChecker.META_XML);
 			Files.createDirectories(mergedOutputArchivePath);
 			final DarwinCoreArchiveDocument mergedArchiveDocument = mergeFieldSets(inputArchiveDocument,
-					otherInputArchiveDocument);
+					otherInputArchiveDocument, debug);
 			DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
 			mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
 			Path mergedOutputCorePath = mergedOutputArchivePath
@@ -419,11 +419,13 @@ public class DarwinCoreArchiveMerger {
 	 *            The reference archive to merge.
 	 * @param otherInputArchiveDocument
 	 *            The archive to merge into the reference archive.
+	 * @param debug
+	 *            True to verbosely debug and false otherwise
 	 * @return A merged description of a document that has merged the field sets
 	 *         from both documents.
 	 */
 	private static DarwinCoreArchiveDocument mergeFieldSets(DarwinCoreArchiveDocument inputArchiveDocument,
-			DarwinCoreArchiveDocument otherInputArchiveDocument) {
+			DarwinCoreArchiveDocument otherInputArchiveDocument, boolean debug) {
 		DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 
 		DarwinCoreCoreOrExtension resultCore = DarwinCoreCoreOrExtension.newCore();
@@ -500,14 +502,20 @@ public class DarwinCoreArchiveMerger {
 		// Go through the other input archive document adding fields to the
 		// result core
 		for (DarwinCoreField nextField : otherInputArchiveDocument.getCore().getFields()) {
-			System.out.println("Merging other input field: " + nextField.toString());
+			if (debug) {
+				System.out.println("Merging other input field: " + nextField.toString());
+			}
 			if (nextField.getIndex() != null && nextField.getIndex().equals(otherInputCoreID)) {
 				// Skip the other documents coreID field, which will be
 				// represented in the original core ID for this field
-				System.out.println("Skipping coreID field from other document as it is merged into original input");
+				if (debug) {
+					System.out.println("Skipping coreID field from other document as it is merged into original input");
+				}
 				continue;
 			} else if (nextField.getIndex() == null && nextField.getDefault() != null) {
-				System.out.println("Found field with no index but has a default: " + nextField);
+				if (debug) {
+					System.out.println("Found field with no index but has a default: " + nextField);
+				}
 			}
 			boolean alreadyInList = false;
 			for (DarwinCoreField nextAssignedResultField : resultCore.getFields()) {
@@ -528,7 +536,9 @@ public class DarwinCoreArchiveMerger {
 				}
 			}
 			if (!alreadyInList) {
-				System.out.println("Found a field not in the list already: " + nextField);
+				if (debug) {
+					System.out.println("Found a field not in the list already: " + nextField);
+				}
 				DarwinCoreField nextResultField = new DarwinCoreField();
 				// Map the index to what would be in a merged result
 				nextResultField.setIndex(nextResultCoreFieldIndex);
