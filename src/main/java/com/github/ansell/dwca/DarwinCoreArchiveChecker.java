@@ -85,6 +85,8 @@ public class DarwinCoreArchiveChecker {
 				.describedAs("The input Darwin Core Archive file or metadata file to be checked.");
 		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).describedAs(
 				"A directory to output summary and other files to. If this is not set, no output will be preserved.");
+		final OptionSpec<File> tempDirOption = parser.accepts("temp-dir").withRequiredArg().ofType(File.class).describedAs(
+				"A directory to to write temporary files to.");
 		final OptionSpec<Boolean> debugOption = parser.accepts("debug").withRequiredArg().ofType(Boolean.class)
 				.defaultsTo(Boolean.FALSE).describedAs("Set to true to debug.");
 
@@ -111,7 +113,15 @@ public class DarwinCoreArchiveChecker {
 					"Could not find input Darwin Core Archive file or metadata file: " + inputPath.toString());
 		}
 
-		final Path tempDir = Files.createTempDirectory("dwca-check-");
+		final Path tempDir;
+		if (options.has(tempDirOption)) {
+			tempDir = Files.createTempDirectory(tempDirOption.value(options).toPath(), "dwca-check-");
+		} else {
+			tempDir = Files.createTempDirectory("dwca-check-");
+		}
+
+		// Override java.io.tmpdir system property so everything thinks this is the temporary directory for this JVM
+		System.setProperty("java.io.tmpdir", tempDir.toAbsolutePath().toString());
 
 		try {
 			final Path outputDirPath;

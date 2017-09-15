@@ -289,6 +289,31 @@ public class DarwinCoreArchiveCheckerTest {
 
 	/**
 	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainOutputWithTempDir() throws Exception {
+		Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
+		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--output",
+				testOutput.toAbsolutePath().toString(), "--temp-dir", testTempDir.toAbsolutePath().toString());
+		assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv")));
+		assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.tsv")));
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainNoOutputWithTempDir() throws Exception {
+		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--temp-dir", 
+				testTempDir.toAbsolutePath().toString());
+	}
+
+	/**
+	 * Test method for
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#checkZip(java.nio.file.Path, java.nio.file.Path)}
 	 * .
 	 */
