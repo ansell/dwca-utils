@@ -314,6 +314,46 @@ public class DarwinCoreArchiveCheckerTest {
 
 	/**
 	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainNoOutputWithTempDirAsParent() throws Exception {
+		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--temp-dir", 
+				testMetadataXmlTsv.getParent().toAbsolutePath().toString());
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainOutputWithTempDirAsInputParent() throws Exception {
+		Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
+		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--output",
+				testOutput.toAbsolutePath().toString(), "--temp-dir", testMetadataXmlTsv.getParent().toAbsolutePath().toString());
+		assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv")));
+		assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.tsv")));
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#main(java.lang.String[])}
+	 * .
+	 */
+	@Test
+	public final void testMainOutputWithTempDirAsParent() throws Exception {
+		Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
+		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--output",
+				testOutput.toAbsolutePath().toString(), "--temp-dir", testOutput.getParent().toAbsolutePath().toString());
+		// Verify that the tempDir was created as a subdirectory and did not wipe out the outputs
+		assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv")));
+		assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.tsv")));
+	}
+
+	/**
+	 * Test method for
 	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#checkZip(java.nio.file.Path, java.nio.file.Path)}
 	 * .
 	 */

@@ -107,7 +107,7 @@ public class DarwinCoreArchiveChecker {
 
 		final boolean debug = debugOption.value(options);
 
-		final Path inputPath = input.value(options).toPath();
+		final Path inputPath = input.value(options).toPath().toAbsolutePath().normalize();
 		if (!Files.exists(inputPath)) {
 			throw new FileNotFoundException(
 					"Could not find input Darwin Core Archive file or metadata file: " + inputPath.toString());
@@ -115,13 +115,10 @@ public class DarwinCoreArchiveChecker {
 
 		final Path tempDir;
 		if (options.has(tempDirOption)) {
-			tempDir = Files.createTempDirectory(tempDirOption.value(options).toPath(), "dwca-check-");
+			tempDir = Files.createTempDirectory(tempDirOption.value(options).toPath(), "dwca-check-").toAbsolutePath().normalize();
 		} else {
-			tempDir = Files.createTempDirectory("dwca-check-");
+			tempDir = Files.createTempDirectory("dwca-check-").toAbsolutePath().normalize();
 		}
-
-		// Override java.io.tmpdir system property so everything thinks this is the temporary directory for this JVM
-		System.setProperty("java.io.tmpdir", tempDir.toAbsolutePath().toString());
 
 		try {
 			final Path outputDirPath;
@@ -131,6 +128,10 @@ public class DarwinCoreArchiveChecker {
 			} else {
 				outputDirPath = tempDir;
 			}
+
+			// Override java.io.tmpdir system property so everything thinks this is the temporary directory for this JVM
+			// This includes cases where we used the standard temp dir, but want to remove all files reliably before returning for other applications that also use temp files
+			System.setProperty("java.io.tmpdir", tempDir.toAbsolutePath().toString());
 
 			final Path metadataPath;
 			if (inputPath.getFileName().toString().contains(".zip")) {
