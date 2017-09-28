@@ -213,8 +213,6 @@ public class DarwinCoreArchiveChecker {
 			final Path metadataPath, final Path outputDirPath, final boolean debug) {
 		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
-		final List<String> defaultValues = coreOrExtension.getFields().stream().map(f -> f.getDefault())
-				.collect(Collectors.toList());
 		return Unchecked.consumer(inputReader -> {
 			// TODO: Only support a single file currently
 			final String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
@@ -228,8 +226,8 @@ public class DarwinCoreArchiveChecker {
 							coreOrExtension.getEncoding());) {
 				// Summarise the core document
 				CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema(),
-						summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields, defaultValues,
-						coreOrExtension.getIgnoreHeaderLines());
+						summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields,
+						coreOrExtension.getDefaultValues(), coreOrExtension.getIgnoreHeaderLines());
 			}
 		});
 	}
@@ -272,7 +270,8 @@ public class DarwinCoreArchiveChecker {
 				.collect(Collectors.toList());
 		return Unchecked.consumer(inputReader -> {
 			CSVStream.parse(inputReader, headersValidator, lineConverter, resultConsumer, coreOrExtensionFields,
-					coreOrExtension.getIgnoreHeaderLines(), CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
+					coreOrExtension.getDefaultValues(), coreOrExtension.getIgnoreHeaderLines(),
+					CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
 		});
 	}
 
