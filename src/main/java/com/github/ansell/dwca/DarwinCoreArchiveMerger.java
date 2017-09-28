@@ -80,6 +80,9 @@ public class DarwinCoreArchiveMerger {
 				.required().describedAs("The other input Darwin Core Archive file to be merged.");
 		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).required()
 				.describedAs("A directory to output summary and other files to.");
+		final OptionSpec<Boolean> includeDefaultsOption = parser.accepts("include-defaults").withRequiredArg()
+				.ofType(Boolean.class).defaultsTo(Boolean.TRUE)
+				.describedAs("Whether to include default values from the meta.xml file in each archive when merging.");
 		final OptionSpec<Boolean> debugOption = parser.accepts("debug").withRequiredArg().ofType(Boolean.class)
 				.defaultsTo(Boolean.FALSE).describedAs("Set to true to debug.");
 		final OptionSpec<Boolean> filterNonVocabularyTermsOption = parser.accepts("remove-non-vocabulary-terms")
@@ -104,6 +107,8 @@ public class DarwinCoreArchiveMerger {
 		final boolean debug = debugOption.value(options);
 
 		final boolean filterNonVocabularyTerms = filterNonVocabularyTermsOption.value(options);
+
+		final boolean includeDefaults = includeDefaultsOption.value(options);
 
 		final Path inputPath = input.value(options).toPath();
 		if (!Files.exists(inputPath)) {
@@ -201,8 +206,10 @@ public class DarwinCoreArchiveMerger {
 				outputCoreCsvWriter.write(mergedArchiveDocument.getCore().getFields().stream()
 						.map(DarwinCoreField::getTerm).collect(Collectors.toList()));
 			}
-			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument.iterator();
-					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument.iterator();
+			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument
+					.iterator(includeDefaults);
+					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument
+							.iterator(includeDefaults);
 					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
 							StandardCharsets.UTF_8, StandardOpenOption.APPEND);
 					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,

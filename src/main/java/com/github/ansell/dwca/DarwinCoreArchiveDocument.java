@@ -189,6 +189,10 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 
 	@Override
 	public CloseableIterator<DarwinCoreRecord> iterator() {
+		return iterator(true);
+	}
+	
+	public CloseableIterator<DarwinCoreRecord> iterator(boolean includeDefaults) {
 		// Dummy sentinel to signal when iteration is complete
 		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
 			@Override
@@ -246,7 +250,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 		};
 
 		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(core, h -> {
-		}, lineConverter, resultConsumer);
+		}, lineConverter, resultConsumer, includeDefaults);
 
 		return new CloseableIterator<DarwinCoreRecord>() {
 

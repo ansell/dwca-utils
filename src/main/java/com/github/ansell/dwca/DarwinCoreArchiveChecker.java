@@ -33,6 +33,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -250,7 +251,7 @@ public class DarwinCoreArchiveChecker {
 		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
 		Consumer<List<String>> resultConsumer = l -> {
 		};
-		return createParseFunction(coreOrExtension, headersValidator, lineConverter, resultConsumer);
+		return createParseFunction(coreOrExtension, headersValidator, lineConverter, resultConsumer, true);
 	}
 
 	/**
@@ -265,13 +266,14 @@ public class DarwinCoreArchiveChecker {
 	 */
 	public static <T> Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension,
 			final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer) {
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
+			final boolean includeDefaults) {
 		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
 		return Unchecked.consumer(inputReader -> {
 			CSVStream.parse(inputReader, headersValidator, lineConverter, resultConsumer, coreOrExtensionFields,
-					coreOrExtension.getDefaultValues(), coreOrExtension.getIgnoreHeaderLines(),
-					CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
+					includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(),
+					coreOrExtension.getIgnoreHeaderLines(), CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
 		});
 	}
 
