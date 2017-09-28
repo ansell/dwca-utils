@@ -112,28 +112,28 @@
 			<dependency>
 				<groupId>com.github.ansell.csv.sum</groupId>
 				<artifactId>csvsum</artifactId>
-				<version>0.5.0</version>
+				<version>0.5.1-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.ansell.csv</groupId>
 				<artifactId>csvstream</artifactId>
 				<version>0.0.3</version>
 			</dependency>
-                        <dependency>
-                                <groupId>com.github.ansell.shp</groupId>
-                                <artifactId>utm2wgs</artifactId>
-                                <version>0.0.2</version>
-                        </dependency>
-                        <dependency>
-                                <groupId>com.github.ansell.abstract-service-loader</groupId>
-                                <artifactId>abstract-service-loader</artifactId>
-                                <version>0.5</version>
-                        </dependency>
-                        <dependency>
-                                <groupId>com.github.ansell.rdf4j-schema-generator</groupId>
-                                <artifactId>schema-generator</artifactId>
-                                <version>${schemagenerator.version}</version>
-                        </dependency>
+			<dependency>
+				<groupId>com.github.ansell.shp</groupId>
+				<artifactId>utm2wgs</artifactId>
+				<version>0.0.2</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ansell.abstract-service-loader</groupId>
+				<artifactId>abstract-service-loader</artifactId>
+				<version>0.5</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.ansell.rdf4j-schema-generator</groupId>
+				<artifactId>schema-generator</artifactId>
+				<version>${schemagenerator.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.eclipse.rdf4j</groupId>
 				<artifactId>rdf4j-model</artifactId>
