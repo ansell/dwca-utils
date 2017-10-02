@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -135,7 +136,7 @@ public class DarwinCoreArchiveMerger {
 			final Path inputMetadataPath = openArchive(inputPath, outputArchivePath);
 			Files.createDirectories(outputArchivePath);
 			final DarwinCoreArchiveDocument inputArchiveDocument = loadArchive(debug, outputArchivePath,
-					inputMetadataPath);
+					inputMetadataPath, includeDefaults);
 			if (debug) {
 				System.out.println("Found an archive with " + inputArchiveDocument.getCore().getFields().size()
 						+ " core fields and " + inputArchiveDocument.getExtensions().size() + " extensions");
@@ -145,7 +146,7 @@ public class DarwinCoreArchiveMerger {
 			final Path otherInputMetadataPath = openArchive(otherInputPath, otherOutputArchivePath);
 			Files.createDirectories(otherOutputArchivePath);
 			final DarwinCoreArchiveDocument otherInputArchiveDocument = loadArchive(debug, otherOutputArchivePath,
-					otherInputMetadataPath);
+					otherInputMetadataPath, includeDefaults);
 			if (debug) {
 				System.out.println("Found another archive with "
 						+ otherInputArchiveDocument.getCore().getFields().size() + " core fields and "
@@ -649,16 +650,19 @@ public class DarwinCoreArchiveMerger {
 	}
 
 	private static DarwinCoreArchiveDocument loadArchive(final boolean debug, final Path outputDirPath,
-			final Path inputMetadataPath) throws IOException, SAXException, IllegalStateException, CSVStreamException {
+			final Path inputMetadataPath, final boolean includeDefaults)
+			throws IOException, SAXException, IllegalStateException, CSVStreamException {
 		DarwinCoreArchiveDocument inputArchiveDocument = DarwinCoreArchiveChecker.parseMetadataXml(inputMetadataPath);
 		if (debug) {
 			System.out.println(inputArchiveDocument.toString());
 		}
 
 		DarwinCoreCoreOrExtension core = inputArchiveDocument.getCore();
-		DarwinCoreArchiveChecker.checkCoreOrExtension(core, inputMetadataPath, outputDirPath, true, debug);
+		DarwinCoreArchiveChecker.checkCoreOrExtension(core, inputMetadataPath, outputDirPath, true, debug,
+				includeDefaults);
 		for (DarwinCoreCoreOrExtension extension : inputArchiveDocument.getExtensions()) {
-			DarwinCoreArchiveChecker.checkCoreOrExtension(extension, inputMetadataPath, outputDirPath, true, debug);
+			DarwinCoreArchiveChecker.checkCoreOrExtension(extension, inputMetadataPath, outputDirPath, true, debug,
+					includeDefaults);
 		}
 		return inputArchiveDocument;
 	}
@@ -678,17 +682,9 @@ public class DarwinCoreArchiveMerger {
 		return inputMetadataPath;
 	}
 
-	/**
-	 * @param coreOrExtension
-	 * @param metadataPath
-	 * @param outputDirPath
-	 * @param hasOutput
-	 * @param debug
-	 * @throws IOException
-	 * @throws CSVStreamException
-	 */
 	public static void checkCoreOrExtension(DarwinCoreCoreOrExtension coreOrExtension, final Path metadataPath,
-			final Path outputDirPath, boolean hasOutput, final boolean debug) throws IOException, CSVStreamException {
+			final Path outputDirPath, final boolean hasOutput, final boolean debug, final boolean includeDefaults)
+			throws IOException, CSVStreamException {
 		int headerLineCount = coreOrExtension.getIgnoreHeaderLines();
 		List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
@@ -706,7 +702,9 @@ public class DarwinCoreArchiveMerger {
 								coreOrExtension.getEncoding());) {
 					// Summarise the core document
 					CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema(),
-							summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields, headerLineCount);
+							summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields,
+							includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(),
+							headerLineCount);
 				}
 			} else {
 				CSVStream.parse(inputReader, h -> {

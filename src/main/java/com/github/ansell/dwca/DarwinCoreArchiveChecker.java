@@ -88,6 +88,9 @@ public class DarwinCoreArchiveChecker {
 				"A directory to output summary and other files to. If this is not set, no output will be preserved.");
 		final OptionSpec<File> tempDirOption = parser.accepts("temp-dir").withRequiredArg().ofType(File.class).describedAs(
 				"A directory to to write temporary files to.");
+		final OptionSpec<Boolean> includeDefaultsOption = parser.accepts("include-defaults").withRequiredArg()
+				.ofType(Boolean.class).defaultsTo(Boolean.TRUE)
+				.describedAs("Whether to include default values from the meta.xml file in each archive.");
 		final OptionSpec<Boolean> debugOption = parser.accepts("debug").withRequiredArg().ofType(Boolean.class)
 				.defaultsTo(Boolean.FALSE).describedAs("Set to true to debug.");
 
@@ -107,6 +110,8 @@ public class DarwinCoreArchiveChecker {
 		}
 
 		final boolean debug = debugOption.value(options);
+
+		final boolean includeDefaults = includeDefaultsOption.value(options);
 
 		final Path inputPath = input.value(options).toPath().toAbsolutePath().normalize();
 		if (!Files.exists(inputPath)) {
@@ -151,9 +156,9 @@ public class DarwinCoreArchiveChecker {
 			}
 
 			DarwinCoreCoreOrExtension core = archiveDocument.getCore();
-			checkCoreOrExtension(core, metadataPath, outputDirPath, hasOutput, debug);
+			checkCoreOrExtension(core, metadataPath, outputDirPath, hasOutput, debug, includeDefaults);
 			for (DarwinCoreCoreOrExtension extension : archiveDocument.getExtensions()) {
-				checkCoreOrExtension(extension, metadataPath, outputDirPath, hasOutput, debug);
+				checkCoreOrExtension(extension, metadataPath, outputDirPath, hasOutput, debug, includeDefaults);
 			}
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
@@ -183,11 +188,11 @@ public class DarwinCoreArchiveChecker {
 	 *             If there are CSV syntax errors.
 	 */
 	public static void checkCoreOrExtension(final DarwinCoreCoreOrExtension coreOrExtension, final Path metadataPath,
-			final Path outputDirPath, final boolean hasOutput, final boolean debug)
+			final Path outputDirPath, final boolean hasOutput, final boolean debug, final boolean includeDefaults)
 			throws IOException, CSVStreamException {
 		final Consumer<Reader> summariseFunction = createSummariseFunction(coreOrExtension, metadataPath, outputDirPath,
-				debug);
-		final Consumer<Reader> parseFunction = createParseFunction(coreOrExtension);
+				debug, includeDefaults);
+		final Consumer<Reader> parseFunction = createParseFunction(coreOrExtension, includeDefaults);
 		// Parse the core or extension, either using the summarise or parse
 		// function as necessary to generate output or otherwise
 		parseCoreOrExtension(coreOrExtension, metadataPath, hasOutput ? summariseFunction : parseFunction);
@@ -211,7 +216,7 @@ public class DarwinCoreArchiveChecker {
 	 *         file to parse the content of the given core or extension.
 	 */
 	private static Consumer<Reader> createSummariseFunction(final DarwinCoreCoreOrExtension coreOrExtension,
-			final Path metadataPath, final Path outputDirPath, final boolean debug) {
+			final Path metadataPath, final Path outputDirPath, final boolean debug, final boolean includeDefaults) {
 		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
 		return Unchecked.consumer(inputReader -> {
@@ -243,7 +248,7 @@ public class DarwinCoreArchiveChecker {
 	 * @return A {@link Consumer} that can accept a Reader containing the CSV
 	 *         file to parse the content of the given core or extension.
 	 */
-	public static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension) {
+	public static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension, boolean includeDefaults) {
 		// Null implementations of the three CSVStream.parse functions to just
 		// validate the syntax and line lengths
 		Consumer<List<String>> headersValidator = h -> {
@@ -251,7 +256,7 @@ public class DarwinCoreArchiveChecker {
 		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
 		Consumer<List<String>> resultConsumer = l -> {
 		};
-		return createParseFunction(coreOrExtension, headersValidator, lineConverter, resultConsumer, true);
+		return createParseFunction(coreOrExtension, headersValidator, lineConverter, resultConsumer, includeDefaults);
 	}
 
 	/**
