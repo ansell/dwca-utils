@@ -191,7 +191,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 	public CloseableIterator<DarwinCoreRecord> iterator() {
 		return iterator(true);
 	}
-	
+
 	public CloseableIterator<DarwinCoreRecord> iterator(boolean includeDefaults) {
 		// Dummy sentinel to signal when iteration is complete
 		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
@@ -209,6 +209,11 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 			public DarwinCoreArchiveDocument getDocument() {
 				return null;
 			}
+
+			@Override
+			public Optional<String> valueFor(String term, boolean includeDefaults) {
+				return Optional.empty();
+			}
 		};
 		final BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(1);
 		final DarwinCoreArchiveDocument document = this;
@@ -219,25 +224,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 			if (Thread.currentThread().isInterrupted()) {
 				throw new IllegalStateException("Interruption occurred during parse");
 			}
-			return new DarwinCoreRecord() {
-
-				@Override
-				public List<String> getValues() {
-					// FIXME: Merge the other files fields together
-					return l;
-				}
-
-				@Override
-				public List<DarwinCoreField> getFields() {
-					// FIXME: Merge the other fields together
-					return getDocument().getCore().getFields();
-				}
-
-				@Override
-				public DarwinCoreArchiveDocument getDocument() {
-					return document;
-				}
-			};
+			return new DarwinCoreRecordImpl(document, document.getCore().getFields(), l);
 		};
 
 		Consumer<DarwinCoreRecord> resultConsumer = l -> {
@@ -269,9 +256,9 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 										"Metadata XML Path was null, not able to iterate due to a lack of a file reference point."));
 						Future<?> previousJob = runningJob.getAndSet(executor.submit(Unchecked.runnable(() -> {
 							try {
-								DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(document.getCore(), nextMetadataPath,
-										parseFunction, false);
-							} catch (Exception e) { 
+								DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(document.getCore(),
+										nextMetadataPath, parseFunction, false);
+							} catch (Exception e) {
 								e.printStackTrace();
 							} finally {
 								// Add a delay for adding the sentinel while the

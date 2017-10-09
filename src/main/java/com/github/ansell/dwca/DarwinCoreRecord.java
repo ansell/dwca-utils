@@ -26,6 +26,7 @@
 package com.github.ansell.dwca;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interface describing a record from a {@link DarwinCoreArchiveDocument}
@@ -46,10 +47,25 @@ public interface DarwinCoreRecord {
 	List<DarwinCoreField> getFields();
 
 	/**
-	 * @return The values for this record, including default substituted values
-	 *         from the {@link DarwinCoreField}. Note, values which have
-	 *         delimitedBy specified are not split, and are left as they
-	 *         appeared in the archive.
+	 * Values for this record, not including defaults. To include defaults, use
+	 * {@link #valueFor(String, boolean)}.
+	 * 
+	 * @return The values for this record. Note, values which have delimitedBy
+	 *         specified are not split, and are left as they appeared in the
+	 *         archive.
 	 */
 	List<String> getValues();
+
+	/**
+	 * Return the value for the given term or {@link Optional#empty()} if the
+	 * term is not in the field list.
+	 * 
+	 * @param term
+	 *            The term to search for
+	 * @param includeDefaults
+	 *            Whether to include defaults when the value would otherwise be
+	 *            empty
+	 * @return The value to return
+	 */
+	Optional<String> valueFor(String term, boolean includeDefaults);
 }

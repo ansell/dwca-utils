@@ -27,6 +27,8 @@ package com.github.ansell.dwca;
 
 import org.xml.sax.Attributes;
 
+import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
+
 /**
  * A field that may be specified for a core or extension in a Darwin Core
  * Archive metadata XML file.
@@ -36,6 +38,10 @@ import org.xml.sax.Attributes;
  *      Guide</a>
  */
 public class DarwinCoreField implements ConstraintChecked, Comparable<DarwinCoreField> {
+
+	// Constants for compareTo method
+	private static final int BEFORE = -1;
+	private static final int AFTER = 1;
 
 	/*
 	 * (non-Javadoc)
@@ -241,19 +247,25 @@ public class DarwinCoreField implements ConstraintChecked, Comparable<DarwinCore
 		return true;
 	}
 
+	/**
+	 * Compares DarwinCoreFields that are contained within a single
+	 * {@link CoreOrExtension}. It assumes that indexes are never reused, and
+	 * that if the indexes are not available, that a unique term name will be
+	 * used as a tie-breaker.
+	 */
 	@Override
 	public int compareTo(DarwinCoreField o) {
 		// Ensure we only compare valid objects
 		this.checkConstraints();
 		o.checkConstraints();
-		if(this.getIndex() == null) {
-			if(o.getIndex() == null) {
+		if (this.getIndex() == null) {
+			if (o.getIndex() == null) {
 				return this.getTerm().compareTo(o.getTerm());
 			} else {
-				return 1;
+				return AFTER;
 			}
 		} else if (o.getIndex() == null) {
-			return -1;
+			return BEFORE;
 		} else {
 			return this.getIndex().compareTo(o.getIndex());
 		}

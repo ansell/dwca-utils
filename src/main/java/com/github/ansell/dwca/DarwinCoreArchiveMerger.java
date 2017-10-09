@@ -233,40 +233,21 @@ public class DarwinCoreArchiveMerger {
 						}
 					}
 
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields());
-					List<String> nextMergedValues = getNewValuesList(nextMergedRecord);
+					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
 
 					// Find the two key values to check if they are the same
 					// before determining what to do next
-					String nextInputKey = null;
+					String nextInputKey = nextInputRecord.valueFor(mergedCoreIndexField.getTerm(), includeDefaults)
+							.orElse(null);
 					String nextOtherInputKey = null;
 
-					for (int i = 0; i < nextInputRecord.getFields().size(); i++) {
-						DarwinCoreField nextInputField = nextInputRecord.getFields().get(i);
-						if (nextInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
-							// The values must be ordered in the same way as the
-							// fields, so reuse the index to find the next key
-							// value
-							nextInputKey = nextInputRecord.getValues().get(i);
-							break;
-						}
-					}
 					if (nextInputKey == null) {
 						throw new IllegalStateException("Did not find a value for the id field in the input record");
 					}
 
 					if (nextOtherInputRecord != null) {
-						for (int i = 0; i < nextOtherInputRecord.getFields().size(); i++) {
-							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(i);
-							if (nextOtherInputField.getTerm().equals(mergedCoreIndexField.getTerm())) {
-								// The values must be ordered in the same way as
-								// the fields, so reuse the index to find the
-								// next key value
-								nextOtherInputKey = nextOtherInputRecord.getValues().get(i);
-								break;
-							}
-						}
+						nextOtherInputKey = nextOtherInputRecord
+								.valueFor(mergedCoreIndexField.getTerm(), includeDefaults).orElse(null);
 						if (nextOtherInputKey == null) {
 							throw new IllegalStateException(
 									"Did not find a value for the id field in the other input record");
@@ -275,127 +256,69 @@ public class DarwinCoreArchiveMerger {
 
 					if (nextInputKey.equals(nextOtherInputKey)) {
 						// Found a match, merge the other record into this one!
-						for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
-							String nextMergedRecordTerm = nextMergedRecord.getFields().get(i).getTerm();
-							String nextMergedValue = null;
-							for (int j = 0; j < nextInputRecord.getFields().size(); j++) {
-								DarwinCoreField nextInputField = nextInputRecord.getFields().get(j);
-								if (nextInputField.getTerm().equals(nextMergedRecordTerm)) {
-									nextMergedValue = nextInputRecord.getValues().get(j);
-									break;
-								}
-							}
+						for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
+							String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
+							String nextMergedValue = nextInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+									.orElse(null);
 							// If the original record didn't have a value, check
 							// the other record
 							if (nextMergedValue == null || nextMergedValue.isEmpty()) {
 								if (nextOtherInputRecord != null) {
-									for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
-										DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
-										if (nextOtherInputField.getTerm().equals(nextMergedRecordTerm)) {
-											nextMergedValue = nextOtherInputRecord.getValues().get(j);
-											break;
-										}
-									}
+									nextMergedValue = nextOtherInputRecord
+											.valueFor(nextMergedRecordTerm, includeDefaults).orElse(null);
 								}
 							}
-							if (nextMergedValue == null) {
-								// Use empty string as a substitute for null in
-								// the result
-								nextMergedValues.set(i, "");
-							} else {
+							if (nextMergedValue != null) {
 								nextMergedValues.set(i, nextMergedValue);
 							}
 						}
 					} else {
 						// Else emit the nextInputRecord as the results for this
-						for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
-							String nextMergedRecordTerm = nextMergedRecord.getFields().get(i).getTerm();
-							String nextMergedValue = null;
-							for (int j = 0; j < nextInputRecord.getFields().size(); j++) {
-								DarwinCoreField nextInputField = nextInputRecord.getFields().get(j);
-								if (nextInputField.getTerm().equals(nextMergedRecordTerm)) {
-									// The values must be ordered in the same
-									// way as the
-									// fields, so reuse the index to find the
-									// next key
-									// value
-									nextMergedValue = nextInputRecord.getValues().get(j);
-									break;
-								}
-							}
-							if (nextMergedValue == null) {
-								// Use empty string as a substitute for null in
-								// the result
-								nextMergedValues.set(i, "");
-							} else {
+						for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
+							String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
+							String nextMergedValue = nextInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+									.orElse(null);
+							if (nextMergedValue != null) {
 								nextMergedValues.set(i, nextMergedValue);
 							}
 						}
 					}
 
-					nextMergedRecord.setValues(nextMergedValues);
+					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Emit an unmatched record from the loop above if applicable,
 				// and then go through the rest of the other input iterator
 				if (nextOtherInputRecord != null) {
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields());
-					List<String> nextMergedValues = getNewValuesList(nextMergedRecord);
-					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
-						String nextMergedRecordTerm = nextMergedRecord.getFields().get(i).getTerm();
-						String nextMergedValue = null;
-						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
-							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
-							if (nextOtherInputField.getTerm().equals(nextMergedRecordTerm)) {
-								// The values must be ordered in the same way as
-								// the fields, so reuse the index to find the
-								// next key value
-								nextMergedValue = nextOtherInputRecord.getValues().get(j);
-								break;
-							}
-						}
-						if (nextMergedValue == null) {
-							// Use empty string as a substitute for null in the
-							// result
-							nextMergedValues.set(i, "");
-						} else {
+					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
+					for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
+						String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
+						String nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+								.orElse(null);
+						if (nextMergedValue != null) {
 							nextMergedValues.set(i, nextMergedValue);
 						}
 					}
-					nextMergedRecord.setValues(nextMergedValues);
+					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Deal with any records that were not matched during the loop
 				// above by simply adding them to the result
 				while (otherInputIterator.hasNext()) {
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields());
 					nextOtherInputRecord = otherInputIterator.next();
-					List<String> nextMergedValues = getNewValuesList(nextMergedRecord);
-					for (int i = 0; i < nextMergedRecord.getFields().size(); i++) {
-						String nextMergedRecordTerm = nextMergedRecord.getFields().get(i).getTerm();
-						String nextMergedValue = null;
-						for (int j = 0; j < nextOtherInputRecord.getFields().size(); j++) {
-							DarwinCoreField nextOtherInputField = nextOtherInputRecord.getFields().get(j);
-							if (nextOtherInputField.getTerm().equals(nextMergedRecordTerm)) {
-								// The values must be ordered in the same way as
-								// the
-								// fields, so reuse the index to find the next
-								// key value
-								nextMergedValue = nextOtherInputRecord.getValues().get(j);
-								break;
-							}
-						}
-						if (nextMergedValue == null) {
-							// Use empty string as a substitute for null in the
-							// result
-							nextMergedValues.set(i, "");
-						} else {
+					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
+					for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
+						String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
+						String nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+								.orElse(null);
+						if (nextMergedValue != null) {
 							nextMergedValues.set(i, nextMergedValue);
 						}
 					}
-					nextMergedRecord.setValues(nextMergedValues);
+					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 			}
@@ -410,14 +333,18 @@ public class DarwinCoreArchiveMerger {
 		}
 	}
 
-	private static List<String> getNewValuesList(DarwinCoreRecordImpl nextMergedRecord) {
-		List<String> nextMergedValues = new ArrayList<>(nextMergedRecord.getFields().size());
-		for (int initialSetup = 0; initialSetup < nextMergedRecord.getFields().size(); initialSetup++) {
-			// Setup all of the initial merged values to the empty
-			// string
-			nextMergedValues.add("");
+	private static List<String> getNewValuesList(DarwinCoreCoreOrExtension core, boolean includeDefaults) {
+		if (includeDefaults) {
+			return new ArrayList<>(core.getDefaultValues());
+		} else {
+			List<String> nextMergedValues = new ArrayList<>(core.getFields().size());
+			for (int initialSetup = 0; initialSetup < core.getFields().size(); initialSetup++) {
+				// Setup all of the initial merged values to the empty
+				// string
+				nextMergedValues.add("");
+			}
+			return nextMergedValues;
 		}
-		return nextMergedValues;
 	}
 
 	/**

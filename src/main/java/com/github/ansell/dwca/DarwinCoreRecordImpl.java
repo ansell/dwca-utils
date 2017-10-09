@@ -26,6 +26,7 @@
 package com.github.ansell.dwca;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementation of {@link DarwinCoreRecord}.
@@ -36,11 +37,12 @@ public class DarwinCoreRecordImpl implements DarwinCoreRecord {
 
 	private final DarwinCoreArchiveDocument document;
 	private final List<DarwinCoreField> fields;
-	private List<String> values;
+	private final List<String> values;
 
-	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, List<DarwinCoreField> fields) {
+	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, List<DarwinCoreField> fields, List<String> values) {
 		this.document = document;
 		this.fields = fields;
+		this.values = values;
 	}
 	
 	@Override
@@ -58,7 +60,29 @@ public class DarwinCoreRecordImpl implements DarwinCoreRecord {
 		return this.values;
 	}
 
-	public void setValues(List<String> values) {
-		this.values = values;
+	@Override
+	public Optional<String> valueFor(String term, boolean includeDefaults) {
+		List<DarwinCoreField> fields = getFields();
+		List<String> values = getValues();
+		for (int i = 0; i < values.size(); i++) {
+			if (fields.get(i).getTerm().equals(term)) {
+				String result = values.get(i);
+				if (result == null || result.isEmpty()) {
+					if (includeDefaults && fields.get(i).hasDefault()) {
+						return Optional.of(fields.get(i).getDefault());
+					} else {
+						// Null should not occur, but if it does,
+						// wrap it with empty string
+						return Optional.of("");
+					}
+				} else {
+					return Optional.of(result);
+				}
+			}
+		}
+		// Optional.empty is reserved for when the term did not
+		// appear in the list, otherwise it gets empty string
+		return Optional.empty();
 	}
+
 }

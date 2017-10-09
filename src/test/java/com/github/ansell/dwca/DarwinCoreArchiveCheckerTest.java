@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -85,6 +86,12 @@ public class DarwinCoreArchiveCheckerTest {
 	private Path testMetadataXmlTsv;
 
 	private Path testMetadataXmlSpecimensTsv;
+
+	private Path testMetadataXmlWithDefaults;
+
+	private Path testMetadataXmlWithDefaultsFolder;
+
+	private Path testMetadataXmlWithDefaultsSpecimensCsv;
 
 	@Before
 	public void setUp() throws Exception {
@@ -166,6 +173,19 @@ public class DarwinCoreArchiveCheckerTest {
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensTsv)) {
 			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/subdir/specimens.tsv"), out);
+		}
+		testMetadataXmlWithDefaultsFolder = tempDir.newFolder("dwca-check-unittest-with-defaults").toPath();
+		testMetadataXmlWithDefaults = testMetadataXmlWithDefaultsFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
+		testMetadataXmlWithDefaultsSpecimensCsv = testMetadataXmlWithDefaultsFolder
+				.resolve("specimens-with-missing-counts.csv");
+		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithDefaults)) {
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata-with-defaults.xml"),
+					out);
+		}
+		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithDefaultsSpecimensCsv)) {
+			IOUtils.copy(
+					this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens-with-missing-counts.csv"),
+					out);
 		}
 	}
 
@@ -308,7 +328,7 @@ public class DarwinCoreArchiveCheckerTest {
 	 */
 	@Test
 	public final void testMainNoOutputWithTempDir() throws Exception {
-		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--temp-dir", 
+		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--temp-dir",
 				testTempDir.toAbsolutePath().toString());
 	}
 
@@ -319,7 +339,7 @@ public class DarwinCoreArchiveCheckerTest {
 	 */
 	@Test
 	public final void testMainNoOutputWithTempDirAsParent() throws Exception {
-		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--temp-dir", 
+		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--temp-dir",
 				testMetadataXmlTsv.getParent().toAbsolutePath().toString());
 	}
 
@@ -332,7 +352,8 @@ public class DarwinCoreArchiveCheckerTest {
 	public final void testMainOutputWithTempDirAsInputParent() throws Exception {
 		Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
 		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--output",
-				testOutput.toAbsolutePath().toString(), "--temp-dir", testMetadataXmlTsv.getParent().toAbsolutePath().toString());
+				testOutput.toAbsolutePath().toString(), "--temp-dir",
+				testMetadataXmlTsv.getParent().toAbsolutePath().toString());
 		assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv")));
 		assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.tsv")));
 	}
@@ -346,8 +367,10 @@ public class DarwinCoreArchiveCheckerTest {
 	public final void testMainOutputWithTempDirAsParent() throws Exception {
 		Path testOutput = Files.createTempDirectory(testTempDir, "check-output");
 		DarwinCoreArchiveChecker.main("--input", testMetadataXmlTsv.toAbsolutePath().toString(), "--output",
-				testOutput.toAbsolutePath().toString(), "--temp-dir", testOutput.getParent().toAbsolutePath().toString());
-		// Verify that the tempDir was created as a subdirectory and did not wipe out the outputs
+				testOutput.toAbsolutePath().toString(), "--temp-dir",
+				testOutput.getParent().toAbsolutePath().toString());
+		// Verify that the tempDir was created as a subdirectory and did not
+		// wipe out the outputs
 		assertTrue(Files.exists(testOutput.resolve("Statistics-specimens.tsv")));
 		assertTrue(Files.exists(testOutput.resolve("Mapping-specimens.tsv")));
 	}
@@ -384,6 +407,41 @@ public class DarwinCoreArchiveCheckerTest {
 		assertEquals(4, testDocument.getCore().getFields().size());
 		for (DarwinCoreField field : testDocument.getCore().getFields()) {
 			assertTrue(field.getTerm().trim().length() > 0);
+		}
+	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreArchiveChecker#parseMetadataXml(java.nio.file.Path)}
+	 * .
+	 */
+	@Test
+	public final void testCoreIterationNoDefaults() throws Exception {
+		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXmlWithDefaults);
+		assertNotNull(testDocument);
+		assertNotNull(testDocument.getCore());
+		assertEquals("http://rs.tdwg.org/dwc/xsd/simpledarwincore/SimpleDarwinRecord",
+				testDocument.getCore().getRowType());
+		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
+		assertEquals(0, testDocument.getExtensions().size());
+		assertNotNull(testDocument.getCore().getFiles());
+		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
+		assertEquals("./specimens-with-missing-counts.csv", testDocument.getCore().getFiles().getLocations().get(0));
+		assertEquals(3, testDocument.getCore().getFields().size());
+		for (DarwinCoreField field : testDocument.getCore().getFields()) {
+			assertTrue(field.getTerm().trim().length() > 0);
+		}
+
+		try (CloseableIterator<DarwinCoreRecord> iterator = testDocument.iterator(false);) {
+			assertTrue(iterator.hasNext());
+			while (iterator.hasNext()) {
+				DarwinCoreRecord next = iterator.next();
+				assertNotNull(next);
+				assertEquals(3, next.getFields().size());
+				// Verify that the default values are coming through only when asked for
+				assertEquals(Optional.of("1"), next.valueFor("http://rs.tdwg.org/dwc/terms/individualCount", true));
+				assertEquals(Optional.of(""), next.valueFor("http://rs.tdwg.org/dwc/terms/individualCount", false));
+			}
 		}
 	}
 
@@ -439,7 +497,7 @@ public class DarwinCoreArchiveCheckerTest {
 					DarwinCoreRecord nextRecord = iterator.next();
 					recordCount++;
 					System.out.println(nextRecord.getFields());
-					System.out.println(nextRecord.getValues());
+					// System.out.println(nextRecord.getValues());
 				}
 			}
 			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
