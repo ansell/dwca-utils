@@ -196,11 +196,6 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 		// Dummy sentinel to signal when iteration is complete
 		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
 			@Override
-			public List<String> getValues() {
-				return null;
-			}
-
-			@Override
 			public List<DarwinCoreField> getFields() {
 				return null;
 			}

@@ -56,14 +56,7 @@ public class DarwinCoreRecordImpl implements DarwinCoreRecord {
 	}
 
 	@Override
-	public List<String> getValues() {
-		return this.values;
-	}
-
-	@Override
 	public Optional<String> valueFor(String term, boolean includeDefaults) {
-		List<DarwinCoreField> fields = getFields();
-		List<String> values = getValues();
 		for (int i = 0; i < values.size(); i++) {
 			if (fields.get(i).getTerm().equals(term)) {
 				String result = values.get(i);

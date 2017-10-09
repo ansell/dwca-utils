@@ -41,20 +41,9 @@ public interface DarwinCoreRecord {
 	DarwinCoreArchiveDocument getDocument();
 
 	/**
-	 * @return The ordered list of fields that match the order of values from a
-	 *         call to {@link #getValues()}.
+	 * @return The list of fields that this record contains.
 	 */
 	List<DarwinCoreField> getFields();
-
-	/**
-	 * Values for this record, not including defaults. To include defaults, use
-	 * {@link #valueFor(String, boolean)}.
-	 * 
-	 * @return The values for this record. Note, values which have delimitedBy
-	 *         specified are not split, and are left as they appeared in the
-	 *         archive.
-	 */
-	List<String> getValues();
 
 	/**
 	 * Return the value for the given term or {@link Optional#empty()} if the
