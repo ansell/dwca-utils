@@ -208,9 +208,9 @@ public class DarwinCoreArchiveMerger {
 						.map(DarwinCoreField::getTerm).collect(Collectors.toList()));
 			}
 			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument
-					.iterator(includeDefaults);
+					.iterator(false);
 					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument
-							.iterator(includeDefaults);
+							.iterator(false);
 					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
 							StandardCharsets.UTF_8, StandardOpenOption.APPEND);
 					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,

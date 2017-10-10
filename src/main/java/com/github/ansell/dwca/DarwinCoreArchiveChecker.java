@@ -220,7 +220,7 @@ public class DarwinCoreArchiveChecker {
 		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
 		return Unchecked.consumer(inputReader -> {
-			// TODO: Only support a single file currently
+			// FIXME: We only support a single file currently
 			final String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
 			final Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
 					.toAbsolutePath();
@@ -233,7 +233,7 @@ public class DarwinCoreArchiveChecker {
 				// Summarise the core document
 				CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema(),
 						summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields,
-						coreOrExtension.getDefaultValues(), coreOrExtension.getIgnoreHeaderLines());
+						includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(), coreOrExtension.getIgnoreHeaderLines());
 			}
 		});
 	}
