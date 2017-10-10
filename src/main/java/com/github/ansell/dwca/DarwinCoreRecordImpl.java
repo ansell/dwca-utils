@@ -26,6 +26,7 @@
 package com.github.ansell.dwca;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -33,18 +34,34 @@ import java.util.Optional;
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  */
-public class DarwinCoreRecordImpl implements DarwinCoreRecord {
+public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 
 	private final DarwinCoreArchiveDocument document;
 	private final List<DarwinCoreField> fields;
 	private final List<String> values;
 
+	/**
+	 * Create a DarwinCoreRecord based on a document, an ordered list of fields,
+	 * and a matching ordered set of values.
+	 * 
+	 * @param document
+	 *            The document that this record is based on.
+	 * @param fields
+	 *            An ordered set of fields.
+	 * @param values
+	 *            An ordered set of values which matches the ordered set of
+	 *            fields.
+	 */
 	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, List<DarwinCoreField> fields, List<String> values) {
-		this.document = document;
-		this.fields = fields;
-		this.values = values;
+		this.document = Objects.requireNonNull(document, "Document cannot be null");
+		this.fields = Objects.requireNonNull(fields, "Fields cannot be null");
+		this.values = Objects.requireNonNull(values, "Values cannot be null");
+		if (this.fields.size() != this.values.size()) {
+			throw new IllegalArgumentException("Fields and values lists must be the same size: fields size="
+					+ fields.size() + " values size=" + values.size());
+		}
 	}
-	
+
 	@Override
 	public DarwinCoreArchiveDocument getDocument() {
 		return this.document;
@@ -57,6 +74,9 @@ public class DarwinCoreRecordImpl implements DarwinCoreRecord {
 
 	@Override
 	public Optional<String> valueFor(String term, boolean includeDefaults) {
+		if (term == null) {
+			throw new IllegalArgumentException("Cannot get a value for a null term");
+		}
 		for (int i = 0; i < values.size(); i++) {
 			if (fields.get(i).getTerm().equals(term)) {
 				String result = values.get(i);
