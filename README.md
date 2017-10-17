@@ -40,10 +40,15 @@ Run csv2dwca with --help to get usage details:
     <dependency>
         <groupId>com.github.ansell.dwca</groupId>
         <artifactId>dwca-utils</artifactId>
-        <version>0.0.3</version>
+        <version>0.0.4</version>
     </dependency>
 
 # Changelog
+
+## 2017-10-17
+* Add support for optional default value interpolation from meta.xml when iterating
+* Add iteration over files
+* Add support for specifying core id index when using csv2dwca
 
 ## 2017-08-21
 * Parse ALA headings.csv files into Darwin Core Text Guide metadata XML files
