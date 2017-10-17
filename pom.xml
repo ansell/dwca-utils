@@ -11,7 +11,7 @@
 
 	<groupId>com.github.ansell.dwca</groupId>
 	<artifactId>dwca-utils</artifactId>
-	<version>0.0.4</version>
+	<version>0.0.5-SNAPSHOT</version>
 	<name>Darwin Core Archive Utils</name>
 	<description>Utilities for working with Darwin Core Archives</description>
 	<packaging>jar</packaging>
