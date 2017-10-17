@@ -27,6 +27,8 @@ package com.github.ansell.dwca;
 
 import org.xml.sax.Attributes;
 
+import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
+
 /**
  * A field that may be specified for a core or extension in a Darwin Core
  * Archive metadata XML file.
@@ -35,7 +37,11 @@ import org.xml.sax.Attributes;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public class DarwinCoreField implements ConstraintChecked {
+public class DarwinCoreField implements ConstraintChecked, Comparable<DarwinCoreField> {
+
+	// Constants for compareTo method
+	private static final int BEFORE = -1;
+	private static final int AFTER = 1;
 
 	/*
 	 * (non-Javadoc)
@@ -93,7 +99,7 @@ public class DarwinCoreField implements ConstraintChecked {
 	public boolean hasTerm() {
 		return this.term != null;
 	}
-	
+
 	public String getTerm() {
 		if (this.term == null) {
 			throw new IllegalStateException("Term was required for field, but was not set: " + this.toString());
@@ -106,6 +112,10 @@ public class DarwinCoreField implements ConstraintChecked {
 			throw new IllegalStateException("Cannot specify multiple terms for a field: " + this.toString());
 		}
 		this.term = term;
+	}
+
+	public boolean hasDefault() {
+		return defaultValue != null;
 	}
 
 	public String getDefault() {
@@ -136,7 +146,8 @@ public class DarwinCoreField implements ConstraintChecked {
 
 	public void setDelimitedBy(String delimitedBy) {
 		if (this.delimitedBy != null && !this.delimitedBy.equals(delimitedBy)) {
-			throw new IllegalStateException("Cannot specify multiple delimitedBy values for a field: " + this.toString());
+			throw new IllegalStateException(
+					"Cannot specify multiple delimitedBy values for a field: " + this.toString());
 		}
 		this.delimitedBy = delimitedBy;
 	}
@@ -171,6 +182,92 @@ public class DarwinCoreField implements ConstraintChecked {
 		if (getIndex() == null && getDefault() == null) {
 			throw new IllegalStateException(
 					"Fields that do not have indexes must have default values set: " + this.toString());
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((defaultValue == null) ? 0 : defaultValue.hashCode());
+		result = prime * result + ((delimitedBy == null) ? 0 : delimitedBy.hashCode());
+		result = prime * result + ((index == null) ? 0 : index.hashCode());
+		result = prime * result + ((term == null) ? 0 : term.hashCode());
+		result = prime * result + ((vocabulary == null) ? 0 : vocabulary.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof DarwinCoreField)) {
+			return false;
+		}
+		DarwinCoreField other = (DarwinCoreField) obj;
+		if (defaultValue == null) {
+			if (other.defaultValue != null) {
+				return false;
+			}
+		} else if (!defaultValue.equals(other.defaultValue)) {
+			return false;
+		}
+		if (delimitedBy == null) {
+			if (other.delimitedBy != null) {
+				return false;
+			}
+		} else if (!delimitedBy.equals(other.delimitedBy)) {
+			return false;
+		}
+		if (index == null) {
+			if (other.index != null) {
+				return false;
+			}
+		} else if (!index.equals(other.index)) {
+			return false;
+		}
+		if (term == null) {
+			if (other.term != null) {
+				return false;
+			}
+		} else if (!term.equals(other.term)) {
+			return false;
+		}
+		if (vocabulary == null) {
+			if (other.vocabulary != null) {
+				return false;
+			}
+		} else if (!vocabulary.equals(other.vocabulary)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Compares DarwinCoreFields that are contained within a single
+	 * {@link CoreOrExtension}. It assumes that indexes are never reused, and
+	 * that if the indexes are not available, that a unique term name will be
+	 * used as a tie-breaker.
+	 */
+	@Override
+	public int compareTo(DarwinCoreField o) {
+		// Ensure we only compare valid objects
+		this.checkConstraints();
+		o.checkConstraints();
+		if (this.getIndex() == null) {
+			if (o.getIndex() == null) {
+				return this.getTerm().compareTo(o.getTerm());
+			} else {
+				return AFTER;
+			}
+		} else if (o.getIndex() == null) {
+			return BEFORE;
+		} else {
+			return this.getIndex().compareTo(o.getIndex());
 		}
 	}
 

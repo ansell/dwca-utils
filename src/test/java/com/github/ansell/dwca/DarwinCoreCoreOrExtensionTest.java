@@ -28,6 +28,7 @@ package com.github.ansell.dwca;
 import static org.junit.Assert.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -360,5 +361,34 @@ public class DarwinCoreCoreOrExtensionTest {
 		core.addField(new DarwinCoreField());
 		extension.addField(new DarwinCoreField());
 	}
+
+	/**
+	 * Test method for
+	 * {@link com.github.ansell.dwca.DarwinCoreCoreOrExtension#getDefaultValues()}
+	 * .
+	 */
+	@Test
+	public final void testGetDefaultValues() {
+		DarwinCoreField defaultField = new DarwinCoreField();
+		defaultField.setIndex(0);
+		defaultField.setDefault("This is a default");
+		defaultField.setTerm("defaultField");
+		DarwinCoreField emptyDefaultField = new DarwinCoreField();
+		emptyDefaultField.setDefault("");
+		emptyDefaultField.setIndex(1);
+		emptyDefaultField.setTerm("emptyDefaultField");
+		DarwinCoreField nonDefaultField = new DarwinCoreField();
+		nonDefaultField.setIndex(2);
+		nonDefaultField.setTerm("nonDefaultField");
+		core.addField(defaultField);
+		core.addField(emptyDefaultField);
+		core.addField(nonDefaultField);
+		
+		List<String> defaultValues = core.getDefaultValues();
+		assertEquals("This is a default", defaultValues.get(0));
+		assertEquals("", defaultValues.get(1));
+		assertEquals("", defaultValues.get(2));
+	}
+
 
 }

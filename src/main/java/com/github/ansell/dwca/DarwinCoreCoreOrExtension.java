@@ -31,9 +31,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -327,11 +329,17 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 
 	public void addField(DarwinCoreField nextField) {
 		this.fields.add(nextField);
+		Collections.sort(this.fields);
 	}
 
 	public Optional<DarwinCoreField> findField(int id) {
 		return this.fields.stream().filter(nextField -> nextField.getIndex() != null && nextField.getIndex() == id)
 				.findFirst();
+	}
+
+	public List<String> getDefaultValues() {
+		return this.getFields().stream().map(f -> Optional.ofNullable(f.getDefault()).orElse(""))
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -451,4 +459,5 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 			field.checkConstraints();
 		}
 	}
+
 }
