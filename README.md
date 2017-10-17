@@ -46,6 +46,7 @@ Run csv2dwca with --help to get usage details:
 # Changelog
 
 ## 2017-10-17
+* Release 0.0.4
 * Add support for optional default value interpolation from meta.xml when iterating
 * Add iteration over files
 * Add support for specifying core id index when using csv2dwca
