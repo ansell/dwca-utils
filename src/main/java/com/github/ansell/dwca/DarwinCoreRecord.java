@@ -41,10 +41,11 @@ public interface DarwinCoreRecord {
 	DarwinCoreArchiveDocument getDocument();
 
 	/**
-	 * @return The list of fields that this record contains.
+	 * 
+	 * @return The core or extension that this record originated from
 	 */
-	List<DarwinCoreField> getFields();
-
+	DarwinCoreCoreOrExtension getCoreOrExtension();
+	
 	/**
 	 * Return the value for the given term or {@link Optional#empty()} if the
 	 * term is not in the field list.
@@ -57,4 +58,5 @@ public interface DarwinCoreRecord {
 	 * @return The value to return
 	 */
 	Optional<String> valueFor(String term, boolean includeDefaults);
+
 }

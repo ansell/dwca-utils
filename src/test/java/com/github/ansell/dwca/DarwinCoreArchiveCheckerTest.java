@@ -437,7 +437,7 @@ public class DarwinCoreArchiveCheckerTest {
 			while (iterator.hasNext()) {
 				DarwinCoreRecord next = iterator.next();
 				assertNotNull(next);
-				assertEquals(3, next.getFields().size());
+				assertEquals(3, next.getCoreOrExtension().getFields().size());
 				// Verify that the default values are coming through only when asked for
 				assertEquals(Optional.of("1"), next.valueFor("http://rs.tdwg.org/dwc/terms/individualCount", true));
 				assertEquals(Optional.of(""), next.valueFor("http://rs.tdwg.org/dwc/terms/individualCount", false));
@@ -496,7 +496,7 @@ public class DarwinCoreArchiveCheckerTest {
 				while (iterator.hasNext()) {
 					DarwinCoreRecord nextRecord = iterator.next();
 					recordCount++;
-					System.out.println(nextRecord.getFields());
+					System.out.println(nextRecord.getCoreOrExtension().getFields());
 					// System.out.println(nextRecord.getValues());
 				}
 			}

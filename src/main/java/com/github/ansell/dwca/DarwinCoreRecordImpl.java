@@ -37,6 +37,7 @@ import java.util.Optional;
 public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 
 	private final DarwinCoreArchiveDocument document;
+	private final DarwinCoreCoreOrExtension coreOrExtension;
 	private final List<DarwinCoreField> fields;
 	private final List<String> values;
 
@@ -52,9 +53,10 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 	 *            An ordered set of values which matches the ordered set of
 	 *            fields.
 	 */
-	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, List<DarwinCoreField> fields, List<String> values) {
+	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, DarwinCoreCoreOrExtension coreOrExtension, List<String> values) {
 		this.document = Objects.requireNonNull(document, "Document cannot be null");
-		this.fields = Objects.requireNonNull(fields, "Fields cannot be null");
+		this.coreOrExtension = Objects.requireNonNull(coreOrExtension, "Core or extension cannot be null");
+		this.fields = Objects.requireNonNull(coreOrExtension.getFields(), "Core or extension fields cannot be null");
 		this.values = Objects.requireNonNull(values, "Values cannot be null");
 		if (this.fields.size() != this.values.size()) {
 			throw new IllegalArgumentException("Fields and values lists must be the same size: fields size="
@@ -68,8 +70,8 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 	}
 
 	@Override
-	public List<DarwinCoreField> getFields() {
-		return this.fields;
+	public DarwinCoreCoreOrExtension getCoreOrExtension() {
+		return this.coreOrExtension;
 	}
 
 	@Override

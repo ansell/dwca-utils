@@ -55,6 +55,7 @@ import org.jooq.lambda.Unchecked;
 
 import com.github.ansell.concurrent.jparallel.JParallel;
 import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
+import com.github.ansell.jdefaultdict.JDefaultDict;
 
 import javanet.staxutils.IndentingXMLStreamWriter;
 
@@ -175,6 +176,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 	 * @throws IllegalStateException
 	 *             If semantic constraints are not enforced.
 	 */
+	@Override
 	public void checkConstraints() throws IllegalStateException {
 		core.checkConstraints();
 
@@ -193,15 +195,16 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 	}
 
 	public CloseableIterator<DarwinCoreRecord> iterator(boolean includeDefaults) {
+		final DarwinCoreArchiveDocument document = this;
 		// Dummy sentinel to signal when iteration is complete
 		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
 			@Override
-			public List<DarwinCoreField> getFields() {
+			public DarwinCoreArchiveDocument getDocument() {
 				return null;
 			}
 
 			@Override
-			public DarwinCoreArchiveDocument getDocument() {
+			public DarwinCoreCoreOrExtension getCoreOrExtension() {
 				return null;
 			}
 
@@ -210,29 +213,27 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 				return Optional.empty();
 			}
 		};
+
+		// Core helpers
 		final BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(1);
-		final DarwinCoreArchiveDocument document = this;
-
 		// Create a parse function
-		BiFunction<List<String>, List<String>, DarwinCoreRecord> lineConverter = (h, l) -> {
-			// Enable interruption to fail the parse before it completes
-			if (Thread.currentThread().isInterrupted()) {
-				throw new IllegalStateException("Interruption occurred during parse");
-			}
-			return new DarwinCoreRecordImpl(document, document.getCore().getFields(), l);
-		};
-
-		Consumer<DarwinCoreRecord> resultConsumer = l -> {
-			try {
-				pendingResults.put(l);
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				e.printStackTrace();
-			}
-		};
-
+		final BiFunction<List<String>, List<String>, DarwinCoreRecord> coreLineConverter = getLineConverter(document,
+				document.getCore());
+		final Consumer<DarwinCoreRecord> coreResultConsumer = getResultConsumer(pendingResults);
 		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(core, h -> {
-		}, lineConverter, resultConsumer, includeDefaults);
+		}, coreLineConverter, coreResultConsumer, includeDefaults);
+
+		// And the equivalent extension helpers
+		final List<DarwinCoreCoreOrExtension> nextExtensions = getExtensions();
+		final JDefaultDict<DarwinCoreCoreOrExtension, BlockingQueue<DarwinCoreRecord>> extensionQueues = new JDefaultDict<>(
+				k -> new ArrayBlockingQueue<>(1));
+		final JDefaultDict<DarwinCoreCoreOrExtension, BiFunction<List<String>, List<String>, DarwinCoreRecord>> extensionLineConverters = new JDefaultDict<>(
+				k -> getLineConverter(document, k));
+		final JDefaultDict<DarwinCoreCoreOrExtension, Consumer<DarwinCoreRecord>> extensionResultConsumers = new JDefaultDict<>(
+				k -> getResultConsumer(extensionQueues.get(k)));
+		final JDefaultDict<DarwinCoreCoreOrExtension, Consumer<Reader>> extensionParseFunctions = new JDefaultDict<>(
+				k -> DarwinCoreArchiveChecker.createParseFunction(k, h -> {
+				}, extensionLineConverters.get(k), extensionResultConsumers.get(k), includeDefaults));
 
 		return new CloseableIterator<DarwinCoreRecord>() {
 
@@ -374,6 +375,28 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 					return false;
 				}
 			}
+		};
+	}
+
+	private Consumer<DarwinCoreRecord> getResultConsumer(final BlockingQueue<DarwinCoreRecord> pendingResults) {
+		return l -> {
+			try {
+				pendingResults.put(l);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				e.printStackTrace();
+			}
+		};
+	}
+
+	private BiFunction<List<String>, List<String>, DarwinCoreRecord> getLineConverter(
+			final DarwinCoreArchiveDocument document, final DarwinCoreCoreOrExtension coreOrExtension) {
+		return (h, l) -> {
+			// Enable interruption to fail the parse before it completes
+			if (Thread.currentThread().isInterrupted()) {
+				throw new IllegalStateException("Interruption occurred during parse");
+			}
+			return new DarwinCoreRecordImpl(document, coreOrExtension, l);
 		};
 	}
 

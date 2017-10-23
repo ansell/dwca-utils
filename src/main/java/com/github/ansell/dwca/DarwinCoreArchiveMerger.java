@@ -285,7 +285,7 @@ public class DarwinCoreArchiveMerger {
 					}
 
 					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+							mergedArchiveDocument.getCore(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Emit an unmatched record from the loop above if applicable,
@@ -301,7 +301,7 @@ public class DarwinCoreArchiveMerger {
 						}
 					}
 					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+							mergedArchiveDocument.getCore(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Deal with any records that were not matched during the loop
@@ -318,7 +318,7 @@ public class DarwinCoreArchiveMerger {
 						}
 					}
 					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+							mergedArchiveDocument.getCore(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 			}
