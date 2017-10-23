@@ -141,10 +141,12 @@ public class DarwinCoreArchiveCheckerTest {
 		testMetadataXml = testMetadataXmlFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
 		testMetadataXmlSpecimensCsv = testMetadataXmlFolder.resolve("specimens.csv");
 		try (Writer out = Files.newBufferedWriter(testMetadataXml)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"), out,
+					StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensCsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), out,
+					StandardCharsets.UTF_8);
 		}
 		testMetadataXmlWithExtensionFolder = tempDir.newFolder("dwca-check-unittest-with-extensions").toPath();
 		testMetadataXmlWithExtension = testMetadataXmlWithExtensionFolder
@@ -153,39 +155,45 @@ public class DarwinCoreArchiveCheckerTest {
 		testMetadataXmlTypesCsv = testMetadataXmlWithExtensionFolder.resolve("types.csv");
 		testMetadataXmlDistributionCsv = testMetadataXmlWithExtensionFolder.resolve("distribution.csv");
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithExtension)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out,
+					StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlWhalesTxt)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/whales.txt"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/whales.txt"), out,
+					StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlTypesCsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"), out,
+					StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlDistributionCsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"), out,
+					StandardCharsets.UTF_8);
 		}
 		testMetadataXmlTsvFolder = tempDir.newFolder("dwca-check-unittest-tsv").toPath();
 		Files.createDirectories(testMetadataXmlTsvFolder.resolve("subdir"));
 		testMetadataXmlTsv = testMetadataXmlTsvFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
 		testMetadataXmlSpecimensTsv = testMetadataXmlTsvFolder.resolve("subdir").resolve("specimens.tsv");
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlTsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/tsvmetadata.xml"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/tsvmetadata.xml"), out,
+					StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensTsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/subdir/specimens.tsv"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/subdir/specimens.tsv"), out,
+					StandardCharsets.UTF_8);
 		}
 		testMetadataXmlWithDefaultsFolder = tempDir.newFolder("dwca-check-unittest-with-defaults").toPath();
 		testMetadataXmlWithDefaults = testMetadataXmlWithDefaultsFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
 		testMetadataXmlWithDefaultsSpecimensCsv = testMetadataXmlWithDefaultsFolder
 				.resolve("specimens-with-missing-counts.csv");
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithDefaults)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata-with-defaults.xml"),
-					out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata-with-defaults.xml"), out,
+					StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithDefaultsSpecimensCsv)) {
 			IOUtils.copy(
 					this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens-with-missing-counts.csv"),
-					out);
+					out, StandardCharsets.UTF_8);
 		}
 	}
 
@@ -437,10 +445,11 @@ public class DarwinCoreArchiveCheckerTest {
 			while (iterator.hasNext()) {
 				DarwinCoreRecord next = iterator.next();
 				assertNotNull(next);
-				assertEquals(3, next.getFields().size());
-				// Verify that the default values are coming through only when asked for
-				assertEquals(Optional.of("1"), next.valueFor("http://rs.tdwg.org/dwc/terms/individualCount", true));
-				assertEquals(Optional.of(""), next.valueFor("http://rs.tdwg.org/dwc/terms/individualCount", false));
+				assertEquals(3, next.getCoreFields().size());
+				// Verify that the default values are coming through only when
+				// asked for
+				assertEquals(Optional.of("1"), next.coreValue("http://rs.tdwg.org/dwc/terms/individualCount", true));
+				assertEquals(Optional.of(""), next.coreValue("http://rs.tdwg.org/dwc/terms/individualCount", false));
 			}
 		}
 	}
@@ -489,14 +498,48 @@ public class DarwinCoreArchiveCheckerTest {
 			assertTrue(field.getTerm().trim().length() > 0);
 		}
 
-		for (int replicaIterations = 1; replicaIterations < 100; replicaIterations++) {
+		for (int replicaIterations = 1; replicaIterations < 10; replicaIterations++) {
 			System.out.println("Replica #" + replicaIterations);
 			int recordCount = 0;
 			try (CloseableIterator<DarwinCoreRecord> iterator = testDocument.iterator()) {
 				while (iterator.hasNext()) {
 					DarwinCoreRecord nextRecord = iterator.next();
 					recordCount++;
-					System.out.println(nextRecord.getFields());
+					System.out.println(nextRecord.getCoreFields());
+					// System.out.println(nextRecord.getValues());
+				}
+			}
+			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
+					recordCount);
+			System.out.println();
+		}
+	}
+
+	@Test
+	public final void testIteratorWithExtensions() throws Exception {
+		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker
+				.parseMetadataXml(testMetadataXmlWithExtension);
+		assertNotNull(testDocument);
+		assertNotNull(testDocument.getCore());
+		assertEquals("http://rs.tdwg.org/dwc/terms/Taxon", testDocument.getCore().getRowType());
+		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
+		assertEquals(2, testDocument.getExtensions().size());
+		assertNotNull(testDocument.getCore().getFiles());
+		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
+		assertEquals("whales.txt", testDocument.getCore().getFiles().getLocations().get(0));
+		assertEquals(6, testDocument.getCore().getFields().size());
+		for (DarwinCoreField field : testDocument.getCore().getFields()) {
+			assertTrue(field.getTerm().trim().length() > 0);
+		}
+
+		for (int replicaIterations = 1; replicaIterations < 10; replicaIterations++) {
+			System.out.println("Replica #" + replicaIterations);
+			int recordCount = 0;
+			try (CloseableIterator<DarwinCoreRecord> iterator = testDocument.iterator()) {
+				while (iterator.hasNext()) {
+					DarwinCoreRecord nextRecord = iterator.next();
+					recordCount++;
+					System.out.println(nextRecord.getCoreFields());
 					// System.out.println(nextRecord.getValues());
 				}
 			}

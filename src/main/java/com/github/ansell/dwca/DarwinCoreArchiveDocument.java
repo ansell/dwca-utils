@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -196,7 +197,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 		// Dummy sentinel to signal when iteration is complete
 		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
 			@Override
-			public List<DarwinCoreField> getFields() {
+			public List<DarwinCoreField> getCoreFields() {
 				return null;
 			}
 
@@ -206,7 +207,17 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 			}
 
 			@Override
-			public Optional<String> valueFor(String term, boolean includeDefaults) {
+			public Map<String, List<DarwinCoreField>> getExtensionFields() {
+				return null;
+			}
+
+			@Override
+			public Optional<String> coreValue(String term, boolean includeDefaults) {
+				return Optional.empty();
+			}
+
+			@Override
+			public Optional<String> extensionValue(String term, boolean includeDefaults, String rowType) {
 				return Optional.empty();
 			}
 		};
@@ -224,6 +235,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 
 		Consumer<DarwinCoreRecord> resultConsumer = l -> {
 			try {
+				// This blocks until there is space available
 				pendingResults.put(l);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -231,7 +243,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 			}
 		};
 
-		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(core, h -> {
+		final Consumer<Reader> parseFunction = DarwinCoreArchiveChecker.createParseFunction(document, h -> {
 		}, lineConverter, resultConsumer, includeDefaults);
 
 		return new CloseableIterator<DarwinCoreRecord>() {

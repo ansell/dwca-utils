@@ -26,6 +26,7 @@
 package com.github.ansell.dwca;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -43,7 +44,7 @@ public interface DarwinCoreRecord {
 	/**
 	 * @return The list of fields that this record contains.
 	 */
-	List<DarwinCoreField> getFields();
+	List<DarwinCoreField> getCoreFields();
 
 	/**
 	 * Return the value for the given term or {@link Optional#empty()} if the
@@ -56,5 +57,29 @@ public interface DarwinCoreRecord {
 	 *            empty
 	 * @return The value to return
 	 */
-	Optional<String> valueFor(String term, boolean includeDefaults);
+	Optional<String> coreValue(String term, boolean includeDefaults);
+
+	/**
+	 * 
+	 * @return A map from the extension "rowType" to a list of fields for that
+	 *         rowType. If there was no matching records from the coreId to the
+	 *         extension, they key may not be present on the map or the list may
+	 *         be empty.
+	 */
+	Map<String, List<DarwinCoreField>> getExtensionFields();
+
+	/**
+	 * Return the value for the given term in the extension with the given
+	 * rowType or {@link Optional#empty()} if the term is not in the field list.
+	 * 
+	 * @param term
+	 *            The term to search for
+	 * @param includeDefaults
+	 *            Whether to include defaults when the value would otherwise be
+	 *            empty
+	 * @param rowType
+	 *            The extension rowType to search for.
+	 * @return The value to return
+	 */
+	Optional<String> extensionValue(String term, boolean includeDefaults, String rowType);
 }

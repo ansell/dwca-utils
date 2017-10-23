@@ -86,8 +86,8 @@ public class DarwinCoreArchiveChecker {
 				.describedAs("The input Darwin Core Archive file or metadata file to be checked.");
 		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).describedAs(
 				"A directory to output summary and other files to. If this is not set, no output will be preserved.");
-		final OptionSpec<File> tempDirOption = parser.accepts("temp-dir").withRequiredArg().ofType(File.class).describedAs(
-				"A directory to to write temporary files to.");
+		final OptionSpec<File> tempDirOption = parser.accepts("temp-dir").withRequiredArg().ofType(File.class)
+				.describedAs("A directory to to write temporary files to.");
 		final OptionSpec<Boolean> includeDefaultsOption = parser.accepts("include-defaults").withRequiredArg()
 				.ofType(Boolean.class).defaultsTo(Boolean.TRUE)
 				.describedAs("Whether to include default values from the meta.xml file in each archive.");
@@ -121,7 +121,8 @@ public class DarwinCoreArchiveChecker {
 
 		final Path tempDir;
 		if (options.has(tempDirOption)) {
-			tempDir = Files.createTempDirectory(tempDirOption.value(options).toPath(), "dwca-check-").toAbsolutePath().normalize();
+			tempDir = Files.createTempDirectory(tempDirOption.value(options).toPath(), "dwca-check-").toAbsolutePath()
+					.normalize();
 		} else {
 			tempDir = Files.createTempDirectory("dwca-check-").toAbsolutePath().normalize();
 		}
@@ -135,8 +136,11 @@ public class DarwinCoreArchiveChecker {
 				outputDirPath = tempDir;
 			}
 
-			// Override java.io.tmpdir system property so everything thinks this is the temporary directory for this JVM
-			// This includes cases where we used the standard temp dir, but want to remove all files reliably before returning for other applications that also use temp files
+			// Override java.io.tmpdir system property so everything thinks this
+			// is the temporary directory for this JVM
+			// This includes cases where we used the standard temp dir, but want
+			// to remove all files reliably before returning for other
+			// applications that also use temp files
 			System.setProperty("java.io.tmpdir", tempDir.toAbsolutePath().toString());
 
 			final Path metadataPath;
@@ -233,7 +237,8 @@ public class DarwinCoreArchiveChecker {
 				// Summarise the core document
 				CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema(),
 						summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields,
-						includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(), coreOrExtension.getIgnoreHeaderLines());
+						includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(),
+						coreOrExtension.getIgnoreHeaderLines());
 			}
 		});
 	}
@@ -247,8 +252,12 @@ public class DarwinCoreArchiveChecker {
 	 *            The {@link DarwinCoreCoreOrExtension} to parse.
 	 * @return A {@link Consumer} that can accept a Reader containing the CSV
 	 *         file to parse the content of the given core or extension.
+	 * @deprecated Migrate code to use
+	 *             {@link #createParseFunction(DarwinCoreArchiveDocument, boolean)}
 	 */
-	public static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension, boolean includeDefaults) {
+	@Deprecated
+	public static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension,
+			boolean includeDefaults) {
 		// Null implementations of the three CSVStream.parse functions to just
 		// validate the syntax and line lengths
 		Consumer<List<String>> headersValidator = h -> {
@@ -264,11 +273,37 @@ public class DarwinCoreArchiveChecker {
 	 * order to validate the CSV syntax, but not the content, apart from
 	 * checking that line lengths are consistent.
 	 * 
+	 * @param darwinCoreDocument
+	 *            The {@link DarwinCoreArchiveDocument} to parse.
+	 * @return A {@link Consumer} that can accept a Reader containing the CSV
+	 *         file to parse the content of the given core or extension.
+	 */
+	public static Consumer<Reader> createParseFunction(final DarwinCoreArchiveDocument darwinCoreDocument,
+			boolean includeDefaults) {
+		// Null implementations of the three CSVStream.parse functions to just
+		// validate the syntax and line lengths
+		Consumer<List<String>> headersValidator = h -> {
+		};
+		BiFunction<List<String>, List<String>, List<String>> lineConverter = (h, l) -> l;
+		Consumer<List<String>> resultConsumer = l -> {
+		};
+		return createParseFunction(darwinCoreDocument, headersValidator, lineConverter, resultConsumer,
+				includeDefaults);
+	}
+
+	/**
+	 * Creates a pure parse function, without processing any of the lines, in
+	 * order to validate the CSV syntax, but not the content, apart from
+	 * checking that line lengths are consistent.
+	 * 
 	 * @param coreOrExtension
 	 *            The {@link DarwinCoreCoreOrExtension} to parse.
 	 * @return A {@link Consumer} that can accept a Reader containing the CSV
 	 *         file to parse the content of the given core or extension.
+	 * @deprecated Migrate code to use
+	 *             {@link #createParseFunction(DarwinCoreArchiveDocument, Consumer, BiFunction, Consumer, boolean)}
 	 */
+	@Deprecated
 	public static <T> Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension,
 			final Consumer<List<String>> headersValidator,
 			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
@@ -292,7 +327,8 @@ public class DarwinCoreArchiveChecker {
 	 */
 	public static <T> Consumer<Reader> createParseFunction(final DarwinCoreArchiveDocument document,
 			final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer) {
+			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer,
+			final boolean includeDefaults) {
 		throw new UnsupportedOperationException("TODO: Implement me after merging is implemented");
 	}
 

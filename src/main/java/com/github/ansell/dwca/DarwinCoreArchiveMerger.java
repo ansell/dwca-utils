@@ -207,8 +207,10 @@ public class DarwinCoreArchiveMerger {
 				outputCoreCsvWriter.write(mergedArchiveDocument.getCore().getFields().stream()
 						.map(DarwinCoreField::getTerm).collect(Collectors.toList()));
 			}
-			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument
-					.iterator(false);
+			// Cannot use defaults while parsing from the raw files during a
+			// merge as we need to know if we should be using the value from the
+			// second file instead
+			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument.iterator(false);
 					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument
 							.iterator(false);
 					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
@@ -237,7 +239,7 @@ public class DarwinCoreArchiveMerger {
 
 					// Find the two key values to check if they are the same
 					// before determining what to do next
-					String nextInputKey = nextInputRecord.valueFor(mergedCoreIndexField.getTerm(), includeDefaults)
+					String nextInputKey = nextInputRecord.coreValue(mergedCoreIndexField.getTerm(), includeDefaults)
 							.orElse(null);
 					String nextOtherInputKey = null;
 
@@ -247,7 +249,7 @@ public class DarwinCoreArchiveMerger {
 
 					if (nextOtherInputRecord != null) {
 						nextOtherInputKey = nextOtherInputRecord
-								.valueFor(mergedCoreIndexField.getTerm(), includeDefaults).orElse(null);
+								.coreValue(mergedCoreIndexField.getTerm(), includeDefaults).orElse(null);
 						if (nextOtherInputKey == null) {
 							throw new IllegalStateException(
 									"Did not find a value for the id field in the other input record");
@@ -258,14 +260,14 @@ public class DarwinCoreArchiveMerger {
 						// Found a match, merge the other record into this one!
 						for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
 							String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
-							String nextMergedValue = nextInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+							String nextMergedValue = nextInputRecord.coreValue(nextMergedRecordTerm, includeDefaults)
 									.orElse(null);
 							// If the original record didn't have a value, check
 							// the other record
 							if (nextMergedValue == null || nextMergedValue.isEmpty()) {
 								if (nextOtherInputRecord != null) {
 									nextMergedValue = nextOtherInputRecord
-											.valueFor(nextMergedRecordTerm, includeDefaults).orElse(null);
+											.coreValue(nextMergedRecordTerm, includeDefaults).orElse(null);
 								}
 							}
 							if (nextMergedValue != null) {
@@ -276,7 +278,7 @@ public class DarwinCoreArchiveMerger {
 						// Else emit the nextInputRecord as the results for this
 						for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
 							String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
-							String nextMergedValue = nextInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+							String nextMergedValue = nextInputRecord.coreValue(nextMergedRecordTerm, includeDefaults)
 									.orElse(null);
 							if (nextMergedValue != null) {
 								nextMergedValues.set(i, nextMergedValue);
@@ -284,8 +286,8 @@ public class DarwinCoreArchiveMerger {
 						}
 					}
 
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+					//DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+					//		mergedArchiveDocument.getCore().getFields(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Emit an unmatched record from the loop above if applicable,
@@ -294,14 +296,14 @@ public class DarwinCoreArchiveMerger {
 					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
 					for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
 						String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
-						String nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+						String nextMergedValue = nextOtherInputRecord.coreValue(nextMergedRecordTerm, includeDefaults)
 								.orElse(null);
 						if (nextMergedValue != null) {
 							nextMergedValues.set(i, nextMergedValue);
 						}
 					}
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+					//DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+					//		mergedArchiveDocument.getCore().getFields(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Deal with any records that were not matched during the loop
@@ -311,14 +313,14 @@ public class DarwinCoreArchiveMerger {
 					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
 					for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
 						String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
-						String nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+						String nextMergedValue = nextOtherInputRecord.coreValue(nextMergedRecordTerm, includeDefaults)
 								.orElse(null);
 						if (nextMergedValue != null) {
 							nextMergedValues.set(i, nextMergedValue);
 						}
 					}
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+					//DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
+					//		mergedArchiveDocument.getCore().getFields(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 			}

@@ -26,8 +26,11 @@
 package com.github.ansell.dwca;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implementation of {@link DarwinCoreRecord}.
@@ -39,6 +42,8 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 	private final DarwinCoreArchiveDocument document;
 	private final List<DarwinCoreField> fields;
 	private final List<String> values;
+	private final Map<String, List<DarwinCoreField>> extensionFields;
+	private final Map<String, List<String>> extensionValues;
 
 	/**
 	 * Create a DarwinCoreRecord based on a document, an ordered list of fields,
@@ -52,13 +57,31 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 	 *            An ordered set of values which matches the ordered set of
 	 *            fields.
 	 */
-	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, List<DarwinCoreField> fields, List<String> values) {
+	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, List<DarwinCoreField> fields, List<String> values,
+			Map<String, List<DarwinCoreField>> extensionFields, Map<String, List<String>> extensionValues) {
 		this.document = Objects.requireNonNull(document, "Document cannot be null");
-		this.fields = Objects.requireNonNull(fields, "Fields cannot be null");
-		this.values = Objects.requireNonNull(values, "Values cannot be null");
+		this.fields = Objects.requireNonNull(fields, "Core fields cannot be null");
+		this.values = Objects.requireNonNull(values, "Core values cannot be null");
 		if (this.fields.size() != this.values.size()) {
 			throw new IllegalArgumentException("Fields and values lists must be the same size: fields size="
 					+ fields.size() + " values size=" + values.size());
+		}
+		this.extensionFields = Objects.requireNonNull(extensionFields, "Extension fields cannot be null");
+		this.extensionValues = Objects.requireNonNull(extensionValues, "Extension values cannot be null");
+
+		if (this.extensionFields.size() != this.extensionValues.size()) {
+			throw new IllegalArgumentException(
+					"Extension fields and values lists must be the same size: extensionFields size="
+							+ extensionFields.size() + " extensionValues size=" + extensionValues.size());
+		}
+
+		for (Entry<String, List<DarwinCoreField>> nextExtension : this.extensionFields.entrySet()) {
+			List<String> nextValues = this.extensionValues.get(nextExtension.getKey());
+			if (nextExtension.getValue().size() != nextValues.size()) {
+				throw new IllegalArgumentException("Extension fields and values lists must be the same size: key="
+						+ nextExtension.getKey() + " nextExtensionFields size=" + nextExtension.getValue().size()
+						+ " nextValues size=" + nextValues.size());
+			}
 		}
 	}
 
@@ -68,21 +91,54 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 	}
 
 	@Override
-	public List<DarwinCoreField> getFields() {
+	public List<DarwinCoreField> getCoreFields() {
 		return this.fields;
 	}
 
 	@Override
-	public Optional<String> valueFor(String term, boolean includeDefaults) {
+	public Map<String, List<DarwinCoreField>> getExtensionFields() {
+		return this.extensionFields;
+	}
+
+	@Override
+	public Optional<String> coreValue(String term, boolean includeDefaults) {
 		if (term == null) {
 			throw new IllegalArgumentException("Cannot get a value for a null term");
 		}
-		for (int i = 0; i < values.size(); i++) {
-			if (fields.get(i).getTerm().equals(term)) {
-				String result = values.get(i);
+		return getValueInternal(term, includeDefaults, fields, values);
+	}
+
+	@Override
+	public Optional<String> extensionValue(String term, boolean includeDefaults, String rowType) {
+		if (term == null) {
+			throw new IllegalArgumentException("Cannot get a value for a null term");
+		}
+		if (rowType == null) {
+			throw new IllegalArgumentException("Cannot get a value for a null rowType");
+		}
+		if (extensionFields.containsKey(rowType)) {
+			List<DarwinCoreField> fieldList = extensionFields.get(rowType);
+			List<String> valueList = extensionValues.get(rowType);
+			if (fieldList.isEmpty()) {
+				return Optional.empty();
+			}
+			if (fieldList.size() != valueList.size()) {
+				throw new IllegalStateException("Extension values did not match the field list: expected "
+						+ fieldList.size() + " fields, found " + valueList.size());
+			}
+			return getValueInternal(term, includeDefaults, fieldList, valueList);
+		}
+		return Optional.empty();
+	}
+
+	private Optional<String> getValueInternal(String term, boolean includeDefaults, List<DarwinCoreField> fields2,
+			List<String> values2) {
+		for (int i = 0; i < values2.size(); i++) {
+			if (fields2.get(i).getTerm().equals(term)) {
+				String result = values2.get(i);
 				if (result == null || result.isEmpty()) {
-					if (includeDefaults && fields.get(i).hasDefault()) {
-						return Optional.of(fields.get(i).getDefault());
+					if (includeDefaults && fields2.get(i).hasDefault()) {
+						return Optional.of(fields2.get(i).getDefault());
 					} else {
 						// Null should not occur, but if it does,
 						// wrap it with empty string
