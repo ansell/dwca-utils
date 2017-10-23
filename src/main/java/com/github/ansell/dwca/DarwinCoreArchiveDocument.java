@@ -226,6 +226,10 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 
 		// And the equivalent extension helpers
 		final List<DarwinCoreCoreOrExtension> nextExtensions = getExtensions();
+		// NOTE: These are all JDefaultDict so that .get calls will lazily
+		// populate them with initial values, without having to set them all up
+		// before hand
+		// They are all keyed to the extension they relate to
 		final JDefaultDict<DarwinCoreCoreOrExtension, BlockingQueue<DarwinCoreRecord>> extensionQueues = new JDefaultDict<>(
 				k -> new ArrayBlockingQueue<>(1));
 		final JDefaultDict<DarwinCoreCoreOrExtension, BiFunction<List<String>, List<String>, DarwinCoreRecord>> extensionLineConverters = new JDefaultDict<>(
@@ -294,20 +298,30 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 					final Path nextMetadataPath) {
 				return Unchecked.runnable(() -> {
 					try {
+						// Sort each file before parsing to ensure that we can
+						// stream over the full set of core and extension files
+						// with only a single record in memory at each point in
+						// time after the sort is complete
 						DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(coreOrExtension, nextMetadataPath,
 								parseFunction, false);
 					} catch (Exception e) {
 						e.printStackTrace();
 					} finally {
-						// Add a delay for adding the sentinel while the
-						// queue is not yet empty
-						int waitCount = 0;
-						long waitTime = 10;
-						while (pendingResults.size() > 0 && waitCount < 10) {
-							Thread.sleep(waitTime);
-							waitCount--;
+						try {
+							// Add a delay for adding the sentinel while the
+							// queue is not yet empty
+							int waitCount = 0;
+							long waitTime = 100;
+							while (!pendingResults.isEmpty() && waitCount < 10) {
+								Thread.sleep(waitTime);
+								waitCount++;
+							}
+						} finally {
+							if (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
+								System.err
+										.println("Failed to offer sentinel to queue for extension: " + coreOrExtension);
+							}
 						}
-						pendingResults.offer(sentinel, 10, TimeUnit.SECONDS);
 					}
 				});
 			}
@@ -399,14 +413,54 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 						.valueFor(extensionCoreIdFields.get(coreResult.getCoreOrExtension()).getTerm(), false)
 						.orElseThrow(() -> new RuntimeException("No id field on core record: " + coreResult));
 				for (DarwinCoreCoreOrExtension nextExtension : extensions) {
-					DarwinCoreRecord nextExtensionResult = extensionQueues.get(nextExtension).peek();
-					Optional<String> valueFor = nextExtensionResult
-							.valueFor(extensionCoreIdFields.get(nextExtension).getTerm(), false);
-					if (!valueFor.isPresent() || !valueFor.get().equals(nextCoreIdResult)) {
-						result.add(null);
-					} else {
-						result.add(nextExtensionResult);
+					// The extension iterators MUST be sorted using the
+					// String.compareTo algorithm in terms of the key fields for
+					// this algorithm to succeed
+					// See DarwinCoreArchiveChecker.parseCoreOrExtensionSorted
+					boolean checkAnother = true;
+					Optional<DarwinCoreRecord> matchedRecord = Optional.empty();
+					while (checkAnother) {
+						BlockingQueue<DarwinCoreRecord> nextExtensionQueue = extensionQueues.get(nextExtension);
+						if (nextExtensionQueue.isEmpty()) {
+							checkAnother = false;
+						}
+						DarwinCoreRecord nextExtensionResult = nextExtensionQueue.peek();
+						if (nextExtensionResult == null) {
+							// We checked if the queue was empty above, so peek
+							// returning null implies that there was an actual
+							// null element on the queue
+							throw new IllegalStateException("Queue contained a null value");
+						}
+						Optional<String> valueFor = nextExtensionResult
+								.valueFor(extensionCoreIdFields.get(nextExtension).getTerm(), false);
+						if (!valueFor.isPresent()) {
+							throw new IllegalStateException(
+									"Record did not have a value for the coreId field: " + nextExtensionResult);
+						}
+						String toMatchExtensionCoreId = valueFor.get();
+						int compareValue = nextCoreIdResult.compareTo(toMatchExtensionCoreId);
+						// Compare value of 0 indicates that they match
+						if (compareValue == 0) {
+							matchedRecord = Optional.of(nextExtensionResult);
+							checkAnother = false;
+							break;
+						} else if (compareValue > 0) {
+							// If the compare value is greater than zero, the
+							// coreId has already skipped this extension core
+							// id, which may not have a match, so needs to be
+							// skipped
+							// IMPORTANT: we do not poll if it is equal, as it
+							// may be equal to the next item also
+							nextExtensionQueue.poll();
+							checkAnother = true;
+						} else {
+							// compare value less than zero indicates that the
+							// coreId has not yet reached the id on this
+							// extension, so there is no match
+							checkAnother = false;
+						}
 					}
+					result.add(matchedRecord.orElse(null));
 				}
 				return result;
 			}

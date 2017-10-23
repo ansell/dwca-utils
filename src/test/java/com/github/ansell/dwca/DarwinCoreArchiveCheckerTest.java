@@ -490,7 +490,7 @@ public class DarwinCoreArchiveCheckerTest {
 			assertTrue(field.getTerm().trim().length() > 0);
 		}
 
-		for (int replicaIterations = 1; replicaIterations < 100; replicaIterations++) {
+		for (int replicaIterations = 1; replicaIterations < 10; replicaIterations++) {
 			System.out.println("Replica #" + replicaIterations);
 			int recordCount = 0;
 			try (CloseableIterator<List<DarwinCoreRecord>> iterator = testDocument.iterator()) {
