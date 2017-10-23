@@ -235,6 +235,10 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 		final JDefaultDict<DarwinCoreCoreOrExtension, Consumer<Reader>> extensionParseFunctions = new JDefaultDict<>(
 				k -> DarwinCoreArchiveChecker.createParseFunction(k, h -> {
 				}, extensionLineConverters.get(k), extensionResultConsumers.get(k), includeDefaults));
+		final JDefaultDict<DarwinCoreCoreOrExtension, DarwinCoreField> extensionCoreIdFields = new JDefaultDict<>(k -> {
+			int extensionIdIndex = Integer.parseInt(k.getIdOrCoreId());
+			return k.getFields().get(extensionIdIndex);
+		});
 
 		return new CloseableIterator<List<DarwinCoreRecord>>() {
 
@@ -378,11 +382,33 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 			 * matching id and return them as part of the list, or omit them if
 			 * they do not match.
 			 * 
-			 * @param coreResult The core record to match against extensions
+			 * @param coreResult
+			 *            The core record to match against extensions
 			 * @return
 			 */
 			private List<DarwinCoreRecord> getResultList(DarwinCoreRecord coreResult) {
-				return Arrays.asList(coreResult);
+				if (extensions.isEmpty()) {
+					return Arrays.asList(coreResult);
+				}
+
+				List<DarwinCoreRecord> result = new ArrayList<>(extensions.size() + 1);
+				// Core result must always be first on the list (for everyones
+				// sanity)
+				result.add(coreResult);
+				String nextCoreIdResult = coreResult
+						.valueFor(extensionCoreIdFields.get(coreResult.getCoreOrExtension()).getTerm(), false)
+						.orElseThrow(() -> new RuntimeException("No id field on core record: " + coreResult));
+				for (DarwinCoreCoreOrExtension nextExtension : extensions) {
+					DarwinCoreRecord nextExtensionResult = extensionQueues.get(nextExtension).peek();
+					Optional<String> valueFor = nextExtensionResult
+							.valueFor(extensionCoreIdFields.get(nextExtension).getTerm(), false);
+					if (!valueFor.isPresent() || !valueFor.get().equals(nextCoreIdResult)) {
+						result.add(null);
+					} else {
+						result.add(nextExtensionResult);
+					}
+				}
+				return result;
 			}
 
 			@Override
