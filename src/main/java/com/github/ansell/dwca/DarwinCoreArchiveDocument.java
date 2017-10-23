@@ -30,6 +30,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -67,7 +68,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, ConstraintChecked {
+public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord>>, ConstraintChecked {
 
 	@Override
 	public String toString() {
@@ -190,11 +191,11 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 	}
 
 	@Override
-	public CloseableIterator<DarwinCoreRecord> iterator() {
+	public CloseableIterator<List<DarwinCoreRecord>> iterator() {
 		return iterator(true);
 	}
 
-	public CloseableIterator<DarwinCoreRecord> iterator(boolean includeDefaults) {
+	public CloseableIterator<List<DarwinCoreRecord>> iterator(boolean includeDefaults) {
 		final DarwinCoreArchiveDocument document = this;
 		// Dummy sentinel to signal when iteration is complete
 		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
@@ -235,14 +236,16 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 				k -> DarwinCoreArchiveChecker.createParseFunction(k, h -> {
 				}, extensionLineConverters.get(k), extensionResultConsumers.get(k), includeDefaults));
 
-		return new CloseableIterator<DarwinCoreRecord>() {
+		return new CloseableIterator<List<DarwinCoreRecord>>() {
 
 			private final AtomicBoolean started = new AtomicBoolean(false);
 			private final CountDownLatch startCompleted = new CountDownLatch(1);
 			private final AtomicBoolean closed = new AtomicBoolean(false);
 			private volatile DarwinCoreRecord nextItem;
-			private final ExecutorService executor = Executors.newFixedThreadPool(1);
-			private final AtomicReference<Future<?>> runningJob = new AtomicReference<>();
+			private final ExecutorService executor = Executors.newFixedThreadPool(extensions.size() + 1);
+			private final AtomicReference<Future<?>> coreParsingJob = new AtomicReference<>();
+			private final JDefaultDict<DarwinCoreCoreOrExtension, AtomicReference<Future<?>>> extensionParsingJobs = new JDefaultDict<>(
+					k -> new AtomicReference<>());
 
 			private void doStart() {
 				if (started.compareAndSet(false, true)) {
@@ -250,39 +253,59 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 						Path nextMetadataPath = document.getMetadataXMLPath()
 								.orElseThrow(() -> new IllegalStateException(
 										"Metadata XML Path was null, not able to iterate due to a lack of a file reference point."));
-						Future<?> previousJob = runningJob.getAndSet(executor.submit(Unchecked.runnable(() -> {
-							try {
-								DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(document.getCore(),
-										nextMetadataPath, parseFunction, false);
-							} catch (Exception e) {
-								e.printStackTrace();
-							} finally {
-								// Add a delay for adding the sentinel while the
-								// queue is not yet empty
-								int waitCount = 0;
-								long waitTime = 10;
-								while (pendingResults.size() > 0 && waitCount < 10) {
-									Thread.sleep(waitTime);
-									waitCount--;
-								}
-								pendingResults.offer(sentinel, 10, TimeUnit.SECONDS);
-							}
-						})));
-						// Only one job goes through this executor
-						executor.shutdown();
+						Future<?> previousJob = coreParsingJob.getAndSet(executor.submit(createParsingRunnable(document,
+								document.getCore(), sentinel, pendingResults, parseFunction, nextMetadataPath)));
+						cancelPreviousJob(previousJob, document.getCore());
 
-						// Should not have been more than one job due to setup
-						// here, but avoiding the possibility that one could
-						// leak in future
-						if (previousJob != null) {
-							System.out.println(
-									"Found previous running parse for this CloseableIteration, attempting to cancel it...");
-							previousJob.cancel(true);
+						for (DarwinCoreCoreOrExtension nextExtension : extensions) {
+							Future<?> previousExtensionJob = extensionParsingJobs.get(nextExtension)
+									.getAndSet(executor.submit(createParsingRunnable(document, nextExtension, sentinel,
+											extensionQueues.get(nextExtension),
+											extensionParseFunctions.get(nextExtension), nextMetadataPath)));
+							cancelPreviousJob(previousExtensionJob, nextExtension);
 						}
+
+						// No other jobs through this executor
+						executor.shutdown();
 					} finally {
 						startCompleted.countDown();
 					}
 				}
+			}
+
+			private void cancelPreviousJob(Future<?> previousJob, DarwinCoreCoreOrExtension coreOrExtension) {
+				// Should not have been more than one job due to setup
+				// here, but avoiding the possibility that one could
+				// leak in future
+				if (previousJob != null) {
+					System.out.println(
+							"Found previous running parse for " + coreOrExtension + ", attempting to cancel it...");
+					previousJob.cancel(true);
+				}
+			}
+
+			private Runnable createParsingRunnable(final DarwinCoreArchiveDocument document,
+					final DarwinCoreCoreOrExtension coreOrExtension, final DarwinCoreRecord sentinel,
+					final BlockingQueue<DarwinCoreRecord> pendingResults, final Consumer<Reader> parseFunction,
+					final Path nextMetadataPath) {
+				return Unchecked.runnable(() -> {
+					try {
+						DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(coreOrExtension, nextMetadataPath,
+								parseFunction, false);
+					} catch (Exception e) {
+						e.printStackTrace();
+					} finally {
+						// Add a delay for adding the sentinel while the
+						// queue is not yet empty
+						int waitCount = 0;
+						long waitTime = 10;
+						while (pendingResults.size() > 0 && waitCount < 10) {
+							Thread.sleep(waitTime);
+							waitCount--;
+						}
+						pendingResults.offer(sentinel, 10, TimeUnit.SECONDS);
+					}
+				});
 			}
 
 			@Override
@@ -312,7 +335,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 										executor.shutdownNow();
 									}
 								} finally {
-									Future<?> future = runningJob.getAndSet(null);
+									Future<?> future = coreParsingJob.getAndSet(null);
 									if (future != null && !future.isDone()) {
 										future.cancel(true);
 									}
@@ -327,23 +350,39 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecord>, Co
 			}
 
 			@Override
-			public DarwinCoreRecord next() {
+			public List<DarwinCoreRecord> next() {
 				if (!closed.get()) {
 					try {
 						doStart();
 						startCompleted.await();
-						DarwinCoreRecord result = nextItem;
-						if (result == null) {
+						DarwinCoreRecord coreResult = nextItem;
+						if (coreResult == null) {
 							hasNext();
-							result = nextItem;
+							coreResult = nextItem;
 						}
 						nextItem = null;
-						return result;
+						if (coreResult == null) {
+							throw new NoSuchElementException("Could not find next record");
+						}
+						return getResultList(coreResult);
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
 				}
 				throw new NoSuchElementException("No other records found");
+			}
+
+			/**
+			 * Searches the extensions, which are sorted using the same criteria
+			 * as the core to determine if they have a record with the required
+			 * matching id and return them as part of the list, or omit them if
+			 * they do not match.
+			 * 
+			 * @param coreResult The core record to match against extensions
+			 * @return
+			 */
+			private List<DarwinCoreRecord> getResultList(DarwinCoreRecord coreResult) {
+				return Arrays.asList(coreResult);
 			}
 
 			@Override

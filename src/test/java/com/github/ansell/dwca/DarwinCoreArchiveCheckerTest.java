@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -432,15 +433,15 @@ public class DarwinCoreArchiveCheckerTest {
 			assertTrue(field.getTerm().trim().length() > 0);
 		}
 
-		try (CloseableIterator<DarwinCoreRecord> iterator = testDocument.iterator(false);) {
+		try (CloseableIterator<List<DarwinCoreRecord>> iterator = testDocument.iterator(false);) {
 			assertTrue(iterator.hasNext());
 			while (iterator.hasNext()) {
-				DarwinCoreRecord next = iterator.next();
+				List<DarwinCoreRecord> next = iterator.next();
 				assertNotNull(next);
-				assertEquals(3, next.getCoreOrExtension().getFields().size());
+				assertEquals(3, next.get(0).getCoreOrExtension().getFields().size());
 				// Verify that the default values are coming through only when asked for
-				assertEquals(Optional.of("1"), next.valueFor("http://rs.tdwg.org/dwc/terms/individualCount", true));
-				assertEquals(Optional.of(""), next.valueFor("http://rs.tdwg.org/dwc/terms/individualCount", false));
+				assertEquals(Optional.of("1"), next.get(0).valueFor("http://rs.tdwg.org/dwc/terms/individualCount", true));
+				assertEquals(Optional.of(""), next.get(0).valueFor("http://rs.tdwg.org/dwc/terms/individualCount", false));
 			}
 		}
 	}
@@ -492,11 +493,11 @@ public class DarwinCoreArchiveCheckerTest {
 		for (int replicaIterations = 1; replicaIterations < 100; replicaIterations++) {
 			System.out.println("Replica #" + replicaIterations);
 			int recordCount = 0;
-			try (CloseableIterator<DarwinCoreRecord> iterator = testDocument.iterator()) {
+			try (CloseableIterator<List<DarwinCoreRecord>> iterator = testDocument.iterator()) {
 				while (iterator.hasNext()) {
-					DarwinCoreRecord nextRecord = iterator.next();
+					List<DarwinCoreRecord> nextRecord = iterator.next();
 					recordCount++;
-					System.out.println(nextRecord.getCoreOrExtension().getFields());
+					System.out.println(nextRecord.get(0).getCoreOrExtension().getFields());
 					// System.out.println(nextRecord.getValues());
 				}
 			}

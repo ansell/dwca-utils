@@ -207,9 +207,9 @@ public class DarwinCoreArchiveMerger {
 				outputCoreCsvWriter.write(mergedArchiveDocument.getCore().getFields().stream()
 						.map(DarwinCoreField::getTerm).collect(Collectors.toList()));
 			}
-			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument
+			try (final CloseableIterator<List<DarwinCoreRecord>> inputIterator = inputArchiveDocument
 					.iterator(false);
-					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument
+					final CloseableIterator<List<DarwinCoreRecord>> otherInputIterator = otherInputArchiveDocument
 							.iterator(false);
 					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
 							StandardCharsets.UTF_8, StandardOpenOption.APPEND);
@@ -223,13 +223,15 @@ public class DarwinCoreArchiveMerger {
 				// The specific sort order does not matter as long as it is
 				// common to both
 				while (inputIterator.hasNext()) {
-					DarwinCoreRecord nextInputRecord = inputIterator.next();
+					// FIXME: Incorporate the extensions also
+					DarwinCoreRecord nextInputRecord = inputIterator.next().get(0);
 					// If we matched last time, we replace the "other" input
 					// record with a new copy this time, otherwise leave it as
 					// it is to be matched later
 					if (nextOtherInputRecord == null) {
 						if (otherInputIterator.hasNext()) {
-							nextOtherInputRecord = otherInputIterator.next();
+							// FIXME: Incorporate the extensions also
+							nextOtherInputRecord = otherInputIterator.next().get(0);
 						}
 					}
 
@@ -307,7 +309,8 @@ public class DarwinCoreArchiveMerger {
 				// Deal with any records that were not matched during the loop
 				// above by simply adding them to the result
 				while (otherInputIterator.hasNext()) {
-					nextOtherInputRecord = otherInputIterator.next();
+					// FIXME: Incorporate the extensions also
+					nextOtherInputRecord = otherInputIterator.next().get(0);
 					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
 					for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
 						String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
