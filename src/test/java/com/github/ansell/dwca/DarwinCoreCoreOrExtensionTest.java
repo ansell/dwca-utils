@@ -82,7 +82,7 @@ public class DarwinCoreCoreOrExtensionTest {
 	 */
 	@Test
 	public final void testGetIdOrCoreIdCore() {
-		assertNull(core.getIdOrCoreId());
+		assertFalse(core.getIdOrCoreId().isPresent());
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class DarwinCoreCoreOrExtensionTest {
 	@Test
 	public final void testSetIdOrCoreId() {
 		core.setIdOrCoreId("test");
-		assertEquals("test", core.getIdOrCoreId());
+		assertEquals("test", core.getIdOrCoreId().get());
 		extension.setIdOrCoreId("test-extension");
 		assertEquals("test-extension", extension.getIdOrCoreId());
 	}

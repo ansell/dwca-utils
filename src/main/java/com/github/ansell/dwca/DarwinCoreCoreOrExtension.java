@@ -457,7 +457,7 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 
 	@Override
 	public void checkConstraints() {
-		if (getType() == CoreOrExtension.EXTENSION && getIdOrCoreId() == null) {
+		if (getType() == CoreOrExtension.EXTENSION && !getIdOrCoreId().isPresent()) {
 			throw new IllegalStateException("Extensions must have coreId set.");
 		}
 		if (getFields().isEmpty()) {

@@ -53,7 +53,8 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 	 *            An ordered set of values which matches the ordered set of
 	 *            fields.
 	 */
-	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, DarwinCoreCoreOrExtension coreOrExtension, List<String> values) {
+	public DarwinCoreRecordImpl(DarwinCoreArchiveDocument document, DarwinCoreCoreOrExtension coreOrExtension,
+			List<String> values) {
 		this.document = Objects.requireNonNull(document, "Document cannot be null");
 		this.coreOrExtension = Objects.requireNonNull(coreOrExtension, "Core or extension cannot be null");
 		this.fields = Objects.requireNonNull(coreOrExtension.getFields(), "Core or extension fields cannot be null");
@@ -98,6 +99,17 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 		// Optional.empty is reserved for when the term did not
 		// appear in the list, otherwise it gets empty string
 		return Optional.empty();
+	}
+
+	@Override
+	public String toString() {
+		final int maxLen = 10;
+		StringBuilder builder = new StringBuilder();
+		builder.append("DarwinCoreRecordImpl [document=").append(document).append(",\n coreOrExtension=")
+				.append(coreOrExtension).append(",\n fields=")
+				.append(fields != null ? fields.subList(0, Math.min(fields.size(), maxLen)) : null).append(",\n values=")
+				.append(values != null ? values.subList(0, Math.min(values.size(), maxLen)) : null).append("]");
+		return builder.toString();
 	}
 
 }

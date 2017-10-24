@@ -181,7 +181,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 	public void checkConstraints() throws IllegalStateException {
 		core.checkConstraints();
 
-		if (!this.getExtensions().isEmpty() && this.getCore().getIdOrCoreId() == null) {
+		if (!this.getExtensions().isEmpty() && !this.getCore().getIdOrCoreId().isPresent()) {
 			throw new IllegalStateException("Core must have id set if there are extensions present.");
 		}
 
@@ -425,11 +425,22 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 							checkAnother = false;
 						}
 						DarwinCoreRecord nextExtensionResult = nextExtensionQueue.peek();
+						System.out.println(nextExtension);
+						System.out.println(nextExtensionResult);
 						if (nextExtensionResult == null) {
 							// We checked if the queue was empty above, so peek
 							// returning null implies that there was an actual
 							// null element on the queue
-							throw new IllegalStateException("Queue contained a null value");
+							//throw new IllegalStateException("Queue contained a null value");
+							checkAnother = true;
+							try {
+								Thread.sleep(1000);
+							}
+							catch(InterruptedException e) {
+								e.printStackTrace();
+								Thread.currentThread().interrupt();
+							}
+							continue;
 						}
 						Optional<String> valueFor = nextExtensionResult
 								.valueFor(extensionCoreIdFields.get(nextExtension).getTerm(), false);
