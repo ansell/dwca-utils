@@ -49,6 +49,42 @@ public class DarwinCoreFile {
 		return builder.toString();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((locations == null) ? 0 : locations.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof DarwinCoreFile)) {
+			return false;
+		}
+		DarwinCoreFile other = (DarwinCoreFile) obj;
+		if (locations == null) {
+			if (other.locations != null) {
+				return false;
+			}
+		} else if (!locations.equals(other.locations)) {
+			return false;
+		}
+		return true;
+	}
+
 	private final List<String> locations = new ArrayList<>();
 
 	public List<String> getLocations() {

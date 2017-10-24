@@ -140,6 +140,114 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 		return builder.toString();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((dateFormatPattern == null) ? 0 : dateFormatPattern.hashCode());
+		result = prime * result + ((encoding == null) ? 0 : encoding.hashCode());
+		result = prime * result + ((fields == null) ? 0 : fields.hashCode());
+		result = prime * result + ((fieldsEnclosedBy == null) ? 0 : fieldsEnclosedBy.hashCode());
+		result = prime * result + ((fieldsTerminatedBy == null) ? 0 : fieldsTerminatedBy.hashCode());
+		result = prime * result + ((files == null) ? 0 : files.hashCode());
+		result = prime * result + ((idOrCoreId == null) ? 0 : idOrCoreId.hashCode());
+		result = prime * result + ignoreHeaderLines;
+		result = prime * result + ((linesTerminatedBy == null) ? 0 : linesTerminatedBy.hashCode());
+		result = prime * result + ((rowType == null) ? 0 : rowType.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof DarwinCoreCoreOrExtension)) {
+			return false;
+		}
+		DarwinCoreCoreOrExtension other = (DarwinCoreCoreOrExtension) obj;
+		if (dateFormatPattern == null) {
+			if (other.dateFormatPattern != null) {
+				return false;
+			}
+		} else if (!dateFormatPattern.equals(other.dateFormatPattern)) {
+			return false;
+		}
+		if (encoding == null) {
+			if (other.encoding != null) {
+				return false;
+			}
+		} else if (!encoding.equals(other.encoding)) {
+			return false;
+		}
+		if (fields == null) {
+			if (other.fields != null) {
+				return false;
+			}
+		} else if (!fields.equals(other.fields)) {
+			return false;
+		}
+		if (fieldsEnclosedBy == null) {
+			if (other.fieldsEnclosedBy != null) {
+				return false;
+			}
+		} else if (!fieldsEnclosedBy.equals(other.fieldsEnclosedBy)) {
+			return false;
+		}
+		if (fieldsTerminatedBy == null) {
+			if (other.fieldsTerminatedBy != null) {
+				return false;
+			}
+		} else if (!fieldsTerminatedBy.equals(other.fieldsTerminatedBy)) {
+			return false;
+		}
+		if (files == null) {
+			if (other.files != null) {
+				return false;
+			}
+		} else if (!files.equals(other.files)) {
+			return false;
+		}
+		if (idOrCoreId == null) {
+			if (other.idOrCoreId != null) {
+				return false;
+			}
+		} else if (!idOrCoreId.equals(other.idOrCoreId)) {
+			return false;
+		}
+		if (ignoreHeaderLines != other.ignoreHeaderLines) {
+			return false;
+		}
+		if (linesTerminatedBy == null) {
+			if (other.linesTerminatedBy != null) {
+				return false;
+			}
+		} else if (!linesTerminatedBy.equals(other.linesTerminatedBy)) {
+			return false;
+		}
+		if (rowType == null) {
+			if (other.rowType != null) {
+				return false;
+			}
+		} else if (!rowType.equals(other.rowType)) {
+			return false;
+		}
+		if (type != other.type) {
+			return false;
+		}
+		return true;
+	}
+
 	public enum CoreOrExtension {
 		CORE,
 

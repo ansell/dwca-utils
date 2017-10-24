@@ -70,6 +70,8 @@ import javanet.staxutils.IndentingXMLStreamWriter;
  */
 public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord>>, ConstraintChecked {
 
+	private static final int DEFAULT_ITERATION_QUEUE_SIZE = 1;
+
 	@Override
 	public String toString() {
 		final int maxLen = 10;
@@ -216,7 +218,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 		};
 
 		// Core helpers
-		final BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(1);
+		final BlockingQueue<DarwinCoreRecord> pendingResults = new ArrayBlockingQueue<>(DEFAULT_ITERATION_QUEUE_SIZE);
 		// Create a parse function
 		final BiFunction<List<String>, List<String>, DarwinCoreRecord> coreLineConverter = getLineConverter(document,
 				document.getCore());
@@ -231,7 +233,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 		// before hand
 		// They are all keyed to the extension they relate to
 		final JDefaultDict<DarwinCoreCoreOrExtension, BlockingQueue<DarwinCoreRecord>> extensionQueues = new JDefaultDict<>(
-				k -> new ArrayBlockingQueue<>(1));
+				k -> new ArrayBlockingQueue<>(DEFAULT_ITERATION_QUEUE_SIZE));
 		final JDefaultDict<DarwinCoreCoreOrExtension, BiFunction<List<String>, List<String>, DarwinCoreRecord>> extensionLineConverters = new JDefaultDict<>(
 				k -> getLineConverter(document, k));
 		final JDefaultDict<DarwinCoreCoreOrExtension, Consumer<DarwinCoreRecord>> extensionResultConsumers = new JDefaultDict<>(
@@ -240,9 +242,12 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 				k -> DarwinCoreArchiveChecker.createParseFunction(k, h -> {
 				}, extensionLineConverters.get(k), extensionResultConsumers.get(k), includeDefaults));
 		final JDefaultDict<DarwinCoreCoreOrExtension, DarwinCoreField> extensionCoreIdFields = new JDefaultDict<>(k -> {
-			int extensionIdIndex = Integer.parseInt(k.getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+			int extensionIdIndex = Integer
+					.parseInt(k.getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
 			return k.getFields().get(extensionIdIndex);
 		});
+		final JDefaultDict<DarwinCoreCoreOrExtension, AtomicReference<DarwinCoreRecord>> extensionLastElements = new JDefaultDict<>(
+				k -> new AtomicReference<>());
 
 		return new CloseableIterator<List<DarwinCoreRecord>>() {
 
@@ -401,51 +406,58 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 			 * @return
 			 */
 			private List<DarwinCoreRecord> getResultList(DarwinCoreRecord coreResult) {
-				if (extensions.isEmpty()) {
+				if (nextExtensions.isEmpty()) {
 					return Arrays.asList(coreResult);
 				}
 
-				List<DarwinCoreRecord> result = new ArrayList<>(extensions.size() + 1);
+				List<DarwinCoreRecord> result = new ArrayList<>(nextExtensions.size() + 1);
 				// Core result must always be first on the list (for everyones
 				// sanity)
 				result.add(coreResult);
 				String nextCoreIdResult = coreResult
 						.valueFor(extensionCoreIdFields.get(coreResult.getCoreOrExtension()).getTerm(), false)
 						.orElseThrow(() -> new RuntimeException("No id field on core record: " + coreResult));
-				for (DarwinCoreCoreOrExtension nextExtension : extensions) {
+				for (DarwinCoreCoreOrExtension nextExtension : nextExtensions) {
 					// The extension iterators MUST be sorted using the
 					// String.compareTo algorithm in terms of the key fields for
 					// this algorithm to succeed
 					// See DarwinCoreArchiveChecker.parseCoreOrExtensionSorted
-					boolean checkAnother = true;
 					Optional<DarwinCoreRecord> matchedRecord = Optional.empty();
-					while (checkAnother) {
+					while (true) {
 						BlockingQueue<DarwinCoreRecord> nextExtensionQueue = extensionQueues.get(nextExtension);
-						if (nextExtensionQueue.isEmpty()) {
-							checkAnother = false;
+						// DarwinCoreRecord nextExtensionResult =
+						// nextExtensionQueue.peek();
+						AtomicReference<DarwinCoreRecord> lastElementReference = extensionLastElements
+								.get(nextExtension);
+						DarwinCoreRecord nextExtensionResult = lastElementReference.get();
+						if (nextExtensionResult == null) {
+							for (int i = 0; i < 10; i++) {
+								try {
+									if (Thread.currentThread().isInterrupted()) {
+										throw new RuntimeException(
+												"Interrupt occurred while iterating through extension");
+									}
+									nextExtensionResult = nextExtensionQueue.poll(1, TimeUnit.SECONDS);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+									Thread.currentThread().interrupt();
+									throw new RuntimeException(e);
+								}
+								if (nextExtensionResult == sentinel) {
+									lastElementReference.set(sentinel);
+									break;
+								} else if (nextExtensionResult != null) {
+									lastElementReference.set(nextExtensionResult);
+								}
+							}
 						}
-						DarwinCoreRecord nextExtensionResult = nextExtensionQueue.peek();
+
+						if (nextExtensionResult == sentinel) {
+							System.out.println("Found sentinel for extension: " + nextExtension);
+							break;
+						}
 						System.out.println(nextExtension);
 						System.out.println(nextExtensionResult);
-						if (nextExtensionResult == sentinel) {
-							checkAnother = false;
-							continue;
-						}
-						if (nextExtensionResult == null) {
-							// We checked if the queue was empty above, so peek
-							// returning null implies that there was an actual
-							// null element on the queue
-							//throw new IllegalStateException("Queue contained a null value");
-							checkAnother = false;
-							try {
-								Thread.sleep(1000);
-							}
-							catch(InterruptedException e) {
-								e.printStackTrace();
-								Thread.currentThread().interrupt();
-							}
-							continue;
-						}
 						Optional<String> valueFor = nextExtensionResult
 								.valueFor(extensionCoreIdFields.get(nextExtension).getTerm(), false);
 						if (!valueFor.isPresent()) {
@@ -457,22 +469,22 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 						// Compare value of 0 indicates that they match
 						if (compareValue == 0) {
 							matchedRecord = Optional.of(nextExtensionResult);
-							checkAnother = false;
 							continue;
 						} else if (compareValue > 0) {
 							// If the compare value is greater than zero, the
 							// coreId has already skipped this extension core
 							// id, which may not have a match, so needs to be
 							// skipped
-							// IMPORTANT: we do not poll if it is equal, as it
-							// may be equal to the next item also
-							nextExtensionQueue.poll();
-							checkAnother = true;
+							// If the reference is set to null, another round
+							// through will attempt to get the next element from
+							// the queue
+							lastElementReference.set(null);
+							continue;
 						} else {
 							// compare value less than zero indicates that the
 							// coreId has not yet reached the id on this
 							// extension, so there is no match
-							checkAnother = false;
+							break;
 						}
 					}
 					result.add(matchedRecord.orElse(null));
