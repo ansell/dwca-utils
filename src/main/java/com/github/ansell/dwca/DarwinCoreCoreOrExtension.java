@@ -69,6 +69,11 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 
 	public static final String DEFAULT_FIELDS_TERMINATED_BY = ",";
 
+	/**
+	 * Used for sorting purposes if a core id is not set
+	 */
+	public static final String DEFAULT_CORE_ID = "0";
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -221,11 +226,11 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 		return new DarwinCoreCoreOrExtension(CoreOrExtension.EXTENSION, attributes);
 	}
 
-	public String getIdOrCoreId() {
+	public Optional<String> getIdOrCoreId() {
 		if (this.idOrCoreId == null && this.type == CoreOrExtension.EXTENSION) {
 			throw new IllegalStateException("Extensions must have coreId value set.");
 		}
-		return idOrCoreId;
+		return Optional.ofNullable(idOrCoreId);
 	}
 
 	public void setIdOrCoreId(String idOrCoreId) {
@@ -394,14 +399,14 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 		}
 		// end files
 		writer.writeEndElement();
-		String coreId = this.getIdOrCoreId();
-		if (coreId != null) {
+		Optional<String> coreId = this.getIdOrCoreId();
+		if (coreId.isPresent()) {
 			if (this.type == CoreOrExtension.CORE) {
 				writer.writeStartElement(DarwinCoreArchiveConstants.ID);
 			} else if (this.type == CoreOrExtension.EXTENSION) {
 				writer.writeStartElement(DarwinCoreArchiveConstants.COREID);
 			}
-			writer.writeAttribute(DarwinCoreArchiveConstants.INDEX, coreId);
+			writer.writeAttribute(DarwinCoreArchiveConstants.INDEX, coreId.get());
 			// end id
 			writer.writeEndElement();
 		}
@@ -430,6 +435,7 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 
 	public CsvSchema getCsvSchema() {
 		Builder result = CsvSchema.builder();
+		
 		// CsvSchema does not support numeric numbers of lines being skipped
 		// Hence, headers are dealt with separately by CSVStream using its
 		// headerLineCount and substituteHeaders parameters, and this is false
@@ -437,10 +443,15 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 		result.setUseHeader(false);
 		result.setLineSeparator(getLinesTerminatedBy());
 		result.setQuoteChar(getFieldsEnclosedBy().charAt(0));
-		result.setColumnSeparator(getFieldsTerminatedBy().charAt(0));
+		char nextColumnSeparator = getFieldsTerminatedBy().charAt(0);
+		System.out.println(getFiles().getLocations().get(0));
+		System.out.println(getFieldsTerminatedBy().codePointAt(0));
+		System.out.println(nextColumnSeparator);
+		System.out.println((int)nextColumnSeparator);
+		result.setColumnSeparator(nextColumnSeparator);
 		// Darwin Core Archives do not support escape characters so we disable
 		// them completely here
-		result.disableEscapeChar();
+		//result.disableEscapeChar();
 		return result.build();
 	}
 

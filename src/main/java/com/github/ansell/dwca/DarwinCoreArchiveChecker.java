@@ -85,8 +85,8 @@ public class DarwinCoreArchiveChecker {
 				.describedAs("The input Darwin Core Archive file or metadata file to be checked.");
 		final OptionSpec<File> output = parser.accepts("output").withRequiredArg().ofType(File.class).describedAs(
 				"A directory to output summary and other files to. If this is not set, no output will be preserved.");
-		final OptionSpec<File> tempDirOption = parser.accepts("temp-dir").withRequiredArg().ofType(File.class).describedAs(
-				"A directory to to write temporary files to.");
+		final OptionSpec<File> tempDirOption = parser.accepts("temp-dir").withRequiredArg().ofType(File.class)
+				.describedAs("A directory to to write temporary files to.");
 		final OptionSpec<Boolean> includeDefaultsOption = parser.accepts("include-defaults").withRequiredArg()
 				.ofType(Boolean.class).defaultsTo(Boolean.TRUE)
 				.describedAs("Whether to include default values from the meta.xml file in each archive.");
@@ -120,7 +120,8 @@ public class DarwinCoreArchiveChecker {
 
 		final Path tempDir;
 		if (options.has(tempDirOption)) {
-			tempDir = Files.createTempDirectory(tempDirOption.value(options).toPath(), "dwca-check-").toAbsolutePath().normalize();
+			tempDir = Files.createTempDirectory(tempDirOption.value(options).toPath(), "dwca-check-").toAbsolutePath()
+					.normalize();
 		} else {
 			tempDir = Files.createTempDirectory("dwca-check-").toAbsolutePath().normalize();
 		}
@@ -134,8 +135,11 @@ public class DarwinCoreArchiveChecker {
 				outputDirPath = tempDir;
 			}
 
-			// Override java.io.tmpdir system property so everything thinks this is the temporary directory for this JVM
-			// This includes cases where we used the standard temp dir, but want to remove all files reliably before returning for other applications that also use temp files
+			// Override java.io.tmpdir system property so everything thinks this
+			// is the temporary directory for this JVM
+			// This includes cases where we used the standard temp dir, but want
+			// to remove all files reliably before returning for other
+			// applications that also use temp files
 			System.setProperty("java.io.tmpdir", tempDir.toAbsolutePath().toString());
 
 			final Path metadataPath;
@@ -232,7 +236,8 @@ public class DarwinCoreArchiveChecker {
 				// Summarise the core document
 				CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema(),
 						summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields,
-						includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(), coreOrExtension.getIgnoreHeaderLines());
+						includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(),
+						coreOrExtension.getIgnoreHeaderLines());
 			}
 		});
 	}
@@ -247,7 +252,8 @@ public class DarwinCoreArchiveChecker {
 	 * @return A {@link Consumer} that can accept a Reader containing the CSV
 	 *         file to parse the content of the given core or extension.
 	 */
-	public static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension, boolean includeDefaults) {
+	public static Consumer<Reader> createParseFunction(final DarwinCoreCoreOrExtension coreOrExtension,
+			boolean includeDefaults) {
 		// Null implementations of the three CSVStream.parse functions to just
 		// validate the syntax and line lengths
 		Consumer<List<String>> headersValidator = h -> {
@@ -275,24 +281,14 @@ public class DarwinCoreArchiveChecker {
 		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
 		return Unchecked.consumer(inputReader -> {
+			System.out.println(coreOrExtension);
+			System.out.println(coreOrExtension.getCsvSchema());
+			System.out.println(coreOrExtension.getCsvSchema().getColumnSeparator());
+			System.out.println((int)coreOrExtension.getCsvSchema().getColumnSeparator());
 			CSVStream.parse(inputReader, headersValidator, lineConverter, resultConsumer, coreOrExtensionFields,
 					includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(),
 					coreOrExtension.getIgnoreHeaderLines(), CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
 		});
-	}
-
-	/**
-	 * Create a parse function to parse an entire document.
-	 * 
-	 * @param document
-	 *            The {@link DarwinCoreArchiveDocument} to parse.
-	 * @return A {@link Consumer} that can accept a Reader containing the merged
-	 *         CSV file to parse the content of the document as a whole.
-	 */
-	public static <T> Consumer<Reader> createParseFunction(final DarwinCoreArchiveDocument document,
-			final Consumer<List<String>> headersValidator,
-			final BiFunction<List<String>, List<String>, T> lineConverter, final Consumer<T> resultConsumer) {
-		throw new UnsupportedOperationException("TODO: Implement me after merging is implemented");
 	}
 
 	/**
@@ -340,7 +336,7 @@ public class DarwinCoreArchiveChecker {
 	public static void parseCoreOrExtensionSorted(final DarwinCoreCoreOrExtension coreOrExtension,
 			final Path metadataPath, final Consumer<Reader> parseFunction, boolean debug) throws IOException {
 		Function<DarwinCoreCoreOrExtension, Comparator<StringList>> comparator = core -> CSVSorter
-				.getComparator(Integer.parseInt(core.getIdOrCoreId()));
+				.getComparator(Integer.parseInt(core.getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID)));
 		parseCoreOrExtensionSorted(coreOrExtension, metadataPath, parseFunction, comparator, debug);
 	}
 
@@ -377,9 +373,9 @@ public class DarwinCoreArchiveChecker {
 
 		try (final Reader otherInputReader = Files.newBufferedReader(coreOrExtensionFilePath,
 				coreOrExtension.getEncoding())) {
-			CsvSchema csvSchema = coreOrExtension.getCsvSchema();
 			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath, CSVSorter.getSafeSortingMapper(),
-					coreOrExtension.getIgnoreHeaderLines(), csvSchema, comparator.apply(coreOrExtension), debug);
+					coreOrExtension.getIgnoreHeaderLines(), coreOrExtension.getCsvSchema(),
+					comparator.apply(coreOrExtension), debug);
 		}
 
 		try (final Reader inputReader = Files.newBufferedReader(sortedCoreOrExtensionFilePath,

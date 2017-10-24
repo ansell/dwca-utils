@@ -506,4 +506,73 @@ public class DarwinCoreArchiveCheckerTest {
 			System.out.println();
 		}
 	}
+
+	@Test
+	public final void testIteratorWithExtensionsMixCsvTsv() throws Exception {
+		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXmlWithExtension);
+		assertNotNull(testDocument);
+		assertNotNull(testDocument.getCore());
+		assertEquals("http://rs.tdwg.org/dwc/terms/Taxon",
+				testDocument.getCore().getRowType());
+		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
+		assertEquals(2, testDocument.getExtensions().size());
+		assertNotNull(testDocument.getCore().getFiles());
+		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
+		assertEquals("whales.txt", testDocument.getCore().getFiles().getLocations().get(0));
+		assertEquals(6, testDocument.getCore().getFields().size());
+		for (DarwinCoreField field : testDocument.getCore().getFields()) {
+			assertTrue(field.getTerm().trim().length() > 0);
+		}
+
+		for (int replicaIterations = 1; replicaIterations < 10; replicaIterations++) {
+			System.out.println("Replica #" + replicaIterations);
+			int recordCount = 0;
+			try (CloseableIterator<List<DarwinCoreRecord>> iterator = testDocument.iterator()) {
+				while (iterator.hasNext()) {
+					List<DarwinCoreRecord> nextRecord = iterator.next();
+					recordCount++;
+					System.out.println(nextRecord.get(0).getCoreOrExtension().getFields());
+					// System.out.println(nextRecord.getValues());
+				}
+			}
+			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
+					recordCount);
+			System.out.println();
+		}
+	}
+
+	@Test
+	public final void testIteratorWithTsv() throws Exception {
+		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXmlTsv);
+		assertNotNull(testDocument);
+		assertNotNull(testDocument.getCore());
+		assertEquals("http://rs.tdwg.org/dwc/xsd/simpledarwincore/SimpleDarwinRecord",
+				testDocument.getCore().getRowType());
+		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
+		assertEquals(0, testDocument.getExtensions().size());
+		assertNotNull(testDocument.getCore().getFiles());
+		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
+		assertEquals("./subdir/specimens.tsv", testDocument.getCore().getFiles().getLocations().get(0));
+		assertEquals(4, testDocument.getCore().getFields().size());
+		for (DarwinCoreField field : testDocument.getCore().getFields()) {
+			assertTrue(field.getTerm().trim().length() > 0);
+		}
+
+		for (int replicaIterations = 1; replicaIterations < 10; replicaIterations++) {
+			System.out.println("Replica #" + replicaIterations);
+			int recordCount = 0;
+			try (CloseableIterator<List<DarwinCoreRecord>> iterator = testDocument.iterator()) {
+				while (iterator.hasNext()) {
+					List<DarwinCoreRecord> nextRecord = iterator.next();
+					recordCount++;
+					System.out.println(nextRecord.get(0).getCoreOrExtension().getFields());
+					// System.out.println(nextRecord.getValues());
+				}
+			}
+			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
+					recordCount);
+			System.out.println();
+		}
+	}
+
 }

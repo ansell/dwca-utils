@@ -104,7 +104,7 @@ public class DarwinCoreMetadataGenerator {
 		final OptionSpec<Integer> coreIDIndex = parser.accepts("core-id-index").withRequiredArg().ofType(Integer.class)
 				.describedAs(
 						"The 0-based index of the column containing the primary key to be used for the core id field index")
-				.defaultsTo(0);
+				.defaultsTo(Integer.parseInt(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
 		final OptionSpec<Integer> headerLineCount = parser.accepts("header-line-count").withRequiredArg()
 				.ofType(Integer.class)
 				.describedAs(

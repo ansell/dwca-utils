@@ -240,7 +240,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 				k -> DarwinCoreArchiveChecker.createParseFunction(k, h -> {
 				}, extensionLineConverters.get(k), extensionResultConsumers.get(k), includeDefaults));
 		final JDefaultDict<DarwinCoreCoreOrExtension, DarwinCoreField> extensionCoreIdFields = new JDefaultDict<>(k -> {
-			int extensionIdIndex = Integer.parseInt(k.getIdOrCoreId());
+			int extensionIdIndex = Integer.parseInt(k.getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
 			return k.getFields().get(extensionIdIndex);
 		});
 
@@ -303,7 +303,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 						// with only a single record in memory at each point in
 						// time after the sort is complete
 						DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(coreOrExtension, nextMetadataPath,
-								parseFunction, false);
+								parseFunction, true);
 					} catch (Exception e) {
 						e.printStackTrace();
 					} finally {
