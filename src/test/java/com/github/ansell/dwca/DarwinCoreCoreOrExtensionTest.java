@@ -106,7 +106,7 @@ public class DarwinCoreCoreOrExtensionTest {
 		core.setIdOrCoreId("test");
 		assertEquals("test", core.getIdOrCoreId().get());
 		extension.setIdOrCoreId("test-extension");
-		assertEquals("test-extension", extension.getIdOrCoreId());
+		assertEquals("test-extension", extension.getIdOrCoreId().get());
 	}
 
 	/**
