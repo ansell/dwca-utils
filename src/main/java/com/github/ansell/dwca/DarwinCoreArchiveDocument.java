@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -70,7 +71,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
  */
 public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord>>, ConstraintChecked {
 
-	private static final int DEFAULT_ITERATION_QUEUE_SIZE = 1;
+	private static final int DEFAULT_ITERATION_QUEUE_SIZE = 10;
 
 	@Override
 	public String toString() {
@@ -197,6 +198,18 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 		return iterator(true);
 	}
 
+	/**
+	 * Iterate over the records, optionally including the default values from
+	 * the meta.xml file.<br>
+	 * The {@link #iterator()} defaults to including defaults, as expected for
+	 * users of {@link DarwinCoreArchiveDocument}.
+	 * 
+	 * @param includeDefaults
+	 *            Set to true to including default values from meta.xml, and
+	 *            false to only source values from the CSV files.
+	 * @return A {@link CloseableIterator} that can be used to iterate over the
+	 *         records.
+	 */
 	public CloseableIterator<List<DarwinCoreRecord>> iterator(boolean includeDefaults) {
 		final DarwinCoreArchiveDocument document = this;
 		// Dummy sentinel to signal when iteration is complete
@@ -290,7 +303,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 				// Should not have been more than one job due to setup
 				// here, but avoiding the possibility that one could
 				// leak in future
-				if (previousJob != null) {
+				if (previousJob != null && !previousJob.isDone()) {
 					System.out.println(
 							"Found previous running parse for " + coreOrExtension + ", attempting to cancel it...");
 					previousJob.cancel(true);
@@ -308,7 +321,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 						// with only a single record in memory at each point in
 						// time after the sort is complete
 						DarwinCoreArchiveChecker.parseCoreOrExtensionSorted(coreOrExtension, nextMetadataPath,
-								parseFunction, true);
+								parseFunction, false);
 					} catch (Exception e) {
 						e.printStackTrace();
 					} finally {
@@ -317,12 +330,12 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 							// queue is not yet empty
 							int waitCount = 0;
 							long waitTime = 100;
-							while (!pendingResults.isEmpty() && waitCount < 10) {
+							while (!pendingResults.isEmpty() && waitCount < 3) {
 								Thread.sleep(waitTime);
 								waitCount++;
 							}
 						} finally {
-							if (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
+							if (!pendingResults.offer(sentinel, 2, TimeUnit.SECONDS)) {
 								System.err
 										.println("Failed to offer sentinel to queue for extension: " + coreOrExtension);
 							}
@@ -344,10 +357,10 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 							startCompleted.await();
 						} finally {
 							try {
-								// If the sentinel could not be added in 10
+								// If the sentinel could not be added in 2
 								// seconds, attempt to clear the queue and try
 								// again until space is available
-								while (!pendingResults.offer(sentinel, 10, TimeUnit.SECONDS)) {
+								while (!pendingResults.offer(sentinel, 2, TimeUnit.SECONDS)) {
 									pendingResults.clear();
 								}
 							} finally {
@@ -358,9 +371,19 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 										executor.shutdownNow();
 									}
 								} finally {
-									Future<?> future = coreParsingJob.getAndSet(null);
-									if (future != null && !future.isDone()) {
-										future.cancel(true);
+									try {
+										Future<?> future = coreParsingJob.getAndSet(null);
+										if (future != null && !future.isDone()) {
+											future.cancel(true);
+										}
+									} finally {
+										for (Entry<DarwinCoreCoreOrExtension, AtomicReference<Future<?>>> nextExtensionParsingJob : extensionParsingJobs
+												.entrySet()) {
+											Future<?> nextFuture = nextExtensionParsingJob.getValue().getAndSet(null);
+											if (nextFuture != null && !nextFuture.isDone()) {
+												nextFuture.cancel(true);
+											}
+										}
 									}
 								}
 							}
@@ -448,6 +471,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 									break;
 								} else if (nextExtensionResult != null) {
 									lastElementReference.set(nextExtensionResult);
+									break;
 								}
 							}
 						}
@@ -456,8 +480,8 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 							System.out.println("Found sentinel for extension: " + nextExtension);
 							break;
 						}
-						System.out.println(nextExtension);
-						System.out.println(nextExtensionResult);
+						// System.out.println(nextExtension);
+						// System.out.println(nextExtensionResult);
 						Optional<String> valueFor = nextExtensionResult
 								.valueFor(extensionCoreIdFields.get(nextExtension).getTerm(), false);
 						if (!valueFor.isPresent()) {
@@ -469,7 +493,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 						// Compare value of 0 indicates that they match
 						if (compareValue == 0) {
 							matchedRecord = Optional.of(nextExtensionResult);
-							continue;
+							break;
 						} else if (compareValue > 0) {
 							// If the compare value is greater than zero, the
 							// coreId has already skipped this extension core
@@ -526,11 +550,16 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 
 	private Consumer<DarwinCoreRecord> getResultConsumer(final BlockingQueue<DarwinCoreRecord> pendingResults) {
 		return l -> {
+			// Enable interruption to fail the parse before it completes
+			if (Thread.currentThread().isInterrupted()) {
+				throw new IllegalStateException("Interruption occurred during parse");
+			}
 			try {
 				pendingResults.put(l);
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		};
 	}

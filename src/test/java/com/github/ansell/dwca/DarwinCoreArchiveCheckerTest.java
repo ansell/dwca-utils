@@ -531,8 +531,8 @@ public class DarwinCoreArchiveCheckerTest {
 				while (iterator.hasNext()) {
 					List<DarwinCoreRecord> nextRecord = iterator.next();
 					recordCount++;
-					System.out.println(nextRecord.get(0).getCoreOrExtension().getFields());
-					// System.out.println(nextRecord.getValues());
+					//System.out.println(nextRecord.get(0).getCoreOrExtension().getFields());
+					System.out.println(nextRecord);
 				}
 			}
 			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
@@ -572,6 +572,32 @@ public class DarwinCoreArchiveCheckerTest {
 			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
 					recordCount);
 			System.out.println();
+		}
+	}
+
+	@Test
+	public final void testIteratorWithExtensionsMixCsvTsvNoIteration() throws Exception {
+		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker.parseMetadataXml(testMetadataXmlWithExtension);
+		assertNotNull(testDocument);
+		assertNotNull(testDocument.getCore());
+		assertEquals("http://rs.tdwg.org/dwc/terms/Taxon",
+				testDocument.getCore().getRowType());
+		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
+		assertEquals(2, testDocument.getExtensions().size());
+		assertNotNull(testDocument.getCore().getFiles());
+		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
+		assertEquals("whales.txt", testDocument.getCore().getFiles().getLocations().get(0));
+		assertEquals(6, testDocument.getCore().getFields().size());
+		for (DarwinCoreField field : testDocument.getCore().getFields()) {
+			assertTrue(field.getTerm().trim().length() > 0);
+		}
+
+		for (int replicaIterations = 1; replicaIterations < 10; replicaIterations++) {
+			System.out.println("Replica #" + replicaIterations);
+			try (CloseableIterator<List<DarwinCoreRecord>> iterator = testDocument.iterator()) {
+				// Testing closing the iterator without fetching the records it contains
+				// Must be no exceptions during this process
+			}
 		}
 	}
 

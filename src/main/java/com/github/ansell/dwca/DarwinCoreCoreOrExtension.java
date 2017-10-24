@@ -140,7 +140,9 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 		return builder.toString();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -161,7 +163,9 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -543,7 +547,7 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 
 	public CsvSchema getCsvSchema() {
 		Builder result = CsvSchema.builder();
-		
+
 		// CsvSchema does not support numeric numbers of lines being skipped
 		// Hence, headers are dealt with separately by CSVStream using its
 		// headerLineCount and substituteHeaders parameters, and this is false
@@ -552,14 +556,14 @@ public class DarwinCoreCoreOrExtension implements ConstraintChecked {
 		result.setLineSeparator(getLinesTerminatedBy());
 		result.setQuoteChar(getFieldsEnclosedBy().charAt(0));
 		char nextColumnSeparator = getFieldsTerminatedBy().charAt(0);
-		System.out.println(getFiles().getLocations().get(0));
-		System.out.println(getFieldsTerminatedBy().codePointAt(0));
-		System.out.println(nextColumnSeparator);
-		System.out.println((int)nextColumnSeparator);
+		// System.out.println(getFiles().getLocations().get(0));
+		// System.out.println(getFieldsTerminatedBy().codePointAt(0));
+		// System.out.println(nextColumnSeparator);
+		// System.out.println((int)nextColumnSeparator);
 		result.setColumnSeparator(nextColumnSeparator);
 		// Darwin Core Archives do not support escape characters so we disable
 		// them completely here
-		//result.disableEscapeChar();
+		// result.disableEscapeChar();
 		return result.build();
 	}
 

@@ -281,10 +281,10 @@ public class DarwinCoreArchiveChecker {
 		final List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
 				.collect(Collectors.toList());
 		return Unchecked.consumer(inputReader -> {
-			System.out.println(coreOrExtension);
-			System.out.println(coreOrExtension.getCsvSchema());
-			System.out.println(coreOrExtension.getCsvSchema().getColumnSeparator());
-			System.out.println((int)coreOrExtension.getCsvSchema().getColumnSeparator());
+			// System.out.println(coreOrExtension);
+			// System.out.println(coreOrExtension.getCsvSchema());
+			// System.out.println(coreOrExtension.getCsvSchema().getColumnSeparator());
+			// System.out.println((int)coreOrExtension.getCsvSchema().getColumnSeparator());
 			CSVStream.parse(inputReader, headersValidator, lineConverter, resultConsumer, coreOrExtensionFields,
 					includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(),
 					coreOrExtension.getIgnoreHeaderLines(), CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
@@ -416,8 +416,9 @@ public class DarwinCoreArchiveChecker {
 				String baseName = nextFile.getName().getBaseName();
 				String pathName = nextFile.getName().getPath();
 				Path nextTempFile = tempDir.resolve("./" + pathName).toAbsolutePath().normalize();
-				System.out.println("nextFile=" + nextFile.toString() + " baseName=" + baseName + " pathName=" + pathName
-						+ " nextTempFile=" + nextTempFile);
+				// System.out.println("nextFile=" + nextFile.toString() + "
+				// baseName=" + baseName + " pathName=" + pathName
+				//		+ " nextTempFile=" + nextTempFile);
 				if (baseName.equalsIgnoreCase(METADATA_XML) || baseName.equalsIgnoreCase(META_XML)) {
 					if (metadataPath != null) {
 						throw new IllegalStateException("Duplicate metadata.xml files found in ZIP file: first="
