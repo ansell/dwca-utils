@@ -427,12 +427,16 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 						DarwinCoreRecord nextExtensionResult = nextExtensionQueue.peek();
 						System.out.println(nextExtension);
 						System.out.println(nextExtensionResult);
+						if (nextExtensionResult == sentinel) {
+							checkAnother = false;
+							continue;
+						}
 						if (nextExtensionResult == null) {
 							// We checked if the queue was empty above, so peek
 							// returning null implies that there was an actual
 							// null element on the queue
 							//throw new IllegalStateException("Queue contained a null value");
-							checkAnother = true;
+							checkAnother = false;
 							try {
 								Thread.sleep(1000);
 							}
@@ -454,7 +458,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 						if (compareValue == 0) {
 							matchedRecord = Optional.of(nextExtensionResult);
 							checkAnother = false;
-							break;
+							continue;
 						} else if (compareValue > 0) {
 							// If the compare value is greater than zero, the
 							// coreId has already skipped this extension core

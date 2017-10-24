@@ -1,2 +1,3 @@
 taxonID	modified	scientificName	acceptedNameUsageID	parentNameUsageID	originalNameUsageID
 ABC123	2017-08-23	"Tasmacetus shepherdi"	"urn:lsid:biodiversity.org.au:afd.name:389042"	"urn:lsid:biodiversity.org.au:afd.name:263837"	"urn:lsid:biodiversity.org.au:afd.taxon:02473b88-51f4-4c89-9052-ab854f1c254e"
+MNT365	2017-08-21	"Meliphaga phrygia tregellasi"	"urn:lsid:biodiversity.org.au:afd.name:461138"	"urn:lsid:biodiversity.org.au:afd.name:431126"	"urn:lsid:biodiversity.org.au:afd.taxon:af9380ee-2f65-4213-bb6f-ea6baf92ad3e"
