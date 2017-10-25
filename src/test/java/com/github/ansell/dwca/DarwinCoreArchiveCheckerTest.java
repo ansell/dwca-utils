@@ -546,18 +546,25 @@ public class DarwinCoreArchiveCheckerTest {
 					DarwinCoreRecordSet nextRecord = iterator.next();
 					recordCount++;
 					// System.out.println(nextRecord.get(0).getCoreOrExtension().getFields());
-					System.out.println(nextRecord);
+					//System.out.println(nextRecord);
 					assertEquals(CoreOrExtension.CORE, nextRecord.getCoreRecord().getCoreOrExtension().getType());
 					assertEquals("http://rs.tdwg.org/dwc/terms/Taxon",
 							nextRecord.getCoreRecord().getCoreOrExtension().getRowType());
+					for (Entry<DarwinCoreCoreOrExtension, DarwinCoreRecord> nextEntry : nextRecord.getExtensionRecords()
+							.entrySet()) {
+						assertEquals(CoreOrExtension.EXTENSION, nextEntry.getKey().getType());
+					}
 					Optional<String> coreIdValue = nextRecord.getCoreRecord().idValue();
 					assertTrue(coreIdValue.isPresent());
 					String coreIdValueString = coreIdValue.get();
 					if (coreIdValueString.equals("ABC123")) {
 						assertEquals("Unexpected number of extension records, should have been 2", 2,
 								nextRecord.getExtensionRecords().size());
-						for(Entry<DarwinCoreCoreOrExtension, DarwinCoreRecord> nextEntry : nextRecord.getExtensionRecords().entrySet()) {
-							assertEquals(CoreOrExtension.EXTENSION, nextEntry.getKey().getType());
+						for (Entry<DarwinCoreCoreOrExtension, DarwinCoreRecord> nextEntry : nextRecord
+								.getExtensionRecords().entrySet()) {
+							Optional<String> extensionIdValue = nextEntry.getValue().idValue();
+							assertTrue(extensionIdValue.isPresent());
+							assertEquals(coreIdValueString, extensionIdValue.get());
 						}
 					} else if (coreIdValueString.equals("MNT365")) {
 						assertEquals(
