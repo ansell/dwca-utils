@@ -62,9 +62,9 @@ public class DarwinCoreMetadataGeneratorTest {
 	private Path testExtension2;
 
 	private Path testALAHeaders;
-	
+
 	private Path testALAFile;
-	
+
 	@Before
 	public void setUp() throws Exception {
 		testTempDir = tempDir.newFolder("dwca-generator-temp").toPath();
@@ -100,7 +100,8 @@ public class DarwinCoreMetadataGeneratorTest {
 	public final void testMainSingle() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
 				testMetadataXml.toAbsolutePath().toString());
-		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		// Files.readAllLines(testMetadataXml,
+		// StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
 			assertNotNull(archiveDocument);
@@ -117,7 +118,8 @@ public class DarwinCoreMetadataGeneratorTest {
 	public final void testMainExtension() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
 				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString());
-		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		// Files.readAllLines(testMetadataXml,
+		// StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
 			assertNotNull(archiveDocument);
@@ -135,7 +137,8 @@ public class DarwinCoreMetadataGeneratorTest {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
 				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString(),
 				"--extension", testExtension2.toAbsolutePath().toString());
-		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		// Files.readAllLines(testMetadataXml,
+		// StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
 			assertNotNull(archiveDocument);
@@ -153,7 +156,8 @@ public class DarwinCoreMetadataGeneratorTest {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
 				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString(),
 				"--extension", testExtension2.toAbsolutePath().toString(), "--show-defaults", "true");
-		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+		// Files.readAllLines(testMetadataXml,
+		// StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
 			assertNotNull(archiveDocument);
@@ -169,8 +173,10 @@ public class DarwinCoreMetadataGeneratorTest {
 	@Test
 	public final void testMainALAHeaders() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testALAFile.toAbsolutePath().toString(), "--output",
-				testMetadataXml.toAbsolutePath().toString(), "--ala-headers-file", testALAHeaders.toAbsolutePath().toString());
-		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+				testMetadataXml.toAbsolutePath().toString(), "--ala-headers-file",
+				testALAHeaders.toAbsolutePath().toString());
+		// Files.readAllLines(testMetadataXml,
+		// StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
 			assertNotNull(archiveDocument);
@@ -187,8 +193,10 @@ public class DarwinCoreMetadataGeneratorTest {
 	@Test
 	public final void testMainALAHeadersDebug() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testALAFile.toAbsolutePath().toString(), "--output",
-				testMetadataXml.toAbsolutePath().toString(), "--ala-headers-file", testALAHeaders.toAbsolutePath().toString() , "--debug", "true");
-		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
+				testMetadataXml.toAbsolutePath().toString(), "--ala-headers-file",
+				testALAHeaders.toAbsolutePath().toString(), "--debug", "true");
+		// Files.readAllLines(testMetadataXml,
+		// StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
 			assertNotNull(archiveDocument);

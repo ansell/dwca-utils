@@ -511,13 +511,13 @@ public class DarwinCoreArchiveCheckerTest {
 				while (iterator.hasNext()) {
 					DarwinCoreRecordSet nextRecord = iterator.next();
 					recordCount++;
-					System.out.println(nextRecord.getCoreRecord());
+					//System.out.println(nextRecord.getCoreRecord());
 					// System.out.println(nextRecord.getValues());
 				}
 			}
 			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
 					recordCount);
-			System.out.println();
+			//System.out.println();
 		}
 	}
 
@@ -604,13 +604,13 @@ public class DarwinCoreArchiveCheckerTest {
 				while (iterator.hasNext()) {
 					DarwinCoreRecordSet nextRecord = iterator.next();
 					recordCount++;
-					System.out.println(nextRecord.getCoreRecord());
+					//System.out.println(nextRecord.getCoreRecord());
 					// System.out.println(nextRecord.getValues());
 				}
 			}
 			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
 					recordCount);
-			System.out.println();
+			//System.out.println();
 		}
 	}
 

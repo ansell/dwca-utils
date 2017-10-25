@@ -363,7 +363,7 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecordSet>,
 				// here, but avoiding the possibility that one could
 				// leak in future
 				if (previousJob != null && !previousJob.isDone()) {
-					System.out.println(
+					System.err.println(
 							"Found previous running parse for " + coreOrExtension + ", attempting to cancel it...");
 					previousJob.cancel(true);
 				}
