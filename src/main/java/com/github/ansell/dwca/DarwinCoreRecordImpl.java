@@ -107,9 +107,22 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 		StringBuilder builder = new StringBuilder();
 		builder.append("DarwinCoreRecordImpl [document=").append(document).append(",\n coreOrExtension=")
 				.append(coreOrExtension).append(",\n fields=")
-				.append(fields != null ? fields.subList(0, Math.min(fields.size(), maxLen)) : null).append(",\n values=")
+				.append(fields != null ? fields.subList(0, Math.min(fields.size(), maxLen)) : null)
+				.append(",\n values=")
 				.append(values != null ? values.subList(0, Math.min(values.size(), maxLen)) : null).append("]");
 		return builder.toString();
+	}
+
+	@Override
+	public Optional<String> idValue() {
+		if (this.coreOrExtension.getIdOrCoreId().isPresent()) {
+			Integer idIndex = Integer.parseInt(this.coreOrExtension.getIdOrCoreId().get());
+			DarwinCoreField idTerm = fields.stream().filter(f -> f.getIndex() != null && f.getIndex() == idIndex)
+					.findFirst().orElseThrow(() -> new IllegalStateException("Id field was not found"));
+			return valueFor(idTerm.getTerm(), true);
+		} else {
+			return Optional.empty();
+		}
 	}
 
 }

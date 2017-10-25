@@ -25,43 +25,40 @@
  */
 package com.github.ansell.dwca;
 
-import java.util.Optional;
+import java.util.Map;
+import java.util.Objects;
 
 /**
- * Interface describing a record from a {@link DarwinCoreArchiveDocument}
+ * Implementation of {@link DarwinCoreRecordSet}.
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  */
-public interface DarwinCoreRecord {
+public class DarwinCoreRecordSetImpl implements DarwinCoreRecordSet {
 
-	/**
-	 * @return The document that this record originated from.
-	 */
-	DarwinCoreArchiveDocument getDocument();
+	private final DarwinCoreArchiveDocument document;
+	private final DarwinCoreRecord coreRecord;
+	private final Map<DarwinCoreCoreOrExtension, DarwinCoreRecord> extensionRecords;
 
-	/**
-	 * 
-	 * @return The core or extension that this record originated from
-	 */
-	DarwinCoreCoreOrExtension getCoreOrExtension();
+	public DarwinCoreRecordSetImpl(DarwinCoreArchiveDocument document, DarwinCoreRecord coreRecord,
+			Map<DarwinCoreCoreOrExtension, DarwinCoreRecord> extensionRecords) {
+		this.document = Objects.requireNonNull(document, "Document cannot be null");
+		this.coreRecord = Objects.requireNonNull(coreRecord, "Core record cannot be null");
+		this.extensionRecords = Objects.requireNonNull(extensionRecords, "Extension records cannot be null");
+	}
 
-	/**
-	 * Return the value for the given term or {@link Optional#empty()} if the
-	 * term is not in the field list.
-	 * 
-	 * @param term
-	 *            The term to search for
-	 * @param includeDefaults
-	 *            Whether to include defaults when the value would otherwise be
-	 *            empty
-	 * @return The value to return
-	 */
-	Optional<String> valueFor(String term, boolean includeDefaults);
+	@Override
+	public DarwinCoreArchiveDocument getDocument() {
+		return this.document;
+	}
 
-	/**
-	 * @return The id that was used to match this record, or
-	 *         {@link Optional#empty()} if the id field is not specified on the
-	 *         {@link DarwinCoreCoreOrExtension}.
-	 */
-	Optional<String> idValue();
+	@Override
+	public DarwinCoreRecord getCoreRecord() {
+		return this.coreRecord;
+	}
+
+	@Override
+	public Map<DarwinCoreCoreOrExtension, DarwinCoreRecord> getExtensionRecords() {
+		return this.extensionRecords;
+	}
+
 }

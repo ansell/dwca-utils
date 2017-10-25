@@ -32,7 +32,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -69,7 +71,7 @@ import javanet.staxutils.IndentingXMLStreamWriter;
  * @see <a href="http://rs.tdwg.org/dwc/terms/guides/text/">Darwin Core Text
  *      Guide</a>
  */
-public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord>>, ConstraintChecked {
+public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecordSet>, ConstraintChecked {
 
 	private static final int DEFAULT_ITERATION_QUEUE_SIZE = 10;
 
@@ -194,7 +196,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 	}
 
 	@Override
-	public CloseableIterator<List<DarwinCoreRecord>> iterator() {
+	public CloseableIterator<DarwinCoreRecordSet> iterator() {
 		return iterator(true);
 	}
 
@@ -210,7 +212,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 	 * @return A {@link CloseableIterator} that can be used to iterate over the
 	 *         records.
 	 */
-	public CloseableIterator<List<DarwinCoreRecord>> iterator(boolean includeDefaults) {
+	public CloseableIterator<DarwinCoreRecordSet> iterator(boolean includeDefaults) {
 		final DarwinCoreArchiveDocument document = this;
 		// Dummy sentinel to signal when iteration is complete
 		final DarwinCoreRecord sentinel = new DarwinCoreRecord() {
@@ -226,6 +228,11 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 
 			@Override
 			public Optional<String> valueFor(String term, boolean includeDefaults) {
+				return Optional.empty();
+			}
+
+			@Override
+			public Optional<String> idValue() {
 				return Optional.empty();
 			}
 		};
@@ -262,7 +269,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 		final JDefaultDict<DarwinCoreCoreOrExtension, AtomicReference<DarwinCoreRecord>> extensionLastElements = new JDefaultDict<>(
 				k -> new AtomicReference<>());
 
-		return new CloseableIterator<List<DarwinCoreRecord>>() {
+		return new CloseableIterator<DarwinCoreRecordSet>() {
 
 			private final AtomicBoolean started = new AtomicBoolean(false);
 			private final CountDownLatch startCompleted = new CountDownLatch(1);
@@ -396,7 +403,7 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 			}
 
 			@Override
-			public List<DarwinCoreRecord> next() {
+			public DarwinCoreRecordSet next() {
 				if (!closed.get()) {
 					try {
 						doStart();
@@ -428,15 +435,13 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 			 *            The core record to match against extensions
 			 * @return
 			 */
-			private List<DarwinCoreRecord> getResultList(DarwinCoreRecord coreResult) {
+			private DarwinCoreRecordSet getResultList(DarwinCoreRecord coreResult) {
 				if (nextExtensions.isEmpty()) {
-					return Arrays.asList(coreResult);
+					return new DarwinCoreRecordSetImpl(document, coreResult, Collections.emptyMap());
 				}
 
-				List<DarwinCoreRecord> result = new ArrayList<>(nextExtensions.size() + 1);
-				// Core result must always be first on the list (for everyones
-				// sanity)
-				result.add(coreResult);
+				Map<DarwinCoreCoreOrExtension, DarwinCoreRecord> extensionResults = new LinkedHashMap<>(
+						nextExtensions.size());
 				String nextCoreIdResult = coreResult
 						.valueFor(extensionCoreIdFields.get(coreResult.getCoreOrExtension()).getTerm(), false)
 						.orElseThrow(() -> new RuntimeException("No id field on core record: " + coreResult));
@@ -511,9 +516,11 @@ public class DarwinCoreArchiveDocument implements Iterable<List<DarwinCoreRecord
 							break;
 						}
 					}
-					result.add(matchedRecord.orElse(null));
+					if (matchedRecord.isPresent()) {
+						extensionResults.put(nextExtension, matchedRecord.get());
+					}
 				}
-				return result;
+				return new DarwinCoreRecordSetImpl(document, coreResult, extensionResults);
 			}
 
 			@Override

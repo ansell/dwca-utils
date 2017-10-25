@@ -185,9 +185,12 @@ public class DarwinCoreArchiveMerger {
 				mergedArchiveDocument.toXML(mergedMetadataWriter, true);
 			}
 
-			int originalCoreIDField = Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
-			int otherOriginalCoreIDField = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
-			int mergedCoreIDField = Integer.parseInt(mergedArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+			int originalCoreIDField = Integer.parseInt(
+					inputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+			int otherOriginalCoreIDField = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId()
+					.orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+			int mergedCoreIDField = Integer.parseInt(
+					mergedArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
 			DarwinCoreField mergedCoreIndexField = null;
 			for (DarwinCoreField nextMergedField : mergedArchiveDocument.getCore().getFields()) {
 				if (nextMergedField.getIndex() == mergedCoreIDField) {
@@ -207,9 +210,8 @@ public class DarwinCoreArchiveMerger {
 				outputCoreCsvWriter.write(mergedArchiveDocument.getCore().getFields().stream()
 						.map(DarwinCoreField::getTerm).collect(Collectors.toList()));
 			}
-			try (final CloseableIterator<List<DarwinCoreRecord>> inputIterator = inputArchiveDocument
-					.iterator(false);
-					final CloseableIterator<List<DarwinCoreRecord>> otherInputIterator = otherInputArchiveDocument
+			try (final CloseableIterator<DarwinCoreRecordSet> inputIterator = inputArchiveDocument.iterator(false);
+					final CloseableIterator<DarwinCoreRecordSet> otherInputIterator = otherInputArchiveDocument
 							.iterator(false);
 					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
 							StandardCharsets.UTF_8, StandardOpenOption.APPEND);
@@ -224,14 +226,14 @@ public class DarwinCoreArchiveMerger {
 				// common to both
 				while (inputIterator.hasNext()) {
 					// FIXME: Incorporate the extensions also
-					DarwinCoreRecord nextInputRecord = inputIterator.next().get(0);
+					DarwinCoreRecord nextInputRecord = inputIterator.next().getCoreRecord();
 					// If we matched last time, we replace the "other" input
 					// record with a new copy this time, otherwise leave it as
 					// it is to be matched later
 					if (nextOtherInputRecord == null) {
 						if (otherInputIterator.hasNext()) {
 							// FIXME: Incorporate the extensions also
-							nextOtherInputRecord = otherInputIterator.next().get(0);
+							nextOtherInputRecord = otherInputIterator.next().getCoreRecord();
 						}
 					}
 
@@ -286,8 +288,9 @@ public class DarwinCoreArchiveMerger {
 						}
 					}
 
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore(), nextMergedValues);
+					// DarwinCoreRecordImpl nextMergedRecord = new
+					// DarwinCoreRecordImpl(mergedArchiveDocument,
+					// mergedArchiveDocument.getCore(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Emit an unmatched record from the loop above if applicable,
@@ -302,15 +305,16 @@ public class DarwinCoreArchiveMerger {
 							nextMergedValues.set(i, nextMergedValue);
 						}
 					}
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore(), nextMergedValues);
+					// DarwinCoreRecordImpl nextMergedRecord = new
+					// DarwinCoreRecordImpl(mergedArchiveDocument,
+					// mergedArchiveDocument.getCore(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 				// Deal with any records that were not matched during the loop
 				// above by simply adding them to the result
 				while (otherInputIterator.hasNext()) {
 					// FIXME: Incorporate the extensions also
-					nextOtherInputRecord = otherInputIterator.next().get(0);
+					nextOtherInputRecord = otherInputIterator.next().getCoreRecord();
 					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
 					for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
 						String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
@@ -320,8 +324,9 @@ public class DarwinCoreArchiveMerger {
 							nextMergedValues.set(i, nextMergedValue);
 						}
 					}
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore(), nextMergedValues);
+					// DarwinCoreRecordImpl nextMergedRecord = new
+					// DarwinCoreRecordImpl(mergedArchiveDocument,
+					// mergedArchiveDocument.getCore(), nextMergedValues);
 					outputCoreCsvWriter.write(nextMergedValues);
 				}
 			}
@@ -382,7 +387,8 @@ public class DarwinCoreArchiveMerger {
 		// Anyway, its common so have to deal with it), and we will need to add
 		// it manually otherwise
 		DarwinCoreField originalIDField = null;
-		int inputCoreID = Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+		int inputCoreID = Integer.parseInt(
+				inputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
 		for (DarwinCoreField nextField : inputArchiveDocument.getCore().getFields()) {
 			if (nextField.getIndex() != null && nextField.getIndex().equals(inputCoreID)) {
 				originalIDField = nextField;
@@ -390,7 +396,8 @@ public class DarwinCoreArchiveMerger {
 			}
 		}
 		DarwinCoreField originalOtherIDField = null;
-		int otherInputCoreID = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+		int otherInputCoreID = Integer.parseInt(
+				otherInputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
 		for (DarwinCoreField nextField : otherInputArchiveDocument.getCore().getFields()) {
 			if (nextField.getIndex() != null && nextField.getIndex().equals(otherInputCoreID)) {
 				originalOtherIDField = nextField;
@@ -543,12 +550,14 @@ public class DarwinCoreArchiveMerger {
 			throw new IllegalStateException("Both archives need to have the core id field defined to be merged");
 		}
 		try {
-			int inputCoreID = Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+			int inputCoreID = Integer.parseInt(
+					inputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
 			if (inputCoreID < 0) {
 				throw new IllegalStateException(
 						"Core id must be a non-negative integer: " + inputArchiveDocument.getCore().getIdOrCoreId());
 			}
-			int otherInputCoreID = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+			int otherInputCoreID = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId()
+					.orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
 			if (otherInputCoreID < 0) {
 				throw new IllegalStateException(
 						"Core id must be a non-negative integer: " + inputArchiveDocument.getCore().getIdOrCoreId());

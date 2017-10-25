@@ -25,14 +25,15 @@
  */
 package com.github.ansell.dwca;
 
-import java.util.Optional;
+import java.util.Map;
 
 /**
- * Interface describing a record from a {@link DarwinCoreArchiveDocument}
+ * Interface describing a combination of a core, and any matching extension,
+ * records from a {@link DarwinCoreArchiveDocument}
  * 
  * @author Peter Ansell p_ansell@yahoo.com
  */
-public interface DarwinCoreRecord {
+public interface DarwinCoreRecordSet {
 
 	/**
 	 * @return The document that this record originated from.
@@ -40,28 +41,14 @@ public interface DarwinCoreRecord {
 	DarwinCoreArchiveDocument getDocument();
 
 	/**
-	 * 
-	 * @return The core or extension that this record originated from
+	 * @return The core {@link DarwinCoreRecord} that this record set relates
+	 *         to.
 	 */
-	DarwinCoreCoreOrExtension getCoreOrExtension();
+	DarwinCoreRecord getCoreRecord();
 
 	/**
-	 * Return the value for the given term or {@link Optional#empty()} if the
-	 * term is not in the field list.
-	 * 
-	 * @param term
-	 *            The term to search for
-	 * @param includeDefaults
-	 *            Whether to include defaults when the value would otherwise be
-	 *            empty
-	 * @return The value to return
+	 * @return A Map containing any of the extensions and their matching
+	 *         records.
 	 */
-	Optional<String> valueFor(String term, boolean includeDefaults);
-
-	/**
-	 * @return The id that was used to match this record, or
-	 *         {@link Optional#empty()} if the id field is not specified on the
-	 *         {@link DarwinCoreCoreOrExtension}.
-	 */
-	Optional<String> idValue();
+	Map<DarwinCoreCoreOrExtension, DarwinCoreRecord> getExtensionRecords();
 }
