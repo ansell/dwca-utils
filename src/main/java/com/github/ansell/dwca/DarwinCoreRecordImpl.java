@@ -113,6 +113,66 @@ public final class DarwinCoreRecordImpl implements DarwinCoreRecord {
 		return builder.toString();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((coreOrExtension == null) ? 0 : coreOrExtension.hashCode());
+		result = prime * result + ((document == null) ? 0 : document.hashCode());
+		result = prime * result + ((fields == null) ? 0 : fields.hashCode());
+		result = prime * result + ((values == null) ? 0 : values.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof DarwinCoreRecordImpl)) {
+			return false;
+		}
+		DarwinCoreRecordImpl other = (DarwinCoreRecordImpl) obj;
+		if (coreOrExtension == null) {
+			if (other.coreOrExtension != null) {
+				return false;
+			}
+		} else if (!coreOrExtension.equals(other.coreOrExtension)) {
+			return false;
+		}
+		if (document == null) {
+			if (other.document != null) {
+				return false;
+			}
+		} else if (!document.equals(other.document)) {
+			return false;
+		}
+		if (fields == null) {
+			if (other.fields != null) {
+				return false;
+			}
+		} else if (!fields.equals(other.fields)) {
+			return false;
+		}
+		if (values == null) {
+			if (other.values != null) {
+				return false;
+			}
+		} else if (!values.equals(other.values)) {
+			return false;
+		}
+		return true;
+	}
+
 	@Override
 	public Optional<String> idValue() {
 		if (this.coreOrExtension.getIdOrCoreId().isPresent()) {

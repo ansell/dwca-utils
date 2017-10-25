@@ -91,6 +91,58 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecordSet>,
 		return builder.toString();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((core == null) ? 0 : core.hashCode());
+		result = prime * result + ((extensions == null) ? 0 : extensions.hashCode());
+		result = prime * result + ((metadataXMLPath == null) ? 0 : metadataXMLPath.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof DarwinCoreArchiveDocument)) {
+			return false;
+		}
+		DarwinCoreArchiveDocument other = (DarwinCoreArchiveDocument) obj;
+		if (core == null) {
+			if (other.core != null) {
+				return false;
+			}
+		} else if (!core.equals(other.core)) {
+			return false;
+		}
+		if (extensions == null) {
+			if (other.extensions != null) {
+				return false;
+			}
+		} else if (!extensions.equals(other.extensions)) {
+			return false;
+		}
+		if (metadataXMLPath == null) {
+			if (other.metadataXMLPath != null) {
+				return false;
+			}
+		} else if (!metadataXMLPath.equals(other.metadataXMLPath)) {
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Writes out this archive document to XML.
 	 * 
@@ -482,11 +534,12 @@ public class DarwinCoreArchiveDocument implements Iterable<DarwinCoreRecordSet>,
 						}
 
 						if (nextExtensionResult == sentinel) {
-							System.out.println("Found sentinel for extension: " + nextExtension);
+							//System.out.println("Found sentinel for extension: " + nextExtension);
 							break;
 						}
 						// System.out.println(nextExtension);
 						// System.out.println(nextExtensionResult);
+						// TODO: Switch to using nextExtensionResult.idValue()
 						Optional<String> valueFor = nextExtensionResult
 								.valueFor(extensionCoreIdFields.get(nextExtension).getTerm(), false);
 						if (!valueFor.isPresent()) {

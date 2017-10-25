@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -44,6 +45,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+
+import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
 
 /**
  * Tests for {@link DarwinCoreArchiveChecker}.
@@ -544,11 +547,29 @@ public class DarwinCoreArchiveCheckerTest {
 					recordCount++;
 					// System.out.println(nextRecord.get(0).getCoreOrExtension().getFields());
 					System.out.println(nextRecord);
+					assertEquals(CoreOrExtension.CORE, nextRecord.getCoreRecord().getCoreOrExtension().getType());
+					assertEquals("http://rs.tdwg.org/dwc/terms/Taxon",
+							nextRecord.getCoreRecord().getCoreOrExtension().getRowType());
+					Optional<String> coreIdValue = nextRecord.getCoreRecord().idValue();
+					assertTrue(coreIdValue.isPresent());
+					String coreIdValueString = coreIdValue.get();
+					if (coreIdValueString.equals("ABC123")) {
+						assertEquals("Unexpected number of extension records, should have been 2", 2,
+								nextRecord.getExtensionRecords().size());
+						for(Entry<DarwinCoreCoreOrExtension, DarwinCoreRecord> nextEntry : nextRecord.getExtensionRecords().entrySet()) {
+							assertEquals(CoreOrExtension.EXTENSION, nextEntry.getKey().getType());
+						}
+					} else if (coreIdValueString.equals("MNT365")) {
+						assertEquals(
+								"Unexpected number of extension records, should not have been any matches for this id",
+								0, nextRecord.getExtensionRecords().size());
+					} else {
+						fail("Found unrecognised core id value in result set: " + coreIdValueString);
+					}
 				}
 			}
 			assertEquals("Did not find the expected number of records on replica #" + replicaIterations, 2,
 					recordCount);
-			System.out.println();
 		}
 	}
 
@@ -608,6 +629,34 @@ public class DarwinCoreArchiveCheckerTest {
 			try (CloseableIterator<DarwinCoreRecordSet> iterator = testDocument.iterator()) {
 				// Testing closing the iterator without fetching the records it
 				// contains
+				// Must be no exceptions during this process
+			}
+		}
+	}
+
+	@Test
+	public final void testIteratorWithExtensionsMixCsvTsvHasNextButNoIteration() throws Exception {
+		DarwinCoreArchiveDocument testDocument = DarwinCoreArchiveChecker
+				.parseMetadataXml(testMetadataXmlWithExtension);
+		assertNotNull(testDocument);
+		assertNotNull(testDocument.getCore());
+		assertEquals("http://rs.tdwg.org/dwc/terms/Taxon", testDocument.getCore().getRowType());
+		assertEquals(1, testDocument.getCore().getIgnoreHeaderLines());
+		assertEquals(2, testDocument.getExtensions().size());
+		assertNotNull(testDocument.getCore().getFiles());
+		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
+		assertEquals("whales.txt", testDocument.getCore().getFiles().getLocations().get(0));
+		assertEquals(6, testDocument.getCore().getFields().size());
+		for (DarwinCoreField field : testDocument.getCore().getFields()) {
+			assertTrue(field.getTerm().trim().length() > 0);
+		}
+
+		for (int replicaIterations = 1; replicaIterations < 10; replicaIterations++) {
+			System.out.println("Replica #" + replicaIterations);
+			try (CloseableIterator<DarwinCoreRecordSet> iterator = testDocument.iterator()) {
+				// Testing closing the iterator without fetching the records it
+				// contains, but after verifying the result of hasNext
+				assertTrue(iterator.hasNext());
 				// Must be no exceptions during this process
 			}
 		}

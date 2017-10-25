@@ -25,6 +25,8 @@
  */
 package com.github.ansell.dwca;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -59,6 +61,90 @@ public class DarwinCoreRecordSetImpl implements DarwinCoreRecordSet {
 	@Override
 	public Map<DarwinCoreCoreOrExtension, DarwinCoreRecord> getExtensionRecords() {
 		return this.extensionRecords;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		final int maxLen = 10;
+		StringBuilder builder = new StringBuilder();
+		builder.append("DarwinCoreRecordSetImpl [document=").append(document).append(",\n coreRecord=").append(coreRecord)
+				.append(",\n extensionRecords=")
+				.append(extensionRecords != null ? toString(extensionRecords.entrySet(), maxLen) : null).append("]");
+		return builder.toString();
+	}
+
+	private String toString(Collection<?> collection, int maxLen) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("[");
+		int i = 0;
+		for (Iterator<?> iterator = collection.iterator(); iterator.hasNext() && i < maxLen; i++) {
+			if (i > 0)
+				builder.append(",\n ");
+			builder.append(iterator.next());
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((coreRecord == null) ? 0 : coreRecord.hashCode());
+		result = prime * result + ((document == null) ? 0 : document.hashCode());
+		result = prime * result + ((extensionRecords == null) ? 0 : extensionRecords.hashCode());
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof DarwinCoreRecordSetImpl)) {
+			return false;
+		}
+		DarwinCoreRecordSetImpl other = (DarwinCoreRecordSetImpl) obj;
+		if (coreRecord == null) {
+			if (other.coreRecord != null) {
+				return false;
+			}
+		} else if (!coreRecord.equals(other.coreRecord)) {
+			return false;
+		}
+		if (document == null) {
+			if (other.document != null) {
+				return false;
+			}
+		} else if (!document.equals(other.document)) {
+			return false;
+		}
+		if (extensionRecords == null) {
+			if (other.extensionRecords != null) {
+				return false;
+			}
+		} else if (!extensionRecords.equals(other.extensionRecords)) {
+			return false;
+		}
+		return true;
 	}
 
 }
