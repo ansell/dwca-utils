@@ -551,14 +551,14 @@ public class DarwinCoreArchiveMerger {
 			throw new IllegalStateException("Both archives need to have the core id field defined to be merged");
 		}
 		try {
-			int inputCoreID = Integer.parseInt(
-					inputArchiveDocument.getCore().getIdOrCoreId().orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+			int inputCoreID = Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId()
+					.orElseThrow(() -> new IllegalStateException("Core ID was missing")));
 			if (inputCoreID < 0) {
 				throw new IllegalStateException(
 						"Core id must be a non-negative integer: " + inputArchiveDocument.getCore().getIdOrCoreId());
 			}
 			int otherInputCoreID = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId()
-					.orElse(DarwinCoreCoreOrExtension.DEFAULT_CORE_ID));
+					.orElseThrow(() -> new IllegalStateException("Core ID was missing")));
 			if (otherInputCoreID < 0) {
 				throw new IllegalStateException(
 						"Core id must be a non-negative integer: " + inputArchiveDocument.getCore().getIdOrCoreId());
@@ -572,13 +572,7 @@ public class DarwinCoreArchiveMerger {
 
 			if (!inputCoreIDField.getTerm().equals(otherInputCoreIDField.getTerm())) {
 				throw new IllegalStateException("Core id field terms must match for archives to be merged: "
-						+ inputCoreIDField + " " + otherInputCoreIDField);
-			}
-
-			if (!inputArchiveDocument.getCore().getRowType().equals(otherInputArchiveDocument.getCore().getRowType())) {
-				throw new IllegalStateException("Can only merge archives where the core row types are equal: "
-						+ inputArchiveDocument.getCore().getRowType() + " "
-						+ otherInputArchiveDocument.getCore().getRowType());
+						+ inputCoreIDField + " is different to " + otherInputCoreIDField);
 			}
 
 			// TODO: Check that the default values do not conflict, and fail
@@ -586,6 +580,12 @@ public class DarwinCoreArchiveMerger {
 
 		} catch (NumberFormatException e) {
 			throw new IllegalStateException("Core id must be an integer", e);
+		}
+
+		if (!inputArchiveDocument.getCore().getRowType().equals(otherInputArchiveDocument.getCore().getRowType())) {
+			throw new IllegalStateException("Can only merge archives where the core row types are equal: "
+					+ inputArchiveDocument.getCore().getRowType() + " is different to "
+					+ otherInputArchiveDocument.getCore().getRowType());
 		}
 	}
 
