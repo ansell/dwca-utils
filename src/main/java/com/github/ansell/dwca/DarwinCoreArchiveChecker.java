@@ -48,7 +48,6 @@ import org.apache.commons.vfs2.VFS;
 import org.jooq.lambda.Unchecked;
 import org.xml.sax.SAXException;
 
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.github.ansell.csv.sort.CSVSorter;
 import com.github.ansell.csv.sort.StringList;
 import com.github.ansell.csv.stream.CSVStream;

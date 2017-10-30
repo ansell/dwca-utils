@@ -30,7 +30,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -57,7 +56,6 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.jooq.lambda.Unchecked;
 
-import com.github.ansell.concurrent.jparallel.JParallel;
 import com.github.ansell.dwca.DarwinCoreCoreOrExtension.CoreOrExtension;
 import com.github.ansell.jdefaultdict.JDefaultDict;
 

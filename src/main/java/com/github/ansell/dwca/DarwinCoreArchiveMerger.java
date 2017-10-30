@@ -37,7 +37,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -47,8 +47,6 @@ import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.stream.CSVStreamException;
 import com.github.ansell.csv.sum.CSVSummariser;
 import com.fasterxml.jackson.databind.SequenceWriter;
-import com.github.ansell.csv.sort.CSVSorter;
-
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -586,6 +584,13 @@ public class DarwinCoreArchiveMerger {
 			throw new IllegalStateException("Can only merge archives where the core row types are equal: "
 					+ inputArchiveDocument.getCore().getRowType() + " is different to "
 					+ otherInputArchiveDocument.getCore().getRowType());
+		}
+		
+		for (DarwinCoreCoreOrExtension nextInputExtension : inputArchiveDocument.getExtensions()) {
+			Optional<DarwinCoreCoreOrExtension> matchingOtherInputExtension = Optional.empty();
+			for (DarwinCoreCoreOrExtension nextOtherInputExtension : otherInputArchiveDocument.getExtensions()) {
+				
+			}
 		}
 	}
 

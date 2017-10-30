@@ -25,8 +25,6 @@
  */
 package com.github.ansell.dwca;
 
-import static org.junit.Assert.*;
-
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
