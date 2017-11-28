@@ -207,8 +207,7 @@ public class DarwinCoreArchiveMerger {
 				outputCoreCsvWriter.write(mergedArchiveDocument.getCore().getFields().stream()
 						.map(DarwinCoreField::getTerm).collect(Collectors.toList()));
 			}
-			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument
-					.iterator(false);
+			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument.iterator(false);
 					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument
 							.iterator(false);
 					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
@@ -349,8 +348,8 @@ public class DarwinCoreArchiveMerger {
 
 	/**
 	 * Merge the descriptions of two documents and create a description of a new
-	 * merged document, where the field indexes in the new document reflect
-	 * those in the merged document. <br>
+	 * merged document, where the field indexes in the new document reflect those in
+	 * the merged document. <br>
 	 * IMPORTANT:
 	 * {@link #canArchivesBeMergedDirectly(DarwinCoreArchiveDocument, DarwinCoreArchiveDocument)}
 	 * must be called without error before calling this method
@@ -523,8 +522,8 @@ public class DarwinCoreArchiveMerger {
 
 	/**
 	 * Check to ensure that we are only allowing trivial merges that won't cause
-	 * data loss or other unexpected effects. In future this method may be
-	 * trimmed down when other features are added.
+	 * data loss or other unexpected effects. In future this method may be trimmed
+	 * down when other features are added.
 	 * 
 	 * @param inputArchiveDocument
 	 *            The first input document
@@ -607,38 +606,6 @@ public class DarwinCoreArchiveMerger {
 			inputMetadataPath = DarwinCoreArchiveChecker.checkFolder(inputPath);
 		}
 		return inputMetadataPath;
-	}
-
-	public static void checkCoreOrExtension(DarwinCoreCoreOrExtension coreOrExtension, final Path metadataPath,
-			final Path outputDirPath, final boolean hasOutput, final boolean debug, final boolean includeDefaults)
-			throws IOException, CSVStreamException {
-		int headerLineCount = coreOrExtension.getIgnoreHeaderLines();
-		List<String> coreOrExtensionFields = coreOrExtension.getFields().stream().map(f -> f.getTerm())
-				.collect(Collectors.toList());
-		// TODO: Only support a single file currently
-		String coreOrExtensionFileName = coreOrExtension.getFiles().getLocations().get(0);
-		Path coreOrExtensionFilePath = metadataPath.resolveSibling(coreOrExtensionFileName).normalize()
-				.toAbsolutePath();
-		try (Reader inputReader = Files.newBufferedReader(coreOrExtensionFilePath, coreOrExtension.getEncoding());) {
-			if (hasOutput) {
-				try (Writer summaryWriter = Files.newBufferedWriter(
-						outputDirPath.resolve("Statistics-" + coreOrExtensionFilePath.getFileName().toString()),
-						coreOrExtension.getEncoding());
-						Writer mappingWriter = Files.newBufferedWriter(
-								outputDirPath.resolve("Mapping-" + coreOrExtensionFilePath.getFileName().toString()),
-								coreOrExtension.getEncoding());) {
-					// Summarise the core document
-					CSVSummariser.runSummarise(inputReader, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema(),
-							summaryWriter, mappingWriter, 20, true, debug, coreOrExtensionFields,
-							includeDefaults ? coreOrExtension.getDefaultValues() : Collections.emptyList(),
-							headerLineCount);
-				}
-			} else {
-				CSVStream.parse(inputReader, h -> {
-				}, (h, l) -> l, l -> {
-				}, coreOrExtensionFields, headerLineCount, CSVStream.defaultMapper(), coreOrExtension.getCsvSchema());
-			}
-		}
 	}
 
 }

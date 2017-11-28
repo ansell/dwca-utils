@@ -27,11 +27,13 @@ package com.github.ansell.dwca;
 
 import static org.junit.Assert.*;
 
+import java.io.FileNotFoundException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -42,6 +44,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+
+import joptsimple.OptionException;
 
 /**
  * Tests for {@link DarwinCoreArchiveMerger}.
@@ -150,12 +154,12 @@ public class DarwinCoreArchiveMergerTest {
         try (Writer out = Files.newBufferedWriter(testMetadataXml)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensCsv)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         testMetadataXmlWithExtensionFolder = tempDir
                 .newFolder("dwca-check-unittest-with-extensions").toPath();
@@ -167,20 +171,20 @@ public class DarwinCoreArchiveMergerTest {
                 .resolve("distribution.csv");
         try (Writer out = Files.newBufferedWriter(testMetadataXmlWithExtension)) {
             IOUtils.copy(this.getClass()
-                    .getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out);
+                    .getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out, StandardCharsets.UTF_8);
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlWhalesTxt)) {
             IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/whales.txt"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlTypesCsv)) {
             IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlDistributionCsv)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         testMetadataXmlTsvFolder = tempDir.newFolder("dwca-check-unittest-tsv").toPath();
         Files.createDirectories(testMetadataXmlTsvFolder.resolve("subdir"));
@@ -189,12 +193,12 @@ public class DarwinCoreArchiveMergerTest {
         try (Writer out = Files.newBufferedWriter(testMetadataXmlTsv)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/tsvmetadata.xml"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensTsv)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/subdir/specimens.tsv"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
     }
 
@@ -248,6 +252,54 @@ public class DarwinCoreArchiveMergerTest {
         thrown.expect(IllegalStateException.class);
         thrown.expectMessage("Core id field terms must match for archives to be merged");
     	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", testMetadataXmlWithExtensionFolder.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainInputMissing() throws Exception {
+        thrown.expect(FileNotFoundException.class);
+        thrown.expectMessage("Could not find input Darwin Core Archive file or metadata file:");
+    	DarwinCoreArchiveMerger.main("--input", Paths.get("does", "not", "exist").toString(), "--other-input", testMetadataXmlWithExtensionFolder.toAbsolutePath().toString(), "--output", testTempDir.toAbsolutePath().toString());
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainOtherInputMissing() throws Exception {
+        thrown.expect(FileNotFoundException.class);
+        thrown.expectMessage("Could not find other input Darwin Core Archive file or metadata file:");
+    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", Paths.get("does", "not", "exist").toString(), "--output", testTempDir.toAbsolutePath().toString());
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainOutputMissing() throws Exception {
+        thrown.expect(FileNotFoundException.class);
+        thrown.expectMessage("Could not find output folder:");
+    	DarwinCoreArchiveMerger.main("--input", testFile.toAbsolutePath().toString(), "--other-input", testMetadataXmlWithExtensionFolder.toAbsolutePath().toString(), "--output", Paths.get("does", "not", "exist").toString());
+    }
+
+    /**
+     * Test method for
+     * {@link com.github.ansell.dwca.DarwinCoreArchiveMerger#main(java.lang.String[])}
+     * .
+     */
+    @Test
+    public final void testMainUnrecognisedOption() throws Exception {
+        thrown.expect(OptionException.class);
+        thrown.expectMessage("unrecognised-option is not a recognized option");
+    	DarwinCoreArchiveMerger.main("--unrecognised-option");
     }
 
     /**
