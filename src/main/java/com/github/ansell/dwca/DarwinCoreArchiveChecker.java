@@ -379,7 +379,7 @@ public class DarwinCoreArchiveChecker {
 		try (final Reader otherInputReader = Files.newBufferedReader(coreOrExtensionFilePath,
 				coreOrExtension.getEncoding())) {
 			CsvSchema csvSchema = coreOrExtension.getCsvSchema();
-			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath, CSVSorter.getSafeSortingMapper(),
+			CSVSorter.runSorter(otherInputReader, sortedCoreOrExtensionFilePath,
 					coreOrExtension.getIgnoreHeaderLines(), csvSchema, comparator.apply(coreOrExtension), debug);
 		}
 

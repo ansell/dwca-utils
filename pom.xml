@@ -112,12 +112,12 @@
 			<dependency>
 				<groupId>com.github.ansell.csv.sum</groupId>
 				<artifactId>csvsum</artifactId>
-				<version>0.5.1</version>
+				<version>0.5.2-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.ansell.csv</groupId>
 				<artifactId>csvstream</artifactId>
-				<version>0.0.4</version>
+				<version>0.0.5-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.ansell.shp</groupId>
