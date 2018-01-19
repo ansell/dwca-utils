@@ -40,10 +40,14 @@ Run csv2dwca with --help to get usage details:
     <dependency>
         <groupId>com.github.ansell.dwca</groupId>
         <artifactId>dwca-utils</artifactId>
-        <version>0.0.4</version>
+        <version>0.0.5</version>
     </dependency>
 
 # Changelog
+
+## 2018-01-19
+* Release 0.0.5
+* Pickup bug fixes from dependency updates
 
 ## 2017-10-17
 * Release 0.0.4
