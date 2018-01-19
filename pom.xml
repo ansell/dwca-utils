@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.ansell</groupId>
 		<artifactId>parentpom</artifactId>
-		<version>4</version>
+		<version>5</version>
 	</parent>
 
 	<groupId>com.github.ansell.dwca</groupId>
@@ -36,10 +36,10 @@
 	</developers>
 
 	<properties>
-		<jackson.version>2.9.1</jackson.version>
+		<jackson.version>2.9.3</jackson.version>
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.25</slf4j.version>
-		<rdf4j.version>2.2.2</rdf4j.version>
+		<rdf4j.version>2.2.4</rdf4j.version>
 		<schemagenerator.version>0.4.1</schemagenerator.version>
 	</properties>
 
@@ -112,12 +112,12 @@
 			<dependency>
 				<groupId>com.github.ansell.csv.sum</groupId>
 				<artifactId>csvsum</artifactId>
-				<version>0.5.2-SNAPSHOT</version>
+				<version>0.6.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.ansell.csv</groupId>
 				<artifactId>csvstream</artifactId>
-				<version>0.0.5-SNAPSHOT</version>
+				<version>0.0.5</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.ansell.shp</groupId>
