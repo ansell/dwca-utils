@@ -568,6 +568,13 @@ public class DarwinCoreArchiveMerger {
 						+ otherInputArchiveDocument.getCore().getRowType());
 			}
 
+			if (!inputArchiveDocument.getCore().getEncoding()
+					.equals(otherInputArchiveDocument.getCore().getEncoding())) {
+				throw new IllegalStateException("Can only merge archives where the same encoding is used: "
+						+ inputArchiveDocument.getCore().getEncoding() + " "
+						+ otherInputArchiveDocument.getCore().getEncoding());
+			}
+
 			// TODO: Check that the default values do not conflict, and fail
 			// early if they do
 
