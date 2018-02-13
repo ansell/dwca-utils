@@ -37,8 +37,9 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
+
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
@@ -47,7 +48,6 @@ import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.stream.CSVStreamException;
 import com.github.ansell.csv.sum.CSVSummariser;
 import com.fasterxml.jackson.databind.SequenceWriter;
-import com.github.ansell.csv.sort.CSVSorter;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -132,204 +132,266 @@ public class DarwinCoreArchiveMerger {
 
 		try {
 
-			final Path outputArchivePath = outputDirPath.resolve("first-archive");
-			final Path inputMetadataPath = openArchive(inputPath, outputArchivePath);
-			Files.createDirectories(outputArchivePath);
-			final DarwinCoreArchiveDocument inputArchiveDocument = loadArchive(debug, outputArchivePath,
-					inputMetadataPath, includeDefaults);
-			if (debug) {
-				System.out.println("Found an archive with " + inputArchiveDocument.getCore().getFields().size()
-						+ " core fields and " + inputArchiveDocument.getExtensions().size() + " extensions");
-			}
-
-			final Path otherOutputArchivePath = outputDirPath.resolve("other-archive");
-			final Path otherInputMetadataPath = openArchive(otherInputPath, otherOutputArchivePath);
-			Files.createDirectories(otherOutputArchivePath);
-			final DarwinCoreArchiveDocument otherInputArchiveDocument = loadArchive(debug, otherOutputArchivePath,
-					otherInputMetadataPath, includeDefaults);
-			if (debug) {
-				System.out.println("Found another archive with "
-						+ otherInputArchiveDocument.getCore().getFields().size() + " core fields and "
-						+ otherInputArchiveDocument.getExtensions().size() + " extensions");
-			}
-
-			canArchivesBeMergedDirectly(inputArchiveDocument, otherInputArchiveDocument);
-
-			// This is the list of fields that will be in the final document,
-			// the indexes represent the final document indexes, not the indexes
-			// in the original fields
-			final Path mergedOutputArchivePath = outputDirPath.resolve("merged-archive").normalize().toAbsolutePath();
-			final Path mergedOutputMetadataPath = mergedOutputArchivePath.resolve(DarwinCoreArchiveChecker.META_XML);
-			Files.createDirectories(mergedOutputArchivePath);
-			final DarwinCoreArchiveDocument mergedArchiveDocument = mergeFieldSets(inputArchiveDocument,
-					otherInputArchiveDocument, filterNonVocabularyTerms, debug);
-			DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
-			mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
-			Path mergedOutputCorePath = mergedOutputArchivePath
-					.resolve(inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize()
-					.toAbsolutePath();
-			// Second stage to rename the file with "Merged-" in front
-			// Does not work if done above as the normalize needs to occur first
-			// to ensure we get the final path segment renamed
-			mergedOutputCorePath = mergedOutputCorePath
-					.resolveSibling("Merged-" + mergedOutputCorePath.getFileName().toString()).toAbsolutePath();
-			// Ensure that if there are new subdirectories in the merged path
-			// that we create them
-			Files.createDirectories(mergedOutputCorePath.getParent());
-			mergedOutputCoreDarwinCoreFile
-					.addLocation(mergedOutputArchivePath.relativize(mergedOutputCorePath).toString());
-			mergedArchiveDocument.setMetadataXMLPath(mergedOutputMetadataPath);
-			mergedArchiveDocument.getCore().setIgnoreHeaderLines(1);
-			try (final Writer mergedMetadataWriter = Files.newBufferedWriter(mergedOutputMetadataPath,
-					StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);) {
-				mergedArchiveDocument.toXML(mergedMetadataWriter, true);
-			}
-
-			int originalCoreIDField = Integer.parseInt(inputArchiveDocument.getCore().getIdOrCoreId());
-			int otherOriginalCoreIDField = Integer.parseInt(otherInputArchiveDocument.getCore().getIdOrCoreId());
-			int mergedCoreIDField = Integer.parseInt(mergedArchiveDocument.getCore().getIdOrCoreId());
-			DarwinCoreField mergedCoreIndexField = null;
-			for (DarwinCoreField nextMergedField : mergedArchiveDocument.getCore().getFields()) {
-				if (nextMergedField.getIndex() == mergedCoreIDField) {
-					mergedCoreIndexField = nextMergedField;
-					break;
-				}
-			}
-			if (mergedCoreIndexField == null) {
-				throw new IllegalStateException(
-						"Did not find the id field for the merged document using its index: " + mergedCoreIDField);
-			}
-
-			try (final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath, StandardCharsets.UTF_8,
-					StandardOpenOption.CREATE_NEW);
-					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
-							mergedArchiveDocument.getCore().getCsvSchema());) {
-				outputCoreCsvWriter.write(mergedArchiveDocument.getCore().getFields().stream()
-						.map(DarwinCoreField::getTerm).collect(Collectors.toList()));
-			}
-			try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument
-					.iterator(false);
-					final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument
-							.iterator(false);
-					final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath,
-							StandardCharsets.UTF_8, StandardOpenOption.APPEND);
-					final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
-							mergedArchiveDocument.getCore().getCsvSchema());) {
-				DarwinCoreRecord nextOtherInputRecord = null;
-				// Merge the two iterators before exhausting the other iterator
-				// if it didn't match
-				// Note, both iterators must represent commonly sorted sets in
-				// terms of the id field values
-				// The specific sort order does not matter as long as it is
-				// common to both
-				while (inputIterator.hasNext()) {
-					DarwinCoreRecord nextInputRecord = inputIterator.next();
-					// If we matched last time, we replace the "other" input
-					// record with a new copy this time, otherwise leave it as
-					// it is to be matched later
-					if (nextOtherInputRecord == null) {
-						if (otherInputIterator.hasNext()) {
-							nextOtherInputRecord = otherInputIterator.next();
-						}
-					}
-
-					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
-
-					// Find the two key values to check if they are the same
-					// before determining what to do next
-					String nextInputKey = nextInputRecord.valueFor(mergedCoreIndexField.getTerm(), includeDefaults)
-							.orElse(null);
-					String nextOtherInputKey = null;
-
-					if (nextInputKey == null) {
-						throw new IllegalStateException("Did not find a value for the id field in the input record");
-					}
-
-					if (nextOtherInputRecord != null) {
-						nextOtherInputKey = nextOtherInputRecord
-								.valueFor(mergedCoreIndexField.getTerm(), includeDefaults).orElse(null);
-						if (nextOtherInputKey == null) {
-							throw new IllegalStateException(
-									"Did not find a value for the id field in the other input record");
-						}
-					}
-
-					if (nextInputKey.equals(nextOtherInputKey)) {
-						// Found a match, merge the other record into this one!
-						for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
-							String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
-							String nextMergedValue = nextInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
-									.orElse(null);
-							// If the original record didn't have a value, check
-							// the other record
-							if (nextMergedValue == null || nextMergedValue.isEmpty()) {
-								if (nextOtherInputRecord != null) {
-									nextMergedValue = nextOtherInputRecord
-											.valueFor(nextMergedRecordTerm, includeDefaults).orElse(null);
-								}
-							}
-							if (nextMergedValue != null) {
-								nextMergedValues.set(i, nextMergedValue);
-							}
-						}
-					} else {
-						// Else emit the nextInputRecord as the results for this
-						for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
-							String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
-							String nextMergedValue = nextInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
-									.orElse(null);
-							if (nextMergedValue != null) {
-								nextMergedValues.set(i, nextMergedValue);
-							}
-						}
-					}
-
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
-					outputCoreCsvWriter.write(nextMergedValues);
-				}
-				// Emit an unmatched record from the loop above if applicable,
-				// and then go through the rest of the other input iterator
-				if (nextOtherInputRecord != null) {
-					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
-					for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
-						String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
-						String nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
-								.orElse(null);
-						if (nextMergedValue != null) {
-							nextMergedValues.set(i, nextMergedValue);
-						}
-					}
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
-					outputCoreCsvWriter.write(nextMergedValues);
-				}
-				// Deal with any records that were not matched during the loop
-				// above by simply adding them to the result
-				while (otherInputIterator.hasNext()) {
-					nextOtherInputRecord = otherInputIterator.next();
-					List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
-					for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
-						String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
-						String nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
-								.orElse(null);
-						if (nextMergedValue != null) {
-							nextMergedValues.set(i, nextMergedValue);
-						}
-					}
-					DarwinCoreRecordImpl nextMergedRecord = new DarwinCoreRecordImpl(mergedArchiveDocument,
-							mergedArchiveDocument.getCore().getFields(), nextMergedValues);
-					outputCoreCsvWriter.write(nextMergedValues);
-				}
-			}
-			if (debug) {
-				System.out.println("Merged output:");
-				Files.readAllLines(mergedOutputCorePath, StandardCharsets.UTF_8).stream()
-						.forEachOrdered(System.out::println);
-				System.out.println("End of merged output");
-			}
+			DarwinCoreArchiveDocument result = doMerge(inputPath, otherInputPath, outputDirPath,
+					filterNonVocabularyTerms, includeDefaults, debug);
+			System.out.println("Merged archive description written to: " + result.getMetadataXMLPath());
 		} finally {
 			FileUtils.deleteQuietly(tempDir.toFile());
+		}
+	}
+
+	/**
+	 * Merge the archive at inputPath with the archive at otherInputPath, emitting
+	 * the results to a well-formed Darwin Core Archive at outputDirPath.
+	 * 
+	 * @param inputPath
+	 *            The input archive
+	 * @param otherInputPath
+	 *            The other input archive
+	 * @param outputDirPath
+	 *            The path where the output should be written
+	 * @param filterNonVocabularyTerms
+	 *            True to filter out terms that cannot be matched to a vocabulary,
+	 *            and false to include all terms.
+	 * @param includeDefaults
+	 *            True to include default values when merging, and false to ignore
+	 *            them.
+	 * @param debug
+	 *            True to emit debug information to the console
+	 * @return The {@link DarwinCoreArchiveDocument} representing the merged document
+	 * @throws IOException
+	 *             If there are issues while performing IO
+	 * @throws IllegalStateException
+	 *             If there are issues with the archives that prevent them being
+	 *             merged
+	 * @throws SAXException
+	 *             If there are XML errors
+	 * @throws CSVStreamException
+	 *             If there are CSV errors
+	 * @throws XMLStreamException
+	 *             If there are XML errors
+	 */
+	public static DarwinCoreArchiveDocument doMerge(final Path inputPath, final Path otherInputPath, final Path outputDirPath,
+			final boolean filterNonVocabularyTerms, final boolean includeDefaults, final boolean debug)
+			throws IOException, IllegalStateException, SAXException, CSVStreamException, XMLStreamException {
+		final Path outputArchivePath = outputDirPath.resolve("first-archive");
+		final Path inputMetadataPath = openArchive(inputPath, outputArchivePath);
+		Files.createDirectories(outputArchivePath);
+		final DarwinCoreArchiveDocument inputArchiveDocument = loadArchive(debug, outputArchivePath, inputMetadataPath,
+				includeDefaults);
+		if (debug) {
+			System.out.println("Found an archive with " + inputArchiveDocument.getCore().getFields().size()
+					+ " core fields and " + inputArchiveDocument.getExtensions().size() + " extensions");
+		}
+
+		final Path otherOutputArchivePath = outputDirPath.resolve("other-archive");
+		final Path otherInputMetadataPath = openArchive(otherInputPath, otherOutputArchivePath);
+		Files.createDirectories(otherOutputArchivePath);
+		final DarwinCoreArchiveDocument otherInputArchiveDocument = loadArchive(debug, otherOutputArchivePath,
+				otherInputMetadataPath, includeDefaults);
+		if (debug) {
+			System.out.println("Found another archive with " + otherInputArchiveDocument.getCore().getFields().size()
+					+ " core fields and " + otherInputArchiveDocument.getExtensions().size() + " extensions");
+		}
+
+		// This is the list of fields that will be in the final document,
+		// the indexes represent the final document indexes, not the indexes
+		// in the original fields
+		final Path mergedOutputArchivePath = outputDirPath.resolve("merged-archive").normalize().toAbsolutePath();
+		Files.createDirectories(mergedOutputArchivePath);
+		Path mergedOutputCorePath = mergedOutputArchivePath
+				.resolve(inputArchiveDocument.getCore().getFiles().getLocations().get(0)).normalize().toAbsolutePath();
+		Path mergedCoreFileName = mergedOutputCorePath.getFileName();
+		// Use the original core filename to create a new unique file name to indicate a
+		// merge occurred
+		mergedOutputCorePath = mergedOutputCorePath.resolveSibling("Merged-" + mergedCoreFileName.toString())
+				.toAbsolutePath();
+		// Ensure that if there are new subdirectories in the merged path
+		// that we create them
+		Files.createDirectories(mergedOutputCorePath.getParent());
+
+		DarwinCoreArchiveDocument mergedArchiveDocument = doMergeInner(inputArchiveDocument, otherInputArchiveDocument, mergedOutputArchivePath, mergedOutputCorePath,
+				debug, filterNonVocabularyTerms, includeDefaults);
+		if (debug) {
+			System.out.println("Merged output:");
+			Files.readAllLines(mergedOutputCorePath, StandardCharsets.UTF_8).stream()
+					.forEachOrdered(System.out::println);
+			System.out.println("End of merged output");
+		}
+		return mergedArchiveDocument;
+	}
+
+	public static DarwinCoreArchiveDocument doMergeInner(final DarwinCoreArchiveDocument inputArchiveDocument,
+			final DarwinCoreArchiveDocument otherInputArchiveDocument, final Path mergedOutputArchivePath,
+			Path mergedOutputCorePath, final boolean debug, final boolean filterNonVocabularyTerms,
+			final boolean includeDefaults) throws XMLStreamException, IOException {
+		// Check whether it is possible to merge, and throw an exception if it isn't
+		canArchivesBeMergedDirectly(inputArchiveDocument, otherInputArchiveDocument);
+
+		final DarwinCoreArchiveDocument mergedArchiveDocument = mergeFieldSets(inputArchiveDocument,
+				otherInputArchiveDocument, filterNonVocabularyTerms, debug);
+		DarwinCoreFile mergedOutputCoreDarwinCoreFile = new DarwinCoreFile();
+		mergedArchiveDocument.getCore().setFiles(mergedOutputCoreDarwinCoreFile);
+
+		// Second stage to rename the file with "Merged-" in front
+		// Does not work if done above as the normalize needs to occur first
+		// to ensure we get the final path segment renamed
+		mergedOutputCoreDarwinCoreFile.addLocation(mergedOutputArchivePath.relativize(mergedOutputCorePath).toString());
+		final Path mergedOutputMetadataPath = mergedOutputArchivePath.resolve(DarwinCoreArchiveChecker.META_XML);
+		mergedArchiveDocument.setMetadataXMLPath(mergedOutputMetadataPath);
+		mergedArchiveDocument.getCore().setIgnoreHeaderLines(1);
+		try (final Writer mergedMetadataWriter = Files.newBufferedWriter(mergedOutputMetadataPath,
+				StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);) {
+			mergedArchiveDocument.toXML(mergedMetadataWriter, true);
+		}
+
+		try (final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath, StandardCharsets.UTF_8,
+				StandardOpenOption.CREATE_NEW);
+				final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
+						mergedArchiveDocument.getCore().getCsvSchema());) {
+			outputCoreCsvWriter.write(mergedArchiveDocument.getCore().getFields().stream().map(DarwinCoreField::getTerm)
+					.collect(Collectors.toList()));
+		}
+		try (final CloseableIterator<DarwinCoreRecord> inputIterator = inputArchiveDocument.iterator(false);
+				final CloseableIterator<DarwinCoreRecord> otherInputIterator = otherInputArchiveDocument
+						.iterator(false);
+				final Writer outputCoreWriter = Files.newBufferedWriter(mergedOutputCorePath, StandardCharsets.UTF_8,
+						StandardOpenOption.APPEND);
+				final SequenceWriter outputCoreCsvWriter = CSVStream.newCSVWriter(outputCoreWriter,
+						mergedArchiveDocument.getCore().getCsvSchema());) {
+
+			writeMerge(mergedArchiveDocument, inputIterator, otherInputIterator, outputCoreCsvWriter, includeDefaults);
+		}
+
+		return mergedArchiveDocument;
+	}
+
+	public static void writeMerge(final DarwinCoreArchiveDocument mergedArchiveDocument,
+			final CloseableIterator<DarwinCoreRecord> inputIterator,
+			final CloseableIterator<DarwinCoreRecord> otherInputIterator, final SequenceWriter outputCoreCsvWriter,
+			final boolean includeDefaults) throws IOException {
+		int mergedCoreIDField = Integer.parseInt(mergedArchiveDocument.getCore().getIdOrCoreId());
+		DarwinCoreField mergedCoreIndexField = null;
+		for (DarwinCoreField nextMergedField : mergedArchiveDocument.getCore().getFields()) {
+			// NOTE: Darwin Core Archive specification doesn't say that the indexes need to
+			// be unique, so we always pick the first one for consistency
+			if (nextMergedField.getIndex() == mergedCoreIDField) {
+				mergedCoreIndexField = nextMergedField;
+				break;
+			}
+		}
+		if (mergedCoreIndexField == null) {
+			throw new IllegalStateException(
+					"Did not find the id field for the merged document using its index: " + mergedCoreIDField);
+		}
+
+		DarwinCoreRecord nextOtherInputRecord = null;
+		// Merge the two iterators before exhausting the other iterator
+		// if it didn't match
+		// Note, both iterators must represent commonly sorted sets in
+		// terms of the id field values
+		// The specific sort order does not matter as long as it is
+		// common to both
+		while (inputIterator.hasNext()) {
+			DarwinCoreRecord nextInputRecord = inputIterator.next();
+			// If we matched last time, we replace the "other" input
+			// record with a new copy this time, otherwise leave it as
+			// it is to be matched later
+			if (nextOtherInputRecord == null) {
+				if (otherInputIterator.hasNext()) {
+					nextOtherInputRecord = otherInputIterator.next();
+				}
+			}
+
+			List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
+
+			// Find the two key values to check if they are the same
+			// before determining what to do next
+			String nextInputKey = nextInputRecord.valueFor(mergedCoreIndexField.getTerm(), includeDefaults)
+					.orElse(null);
+			String nextOtherInputKey = null;
+
+			if (nextInputKey == null) {
+				throw new IllegalStateException("Did not find a value for the id field in the input record");
+			}
+
+			if (nextOtherInputRecord != null) {
+				nextOtherInputKey = nextOtherInputRecord.valueFor(mergedCoreIndexField.getTerm(), includeDefaults)
+						.orElse(null);
+				if (nextOtherInputKey == null) {
+					throw new IllegalStateException("Did not find a value for the id field in the other input record");
+				}
+			}
+
+			if (nextInputKey.equals(nextOtherInputKey)) {
+				// Found a match, merge the other record into this one!
+				for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
+					String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
+					String nextMergedValue = nextInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+							.orElse(null);
+					// If the original record didn't have a value, check
+					// the other record
+					if (nextMergedValue == null || nextMergedValue.isEmpty()) {
+						if (nextOtherInputRecord != null) {
+							nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+									.orElse(null);
+						}
+					}
+					if (nextMergedValue != null) {
+						nextMergedValues.set(i, nextMergedValue);
+					}
+				}
+			} else {
+				// Else emit the nextInputRecord as the results for this
+				for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
+					String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
+					String nextMergedValue = nextInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+							.orElse(null);
+					if (nextMergedValue != null) {
+						nextMergedValues.set(i, nextMergedValue);
+					}
+				}
+			}
+
+			// DarwinCoreRecordImpl nextMergedRecord = new
+			// DarwinCoreRecordImpl(mergedArchiveDocument,
+			// mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+			outputCoreCsvWriter.write(nextMergedValues);
+		}
+		// Emit an unmatched record from the loop above if applicable,
+		// and then go through the rest of the other input iterator
+		if (nextOtherInputRecord != null) {
+			List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
+			for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
+				String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
+				String nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+						.orElse(null);
+				if (nextMergedValue != null) {
+					nextMergedValues.set(i, nextMergedValue);
+				}
+			}
+			// DarwinCoreRecordImpl nextMergedRecord = new
+			// DarwinCoreRecordImpl(mergedArchiveDocument,
+			// mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+			outputCoreCsvWriter.write(nextMergedValues);
+		}
+		// Deal with any records that were not matched during the loop
+		// above by simply adding them to the result
+		while (otherInputIterator.hasNext()) {
+			nextOtherInputRecord = otherInputIterator.next();
+			List<String> nextMergedValues = getNewValuesList(mergedArchiveDocument.getCore(), includeDefaults);
+			for (int i = 0; i < mergedArchiveDocument.getCore().getFields().size(); i++) {
+				String nextMergedRecordTerm = mergedArchiveDocument.getCore().getFields().get(i).getTerm();
+				String nextMergedValue = nextOtherInputRecord.valueFor(nextMergedRecordTerm, includeDefaults)
+						.orElse(null);
+				if (nextMergedValue != null) {
+					nextMergedValues.set(i, nextMergedValue);
+				}
+			}
+			// DarwinCoreRecordImpl nextMergedRecord = new
+			// DarwinCoreRecordImpl(mergedArchiveDocument,
+			// mergedArchiveDocument.getCore().getFields(), nextMergedValues);
+			outputCoreCsvWriter.write(nextMergedValues);
 		}
 	}
 
@@ -349,8 +411,8 @@ public class DarwinCoreArchiveMerger {
 
 	/**
 	 * Merge the descriptions of two documents and create a description of a new
-	 * merged document, where the field indexes in the new document reflect
-	 * those in the merged document. <br>
+	 * merged document, where the field indexes in the new document reflect those in
+	 * the merged document. <br>
 	 * IMPORTANT:
 	 * {@link #canArchivesBeMergedDirectly(DarwinCoreArchiveDocument, DarwinCoreArchiveDocument)}
 	 * must be called without error before calling this method
@@ -523,8 +585,8 @@ public class DarwinCoreArchiveMerger {
 
 	/**
 	 * Check to ensure that we are only allowing trivial merges that won't cause
-	 * data loss or other unexpected effects. In future this method may be
-	 * trimmed down when other features are added.
+	 * data loss or other unexpected effects. In future this method may be trimmed
+	 * down when other features are added.
 	 * 
 	 * @param inputArchiveDocument
 	 *            The first input document

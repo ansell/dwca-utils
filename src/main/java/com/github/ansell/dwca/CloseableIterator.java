@@ -25,6 +25,7 @@
  */
 package com.github.ansell.dwca;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -34,5 +35,8 @@ import java.util.Iterator;
  * @author Peter Ansell p_ansell@yahoo.com
  */
 public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
+
+	@Override
+	void close() throws IOException;
 
 }

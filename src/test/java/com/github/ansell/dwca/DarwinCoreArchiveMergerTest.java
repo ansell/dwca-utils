@@ -147,15 +147,15 @@ public class DarwinCoreArchiveMergerTest {
         testMetadataXmlFolder = tempDir.newFolder("dwca-check-unittest").toPath();
         testMetadataXml = testMetadataXmlFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
         testMetadataXmlSpecimensCsv = testMetadataXmlFolder.resolve("specimens.csv");
-        try (Writer out = Files.newBufferedWriter(testMetadataXml)) {
+        try (Writer out = Files.newBufferedWriter(testMetadataXml, StandardCharsets.UTF_8)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensCsv)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         testMetadataXmlWithExtensionFolder = tempDir
                 .newFolder("dwca-check-unittest-with-extensions").toPath();
@@ -165,36 +165,36 @@ public class DarwinCoreArchiveMergerTest {
         testMetadataXmlTypesCsv = testMetadataXmlWithExtensionFolder.resolve("types.csv");
         testMetadataXmlDistributionCsv = testMetadataXmlWithExtensionFolder
                 .resolve("distribution.csv");
-        try (Writer out = Files.newBufferedWriter(testMetadataXmlWithExtension)) {
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlWithExtension, StandardCharsets.UTF_8)) {
             IOUtils.copy(this.getClass()
-                    .getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out);
+                    .getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out, StandardCharsets.UTF_8);
         }
-        try (Writer out = Files.newBufferedWriter(testMetadataXmlWhalesTxt)) {
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlWhalesTxt, StandardCharsets.UTF_8)) {
             IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/whales.txt"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
-        try (Writer out = Files.newBufferedWriter(testMetadataXmlTypesCsv)) {
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlTypesCsv, StandardCharsets.UTF_8)) {
             IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
-        try (Writer out = Files.newBufferedWriter(testMetadataXmlDistributionCsv)) {
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlDistributionCsv, StandardCharsets.UTF_8)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
         testMetadataXmlTsvFolder = tempDir.newFolder("dwca-check-unittest-tsv").toPath();
         Files.createDirectories(testMetadataXmlTsvFolder.resolve("subdir"));
         testMetadataXmlTsv = testMetadataXmlTsvFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
         testMetadataXmlSpecimensTsv = testMetadataXmlTsvFolder.resolve("subdir").resolve("specimens.tsv");
-        try (Writer out = Files.newBufferedWriter(testMetadataXmlTsv)) {
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlTsv, StandardCharsets.UTF_8)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/tsvmetadata.xml"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
-        try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensTsv)) {
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensTsv, StandardCharsets.UTF_8)) {
             IOUtils.copy(
                     this.getClass().getResourceAsStream("/com/github/ansell/dwca/subdir/specimens.tsv"),
-                    out);
+                    out, StandardCharsets.UTF_8);
         }
     }
 
