@@ -36,7 +36,9 @@
 	</developers>
 
 	<properties>
-		<jackson.version>2.9.3</jackson.version>
+		<httpclient.version>4.5.5</httpclient.version>
+		<httpcore.version>4.4.10</httpcore.version>
+		<jackson.version>2.9.6</jackson.version>
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.25</slf4j.version>
 		<rdf4j.version>2.2.4</rdf4j.version>
@@ -263,48 +265,48 @@
 			<dependency>
 				<groupId>com.github.jsonld-java</groupId>
 				<artifactId>jsonld-java</artifactId>
-				<version>0.11.1</version>
+				<version>0.12.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.jsonld-java</groupId>
 				<artifactId>jsonld-java</artifactId>
-				<version>0.11.1</version>
+				<version>0.12.0</version>
 				<type>test-jar</type>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient-osgi</artifactId>
-				<version>4.5.4</version>
+				<version>${httpclient.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>fluent-hc</artifactId>
-				<version>4.5.4</version>
+				<version>${httpclient.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient</artifactId>
-				<version>4.5.4</version>
+				<version>${httpclient.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient-cache</artifactId>
-				<version>4.5.4</version>
+				<version>${httpclient.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpmime</artifactId>
-				<version>4.5.4</version>
+				<version>${httpclient.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpcore-osgi</artifactId>
-				<version>4.4.9</version>
+				<version>${httpcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpcore-nio</artifactId>
-				<version>4.4.9</version>
+				<version>${httpcore.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
@@ -439,7 +441,7 @@
 		<repository>
 			<id>osgeo</id>
 			<name>Open Source Geospatial Foundation Repository</name>
-			<url>http://download.osgeo.org/webdav/geotools/</url>
+			<url>https://download.osgeo.org/webdav/geotools/</url>
 		</repository>
 	</repositories>
 
