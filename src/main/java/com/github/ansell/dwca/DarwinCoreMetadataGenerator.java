@@ -38,11 +38,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -59,8 +62,12 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
+import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.function.Consumer3;
+import org.jooq.lambda.function.Consumer4;
 import org.xml.sax.SAXException;
 
+import com.fasterxml.jackson.databind.SequenceWriter;
 import com.github.ansell.csv.stream.CSVStream;
 import com.github.ansell.csv.sum.CSVSummariser;
 import com.github.ansell.jdefaultdict.JDefaultDict;
@@ -121,6 +128,9 @@ public class DarwinCoreMetadataGenerator {
 		final OptionSpec<Boolean> matchCaseInsensitive = parser.accepts("match-case-insensitive").withRequiredArg()
 				.ofType(Boolean.class).defaultsTo(Boolean.FALSE)
 				.describedAs("Set to true to match terms against vocabularies without regard to case.");
+		final OptionSpec<File> checkMissingTerms = parser.accepts("missing-terms-report").withRequiredArg()
+				.ofType(File.class).describedAs(
+						"The file to write a report detailing which terms were missing or present, after possibly matching case-insensitively and using override headers/ala headers.");
 		final OptionSpec<Boolean> debug = parser.accepts("debug").withRequiredArg().ofType(Boolean.class)
 				.defaultsTo(Boolean.FALSE).describedAs("Set to true to debug.");
 
@@ -230,8 +240,30 @@ public class DarwinCoreMetadataGenerator {
 					overrideHeadersList.get(), headerLineCountInt);
 		}
 
-		generateMetadata(inputPath, outputPath, extensionPaths, showDefaultsBoolean, vocabMap,
-				overrideHeadersList.get(), coreIDIndex.value(options), matchCaseInsensitive.value(options));
+		List<String> missingTermsCsvFileHeaders = Arrays.asList("vocab", "term", "iris", "present");
+		final Writer missingTermsWriter;
+		if (options.has(checkMissingTerms)) {
+			missingTermsWriter = Files.newBufferedWriter(checkMissingTerms.value(options).toPath());
+		} else {
+			// If the user didn't specify a place to write missing terms, default to a noop
+			missingTermsWriter = new NullWriter();
+		}
+		try (final SequenceWriter missingTermsCsvWriter = CSVStream.newCSVWriter(missingTermsWriter,
+				missingTermsCsvFileHeaders);) {
+			final Consumer4<String, String, List<IRI>, Boolean> checkMissingTermsConsumer = (vocab, term, iris, present) -> {
+				try {
+					missingTermsCsvWriter.write(Arrays.asList(vocab, term,
+							iris.stream().map(IRI::stringValue).collect(Collectors.joining("|")), present.toString()));
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			};
+			generateMetadata(inputPath, outputPath, extensionPaths, showDefaultsBoolean, vocabMap,
+					overrideHeadersList.get(), coreIDIndex.value(options), matchCaseInsensitive.value(options),
+					checkMissingTermsConsumer, debugBoolean);
+		} finally {
+			missingTermsWriter.close();
+		}
 	}
 
 	public static Map<String, Map<String, List<IRI>>> getDefaultVocabularies() throws IOException {
@@ -263,8 +295,10 @@ public class DarwinCoreMetadataGenerator {
 	public static DarwinCoreArchiveDocument generateMetadata(final Path inputPath, final Path outputPath,
 			final List<Path> extensionPaths, final boolean showDefaults,
 			final Map<String, Map<String, List<IRI>>> vocabMap, final List<String> coreOverrideHeaders,
-			final int coreIDIndex, final boolean matchCaseInsensitive)
+			final int coreIDIndex, final boolean matchCaseInsensitive,
+			final Consumer4<String, String, List<IRI>, Boolean> checkMissingTermsConsumer, final boolean debugBoolean)
 			throws IOException, XMLStreamException, SAXException {
+		final Map<DarwinCoreCoreOrExtension, List<String>> extensionFields = new JDefaultDict<>(k -> new ArrayList<>());
 		final DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 		final DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
 		core.setRowType(DarwinCoreArchiveConstants.SIMPLE_DARWIN_RECORD);
@@ -292,6 +326,8 @@ public class DarwinCoreMetadataGenerator {
 
 		populateFields(coreHeaders, vocabMap, core, matchCaseInsensitive);
 
+		extensionFields.put(core, coreHeaders);
+
 		for (final Path nextExtensionPath : extensionPaths) {
 			final DarwinCoreCoreOrExtension nextExtension = DarwinCoreCoreOrExtension.newExtension();
 			nextExtension.setRowType(DarwinCoreArchiveConstants.MULTIMEDIA_RECORD);
@@ -313,6 +349,7 @@ public class DarwinCoreMetadataGenerator {
 			if (!nextExtension.getFields().isEmpty()) {
 				result.addExtension(nextExtension);
 			}
+			extensionFields.put(nextExtension, nextExtensionHeaders);
 		}
 
 		try (final Writer writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8,
@@ -323,6 +360,44 @@ public class DarwinCoreMetadataGenerator {
 		// Parse the result to make sure that it is valid
 		final DarwinCoreArchiveDocument archiveDocument = DarwinCoreArchiveChecker.parseMetadataXml(outputPath);
 		archiveDocument.checkConstraints();
+
+		// Check for terms that were present in the vocabularies we used, but
+		// were not in the resulting darwin core archive
+		// Useful for cases where a large number of terms are expected but not present
+		for (Entry<String, Map<String, List<IRI>>> nextVocab : vocabMap.entrySet()) {
+			if (debugBoolean) {
+				System.out.println("Checking vocab: " + nextVocab.getKey());
+			}
+			for (Entry<String, List<IRI>> nextVocabFields : nextVocab.getValue().entrySet()) {
+				Optional<DarwinCoreCoreOrExtension> matchedExtension = Optional.empty();
+				for (Entry<DarwinCoreCoreOrExtension, List<String>> nextExtensionHeadings : extensionFields
+						.entrySet()) {
+					if (nextExtensionHeadings.getValue().contains(nextVocabFields.getKey())) {
+						matchedExtension = Optional.of(nextExtensionHeadings.getKey());
+						break;
+					}
+				}
+				if (matchedExtension.isPresent()) {
+					if (debugBoolean) {
+						System.out.println("Found vocab field in core/extension: " + nextVocabFields.getKey() + " "
+								+ matchedExtension.get());
+					}
+				} else {
+					if (debugBoolean) {
+						System.out.println("Missing vocab field: " + nextVocabFields.getKey());
+					}
+					for (IRI nextVocabIRI : nextVocabFields.getValue()) {
+						if (debugBoolean) {
+							System.out.println("\twith IRI: " + nextVocabIRI);
+						}
+					}
+				}
+				// Pass this entry out to the consumer, including details of whether it was
+				// present or not
+				checkMissingTermsConsumer.accept(nextVocab.getKey(), nextVocabFields.getKey(), nextVocabFields.getValue(),
+						matchedExtension.isPresent());
+			}
+		}
 
 		return result;
 	}
@@ -339,13 +414,11 @@ public class DarwinCoreMetadataGenerator {
 	 * @param rdfFormat
 	 *            The RDF format that the vocabulary file is in.
 	 * @throws IOException
-	 *             If there is an IO exception accessing the file on the
-	 *             classpath.
+	 *             If there is an IO exception accessing the file on the classpath.
 	 * @throws RDFParseException
 	 *             If there is an exception while parsing the file as RDF.
 	 * @throws UnsupportedRDFormatException
-	 *             If the given RDF format does not have a parser on the
-	 *             classpath.
+	 *             If the given RDF format does not have a parser on the classpath.
 	 */
 	public static void parseRDF(String pathToVocab, String iriForVocab, Map<String, Map<String, List<IRI>>> vocabMap,
 			RDFFormat rdfFormat) throws IOException, RDFParseException, UnsupportedRDFormatException {
@@ -367,14 +440,14 @@ public class DarwinCoreMetadataGenerator {
 	 * @param headers
 	 *            The headers to use
 	 * @param vocabMap
-	 *            The map containing the vocabularies that will be used to map
-	 *            the field names to IRIs.
+	 *            The map containing the vocabularies that will be used to map the
+	 *            field names to IRIs.
 	 * @param coreOrExtension
-	 *            The core or extension representing the given file which we
-	 *            need to add the fields to.
+	 *            The core or extension representing the given file which we need to
+	 *            add the fields to.
 	 * @param matchCaseInsensitive
-	 *            If true, attempts to match terms to the vocabulary without
-	 *            regard to the case, defaults to false
+	 *            If true, attempts to match terms to the vocabulary without regard
+	 *            to the case, defaults to false
 	 * @throws IOException
 	 *             If there was an IO exception accessing the file
 	 */
