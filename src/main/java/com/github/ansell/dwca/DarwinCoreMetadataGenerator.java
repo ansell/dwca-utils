@@ -175,17 +175,17 @@ public class DarwinCoreMetadataGenerator {
 				CSVStream.parse(newBufferedReader, h -> {
 					alaHeadingsHeader.addAll(h);
 				}, (headerLine, line) -> {
-					String nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_DWC_NAME));
+					String nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_DWC_NAME)).trim();
 					// Backup for when the above is empty
-					if (nextHeadingDWCName.trim().isEmpty()) {
-						nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_REQUESTED_FIELD));
+					if (nextHeadingDWCName.isEmpty()) {
+						nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_REQUESTED_FIELD)).trim();
 					}
 					// Another backup for when the above are both empty
-					if (nextHeadingDWCName.trim().isEmpty()) {
-						nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_COLUMN_NAME));
+					if (nextHeadingDWCName.isEmpty()) {
+						nextHeadingDWCName = line.get(headerLine.indexOf(ALA_HEADING_COLUMN_NAME)).trim();
 					}
 
-					if (nextHeadingDWCName.trim().isEmpty()) {
+					if (nextHeadingDWCName.isEmpty()) {
 						throw new RuntimeException("Found a field with empty '" + ALA_HEADING_DWC_NAME + "', '"
 								+ ALA_HEADING_REQUESTED_FIELD + "', '" + ALA_HEADING_COLUMN_NAME + " raw line was: "
 								+ line);
