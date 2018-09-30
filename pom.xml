@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.ansell</groupId>
 		<artifactId>parentpom</artifactId>
-		<version>9</version>
+		<version>10</version>
 	</parent>
 
 	<groupId>com.github.ansell.dwca</groupId>
@@ -36,12 +36,12 @@
 	</developers>
 
 	<properties>
-		<httpclient.version>4.5.5</httpclient.version>
+		<httpclient.version>4.5.6</httpclient.version>
 		<httpcore.version>4.4.10</httpcore.version>
-		<jackson.version>2.9.6</jackson.version>
+		<jackson.version>2.9.7</jackson.version>
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.25</slf4j.version>
-		<rdf4j.version>2.2.4</rdf4j.version>
+		<rdf4j.version>2.3.2</rdf4j.version>
 		<schemagenerator.version>0.4.1</schemagenerator.version>
 	</properties>
 
@@ -238,8 +238,8 @@
 			</dependency>
 			<dependency>
 				<groupId>org.jooq</groupId>
-				<artifactId>jool</artifactId>
-				<version>0.9.12</version>
+				<artifactId>jool-java-8</artifactId>
+				<version>0.9.14</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -265,12 +265,12 @@
 			<dependency>
 				<groupId>com.github.jsonld-java</groupId>
 				<artifactId>jsonld-java</artifactId>
-				<version>0.12.0</version>
+				<version>0.12.1</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.jsonld-java</groupId>
 				<artifactId>jsonld-java</artifactId>
-				<version>0.12.0</version>
+				<version>0.12.1</version>
 				<type>test-jar</type>
 			</dependency>
 			<dependency>
@@ -331,7 +331,7 @@
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>23.6-jre</version>
+				<version>26.0-jre</version>
 			</dependency>
 			<dependency>
 				<groupId>com.spatial4j</groupId>
@@ -341,7 +341,27 @@
 			<dependency>
 				<groupId>org.mapdb</groupId>
 				<artifactId>mapdb</artifactId>
-				<version>1.0.9</version>
+				<version>3.0.7</version>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>2.22.0</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>1.2.3</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>1.2.3</version>
+			</dependency>
+			<dependency>
+				<groupId>cglib</groupId>
+				<artifactId>cglib</artifactId>
+				<version>3.2.8</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
