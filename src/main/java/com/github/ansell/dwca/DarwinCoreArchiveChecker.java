@@ -33,6 +33,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -340,7 +341,7 @@ public class DarwinCoreArchiveChecker {
 	public static void parseCoreOrExtensionSorted(final DarwinCoreCoreOrExtension coreOrExtension,
 			final Path metadataPath, final Consumer<Reader> parseFunction, boolean debug) throws IOException {
 		Function<DarwinCoreCoreOrExtension, Comparator<StringList>> comparator = core -> CSVSorter
-				.getComparator(Integer.parseInt(core.getIdOrCoreId()));
+				.getComparator(Arrays.asList(Integer.parseInt(core.getIdOrCoreId())));
 		parseCoreOrExtensionSorted(coreOrExtension, metadataPath, parseFunction, comparator, debug);
 	}
 
