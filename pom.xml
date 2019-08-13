@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.ansell</groupId>
 		<artifactId>parentpom</artifactId>
-		<version>10</version>
+		<version>12</version>
 	</parent>
 
 	<groupId>com.github.ansell.dwca</groupId>
@@ -38,6 +38,7 @@
 	<properties>
 		<httpclient.version>4.5.6</httpclient.version>
 		<httpcore.version>4.4.10</httpcore.version>
+		<jacksondatabind.version>2.9.9.2</jacksondatabind.version>
 		<jackson.version>2.9.9</jackson.version>
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.25</slf4j.version>
@@ -186,7 +187,7 @@
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
-				<version>${jackson.version}</version>
+				<version>${jacksondatabind.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
