@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.VFS;
 import org.jooq.lambda.Unchecked;
@@ -405,6 +406,12 @@ public class DarwinCoreArchiveChecker {
 	 *             If there is not exactly one file named either meta.xml or
 	 *             metadata.xml
 	 */
+	/**
+	 * @param inputPath
+	 * @param tempDir
+	 * @return
+	 * @throws IOException
+	 */
 	public static Path checkZip(Path inputPath, Path tempDir) throws IOException {
 		Path metadataPath = null;
 
@@ -416,12 +423,25 @@ public class DarwinCoreArchiveChecker {
 			throw new RuntimeException("No files in zip file: " + inputPath);
 		}
 
-		for (FileObject nextFile : children) {
+		metadataPath = copyChildrenRecursive(tempDir, metadataPath, children);
+
+		if (metadataPath == null) {
+			throw new IllegalStateException(
+					"Did not find a metadata file in ZIP file: " + inputPath.toAbsolutePath().toString());
+		}
+
+		return metadataPath;
+	}
+
+    private static Path copyChildrenRecursive(Path tempDir, Path metadataPath,
+            final FileObject[] children) throws IOException, FileSystemException {
+        for (FileObject nextFile : children) {
             String pathName = nextFile.getName().getPath();
             Path nextTempFile = tempDir.resolve("./" + pathName).toAbsolutePath().normalize();
             Files.createDirectories(nextTempFile.getParent());
 		    if(nextFile.isFolder()) {
 		        Files.createDirectories(nextTempFile.getFileName());
+		        copyChildrenRecursive(tempDir, metadataPath, nextFile.getChildren());
 		    } else if(nextFile.isFile()) {
     			try (InputStream in = nextFile.getContent().getInputStream();) {
     				String baseName = nextFile.getName().getBaseName();
@@ -439,14 +459,8 @@ public class DarwinCoreArchiveChecker {
     			}
 		    }
 		}
-
-		if (metadataPath == null) {
-			throw new IllegalStateException(
-					"Did not find a metadata file in ZIP file: " + inputPath.toAbsolutePath().toString());
-		}
-
-		return metadataPath;
-	}
+        return metadataPath;
+    }
 
 	/**
 	 * Checks that the folder given in inputPath contains a valid structure for
