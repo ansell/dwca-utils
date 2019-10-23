@@ -93,9 +93,16 @@ public class DarwinCoreArchiveCheckerTest {
 
 	private Path testMetadataXmlWithDefaultsSpecimensCsv;
 
+    private Path testMetadataXmlWithMissingFields;
+
+    private Path testMetadataXmlWithMissingFieldsFolder;
+
+    private Path testMetadataXmlWithMissingFieldsSpecimensCsv;
+
 	@Before
 	public void setUp() throws Exception {
 		testTempDir = tempDir.newFolder("dwca-check-temp").toPath();
+
 		testFile = tempDir.newFolder("dwca-check-input1").toPath().resolve("dwca-test.zip");
 		try (OutputStream out = Files.newOutputStream(testFile, StandardOpenOption.CREATE);
 				ZipOutputStream zipOut = new ZipOutputStream(out, StandardCharsets.UTF_8);) {
@@ -111,6 +118,7 @@ public class DarwinCoreArchiveCheckerTest {
 			zipOut.flush();
 			out.flush();
 		}
+		
 		testFile2 = tempDir.newFolder("dwca-check-input2").toPath().resolve("dwca-test2.zip");
 		try (OutputStream out = Files.newOutputStream(testFile2, StandardOpenOption.CREATE);
 				ZipOutputStream zipOut = new ZipOutputStream(out, StandardCharsets.UTF_8);) {
@@ -126,6 +134,7 @@ public class DarwinCoreArchiveCheckerTest {
 			zipOut.flush();
 			out.flush();
 		}
+		
 		testFileNoMetadata = tempDir.newFolder("dwca-check-input3").toPath().resolve("dwca-test-no-metadata.zip");
 		try (OutputStream out = Files.newOutputStream(testFileNoMetadata, StandardOpenOption.CREATE);
 				ZipOutputStream zipOut = new ZipOutputStream(out, StandardCharsets.UTF_8);) {
@@ -137,15 +146,17 @@ public class DarwinCoreArchiveCheckerTest {
 			zipOut.flush();
 			out.flush();
 		}
+		
 		testMetadataXmlFolder = tempDir.newFolder("dwca-check-unittest").toPath();
 		testMetadataXml = testMetadataXmlFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
 		testMetadataXmlSpecimensCsv = testMetadataXmlFolder.resolve("specimens.csv");
 		try (Writer out = Files.newBufferedWriter(testMetadataXml)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata.xml"), out, StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensCsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens.csv"), out, StandardCharsets.UTF_8);
 		}
+		
 		testMetadataXmlWithExtensionFolder = tempDir.newFolder("dwca-check-unittest-with-extensions").toPath();
 		testMetadataXmlWithExtension = testMetadataXmlWithExtensionFolder
 				.resolve(DarwinCoreArchiveChecker.METADATA_XML);
@@ -153,40 +164,56 @@ public class DarwinCoreArchiveCheckerTest {
 		testMetadataXmlTypesCsv = testMetadataXmlWithExtensionFolder.resolve("types.csv");
 		testMetadataXmlDistributionCsv = testMetadataXmlWithExtensionFolder.resolve("distribution.csv");
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithExtension)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/extensionMetadata.xml"), out, StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlWhalesTxt)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/whales.txt"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/whales.txt"), out, StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlTypesCsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/types.csv"), out, StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlDistributionCsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/distribution.csv"), out, StandardCharsets.UTF_8);
 		}
+		
 		testMetadataXmlTsvFolder = tempDir.newFolder("dwca-check-unittest-tsv").toPath();
 		Files.createDirectories(testMetadataXmlTsvFolder.resolve("subdir"));
 		testMetadataXmlTsv = testMetadataXmlTsvFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
 		testMetadataXmlSpecimensTsv = testMetadataXmlTsvFolder.resolve("subdir").resolve("specimens.tsv");
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlTsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/tsvmetadata.xml"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/tsvmetadata.xml"), out, StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlSpecimensTsv)) {
-			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/subdir/specimens.tsv"), out);
+			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/subdir/specimens.tsv"), out, StandardCharsets.UTF_8);
 		}
+		
 		testMetadataXmlWithDefaultsFolder = tempDir.newFolder("dwca-check-unittest-with-defaults").toPath();
 		testMetadataXmlWithDefaults = testMetadataXmlWithDefaultsFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
 		testMetadataXmlWithDefaultsSpecimensCsv = testMetadataXmlWithDefaultsFolder
 				.resolve("specimens-with-missing-counts.csv");
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithDefaults)) {
 			IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata-with-defaults.xml"),
-					out);
+					out, StandardCharsets.UTF_8);
 		}
 		try (Writer out = Files.newBufferedWriter(testMetadataXmlWithDefaultsSpecimensCsv)) {
 			IOUtils.copy(
 					this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens-with-missing-counts.csv"),
-					out);
+					out, StandardCharsets.UTF_8);
 		}
+
+        testMetadataXmlWithMissingFieldsFolder = tempDir.newFolder("dwca-check-unittest-with-missing-fields").toPath();
+        testMetadataXmlWithMissingFields = testMetadataXmlWithDefaultsFolder.resolve(DarwinCoreArchiveChecker.METADATA_XML);
+        testMetadataXmlWithMissingFieldsSpecimensCsv = testMetadataXmlWithDefaultsFolder
+                .resolve("specimens-with-missing-fields.csv");
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlWithDefaults)) {
+            IOUtils.copy(this.getClass().getResourceAsStream("/com/github/ansell/dwca/metadata-with-missing-fields.xml"),
+                    out, StandardCharsets.UTF_8);
+        }
+        try (Writer out = Files.newBufferedWriter(testMetadataXmlWithMissingFieldsSpecimensCsv)) {
+            IOUtils.copy(
+                    this.getClass().getResourceAsStream("/com/github/ansell/dwca/specimens-with-missing-fields.csv"),
+                    out, StandardCharsets.UTF_8);
+        }
 	}
 
 	/**
@@ -426,7 +453,7 @@ public class DarwinCoreArchiveCheckerTest {
 		assertEquals(0, testDocument.getExtensions().size());
 		assertNotNull(testDocument.getCore().getFiles());
 		assertEquals(1, testDocument.getCore().getFiles().getLocations().size());
-		assertEquals("./specimens-with-missing-counts.csv", testDocument.getCore().getFiles().getLocations().get(0));
+		assertEquals("./specimens.csv", testDocument.getCore().getFiles().getLocations().get(0));
 		assertEquals(3, testDocument.getCore().getFields().size());
 		for (DarwinCoreField field : testDocument.getCore().getFields()) {
 			assertTrue(field.getTerm().trim().length() > 0);
