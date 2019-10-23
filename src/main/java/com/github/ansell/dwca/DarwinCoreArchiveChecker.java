@@ -417,23 +417,27 @@ public class DarwinCoreArchiveChecker {
 		}
 
 		for (FileObject nextFile : children) {
-			try (InputStream in = nextFile.getContent().getInputStream();) {
-				String baseName = nextFile.getName().getBaseName();
-				String pathName = nextFile.getName().getPath();
-				Path nextTempFile = tempDir.resolve("./" + pathName).toAbsolutePath().normalize();
-				System.out.println("nextFile=" + nextFile.toString() + " baseName=" + baseName + " pathName=" + pathName
-						+ " nextTempFile=" + nextTempFile);
-				if (baseName.equalsIgnoreCase(METADATA_XML) || baseName.equalsIgnoreCase(META_XML)) {
-					if (metadataPath != null) {
-						throw new IllegalStateException("Duplicate metadata.xml files found in ZIP file: first="
-								+ metadataPath + " duplicate=" + baseName);
-					}
-					metadataPath = nextTempFile;
-				}
-
-				Files.createDirectories(nextTempFile.getParent());
-				Files.copy(in, nextTempFile);
-			}
+            String pathName = nextFile.getName().getPath();
+            Path nextTempFile = tempDir.resolve("./" + pathName).toAbsolutePath().normalize();
+            Files.createDirectories(nextTempFile.getParent());
+		    if(nextFile.isFolder()) {
+		        Files.createDirectories(nextTempFile.getFileName());
+		    } else if(nextFile.isFile()) {
+    			try (InputStream in = nextFile.getContent().getInputStream();) {
+    				String baseName = nextFile.getName().getBaseName();
+    				System.out.println("nextFile=" + nextFile.toString() + " baseName=" + baseName + " pathName=" + pathName
+    						+ " nextTempFile=" + nextTempFile);
+    				if (baseName.equalsIgnoreCase(METADATA_XML) || baseName.equalsIgnoreCase(META_XML)) {
+    					if (metadataPath != null) {
+    						throw new IllegalStateException("Duplicate metadata.xml files found in ZIP file: first="
+    								+ metadataPath + " duplicate=" + baseName);
+    					}
+    					metadataPath = nextTempFile;
+    				}
+    
+    				Files.copy(in, nextTempFile);
+    			}
+		    }
 		}
 
 		if (metadataPath == null) {
