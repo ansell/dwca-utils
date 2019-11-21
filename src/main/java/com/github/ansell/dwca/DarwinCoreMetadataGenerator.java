@@ -112,6 +112,7 @@ public class DarwinCoreMetadataGenerator {
 				.describedAs(
 						"The 0-based index of the column containing the primary key to be used for the core id field index")
 				.defaultsTo(0);
+		final OptionSpec<String> coreRowType = parser.accepts("core-row-type").withOptionalArg().ofType(String.class).defaultsTo("SimpleDarwinRecord").describedAs("The rowType to use for the core, either SimpleDarwinRecord or Occurrence");
 		final OptionSpec<Integer> headerLineCount = parser.accepts("header-line-count").withRequiredArg()
 				.ofType(Integer.class)
 				.describedAs(
@@ -177,7 +178,13 @@ public class DarwinCoreMetadataGenerator {
 		// Defaults to null, with any strings in the file overriding that
 		final AtomicReference<List<String>> overrideHeadersList = new AtomicReference<>();
 
-		if (options.has(alaHeadersFile)) {
+        String coreRowTypeURI = DarwinCoreArchiveConstants.SIMPLE_DARWIN_RECORD;
+        if (options.has(coreRowType)) {
+            if(coreRowType.value(options).equalsIgnoreCase("Occurrence")) {
+                coreRowTypeURI = DarwinCoreArchiveConstants.OCCURRENCE_RECORD;
+            }
+        }
+        if (options.has(alaHeadersFile)) {
 			try (final BufferedReader newBufferedReader = Files
 					.newBufferedReader(alaHeadersFile.value(options).toPath());) {
 				final List<String> alaHeadingsHeader = new ArrayList<>();
@@ -258,9 +265,9 @@ public class DarwinCoreMetadataGenerator {
 					throw new RuntimeException(e);
 				}
 			};
-			generateMetadata(inputPath, outputPath, extensionPaths, showDefaultsBoolean, vocabMap,
+            generateMetadata(inputPath, outputPath, extensionPaths, showDefaultsBoolean, vocabMap,
 					overrideHeadersList.get(), coreIDIndex.value(options), matchCaseInsensitive.value(options),
-					checkMissingTermsConsumer, debugBoolean);
+					checkMissingTermsConsumer, debugBoolean, coreRowTypeURI);
 		} finally {
 			missingTermsWriter.close();
 		}
@@ -296,12 +303,12 @@ public class DarwinCoreMetadataGenerator {
 			final List<Path> extensionPaths, final boolean showDefaults,
 			final Map<String, Map<String, List<IRI>>> vocabMap, final List<String> coreOverrideHeaders,
 			final int coreIDIndex, final boolean matchCaseInsensitive,
-			final Consumer4<String, String, List<IRI>, Boolean> checkMissingTermsConsumer, final boolean debugBoolean)
+			final Consumer4<String, String, List<IRI>, Boolean> checkMissingTermsConsumer, final boolean debugBoolean, String coreRowTypeURI)
 			throws IOException, XMLStreamException, SAXException {
 		final Map<DarwinCoreCoreOrExtension, List<String>> extensionFields = new JDefaultDict<>(k -> new ArrayList<>());
 		final DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 		final DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
-		core.setRowType(DarwinCoreArchiveConstants.SIMPLE_DARWIN_RECORD);
+		core.setRowType(coreRowTypeURI);
 		core.setIdOrCoreId(Integer.toString(coreIDIndex));
 		core.setIgnoreHeaderLines(1);
 		core.setLinesTerminatedBy("\n");

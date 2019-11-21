@@ -64,6 +64,7 @@ public final class DarwinCoreArchiveConstants {
 	public static final String DELIMITED_BY = "delimitedBy";
 	public static final String SIMPLE_DARWIN_RECORD = "http://rs.tdwg.org/dwc/xsd/simpledarwincore/SimpleDarwinRecord";
 	public static final String MULTIMEDIA_RECORD = "http://rs.gbif.org/terms/1.0/Multimedia";
+    public static final String OCCURRENCE_RECORD = "http://rs.tdwg.org/dwc/terms/Occurrence";
 
 	/**
 	 * Private constructor for static-only class.
