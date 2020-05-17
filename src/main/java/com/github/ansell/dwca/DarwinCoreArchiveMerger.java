@@ -595,8 +595,8 @@ public class DarwinCoreArchiveMerger {
 	 */
 	private static void canArchivesBeMergedDirectly(DarwinCoreArchiveDocument inputArchiveDocument,
 			DarwinCoreArchiveDocument otherInputArchiveDocument) {
-		System.out.println("coreId: input=" + inputArchiveDocument.getCore().getIdOrCoreId() + " other="
-				+ otherInputArchiveDocument.getCore().getIdOrCoreId());
+		//System.out.println("coreId: input=" + inputArchiveDocument.getCore().getIdOrCoreId() + " other="
+		//		+ otherInputArchiveDocument.getCore().getIdOrCoreId());
 		if (inputArchiveDocument.getCore().getIdOrCoreId() == null
 				|| otherInputArchiveDocument.getCore().getIdOrCoreId() == null) {
 			throw new IllegalStateException("Both archives need to have the core id field defined to be merged");

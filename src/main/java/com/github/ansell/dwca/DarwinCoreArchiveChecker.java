@@ -342,7 +342,7 @@ public class DarwinCoreArchiveChecker {
 	public static void parseCoreOrExtensionSorted(final DarwinCoreCoreOrExtension coreOrExtension,
 			final Path metadataPath, final Consumer<Reader> parseFunction, boolean debug) throws IOException {
 		Function<DarwinCoreCoreOrExtension, Comparator<StringList>> comparator = core -> CSVSorter
-				.getComparator(Arrays.asList(Integer.parseInt(core.getIdOrCoreId())));
+				.getComparator(Arrays.asList(Integer.parseInt(core.getIdOrCoreId() == null ? "0" : core.getIdOrCoreId())));
 		parseCoreOrExtensionSorted(coreOrExtension, metadataPath, parseFunction, comparator, debug);
 	}
 

@@ -116,7 +116,7 @@ public class DarwinCoreMetadataGeneratorTest {
 	@Test
 	public final void testMainExtension() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
-				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString());
+				testMetadataXml.toAbsolutePath().toString(), "--core-id", "0", "--extension", testExtension.toAbsolutePath().toString());
 		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
 			DarwinCoreArchiveDocument archiveDocument = DarwinCoreMetadataSaxParser.parse(input);
@@ -133,7 +133,7 @@ public class DarwinCoreMetadataGeneratorTest {
 	@Test
 	public final void testMainMultipleExtensions() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
-				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString(),
+				testMetadataXml.toAbsolutePath().toString(), "--core-id", "0", "--extension", testExtension.toAbsolutePath().toString(),
 				"--extension", testExtension2.toAbsolutePath().toString());
 		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {
@@ -151,7 +151,7 @@ public class DarwinCoreMetadataGeneratorTest {
 	@Test
 	public final void testMainMultipleExtensionsShowDefaults() throws Exception {
 		DarwinCoreMetadataGenerator.main("--input", testFile.toAbsolutePath().toString(), "--output",
-				testMetadataXml.toAbsolutePath().toString(), "--extension", testExtension.toAbsolutePath().toString(),
+				testMetadataXml.toAbsolutePath().toString(), "--core-id", "0", "--extension", testExtension.toAbsolutePath().toString(),
 				"--extension", testExtension2.toAbsolutePath().toString(), "--show-defaults", "true");
 		Files.readAllLines(testMetadataXml, StandardCharsets.UTF_8).forEach(System.out::println);
 		try (Reader input = Files.newBufferedReader(testMetadataXml);) {

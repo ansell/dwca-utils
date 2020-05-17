@@ -184,6 +184,13 @@ public class DarwinCoreMetadataGenerator {
                 coreRowTypeURI = DarwinCoreArchiveConstants.OCCURRENCE_RECORD;
             }
         }
+        final Integer coreIdIndexValue;
+        if(options.has(coreIDIndex)) {
+            coreIdIndexValue = coreIDIndex.value(options);
+        } else {
+            coreIdIndexValue = null;
+        }
+
         if (options.has(alaHeadersFile)) {
 			try (final BufferedReader newBufferedReader = Files
 					.newBufferedReader(alaHeadersFile.value(options).toPath());) {
@@ -266,7 +273,7 @@ public class DarwinCoreMetadataGenerator {
 				}
 			};
             generateMetadata(inputPath, outputPath, extensionPaths, showDefaultsBoolean, vocabMap,
-					overrideHeadersList.get(), coreIDIndex.value(options), matchCaseInsensitive.value(options),
+					overrideHeadersList.get(), coreIdIndexValue, matchCaseInsensitive.value(options),
 					checkMissingTermsConsumer, debugBoolean, coreRowTypeURI);
 		} finally {
 			missingTermsWriter.close();
@@ -302,14 +309,16 @@ public class DarwinCoreMetadataGenerator {
 	public static DarwinCoreArchiveDocument generateMetadata(final Path inputPath, final Path outputPath,
 			final List<Path> extensionPaths, final boolean showDefaults,
 			final Map<String, Map<String, List<IRI>>> vocabMap, final List<String> coreOverrideHeaders,
-			final int coreIDIndex, final boolean matchCaseInsensitive,
+			final Integer coreIDIndex, final boolean matchCaseInsensitive,
 			final Consumer4<String, String, List<IRI>, Boolean> checkMissingTermsConsumer, final boolean debugBoolean, String coreRowTypeURI)
 			throws IOException, XMLStreamException, SAXException {
 		final Map<DarwinCoreCoreOrExtension, List<String>> extensionFields = new JDefaultDict<>(k -> new ArrayList<>());
 		final DarwinCoreArchiveDocument result = new DarwinCoreArchiveDocument();
 		final DarwinCoreCoreOrExtension core = DarwinCoreCoreOrExtension.newCore();
 		core.setRowType(coreRowTypeURI);
-		core.setIdOrCoreId(Integer.toString(coreIDIndex));
+		if (coreIDIndex != null) {
+		    core.setIdOrCoreId(Integer.toString(coreIDIndex));
+		}
 		core.setIgnoreHeaderLines(1);
 		core.setLinesTerminatedBy("\n");
 		core.setFieldsTerminatedBy(",");
