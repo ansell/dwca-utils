@@ -39,7 +39,7 @@
 		<httpclient.version>4.5.8</httpclient.version>
 		<httpcore.version>4.4.10</httpcore.version>
 		<jacksondatabind.version>2.10.0</jacksondatabind.version>
-		<jackson.version>2.10.0</jackson.version>
+		<jackson.version>2.12.6.1</jackson.version>
 		<junit.version>4.12</junit.version>
 		<slf4j.version>1.7.25</slf4j.version>
 		<spring.version>5.1.0.RELEASE</spring.version>
